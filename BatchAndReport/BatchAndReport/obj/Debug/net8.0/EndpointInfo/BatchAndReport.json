@@ -1,0 +1,31 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "BatchAndReport",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/Job/run": {
+      "post": {
+        "tags": [
+          "Job"
+        ],
+        "parameters": [
+          {
+            "name": "jobName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": { }
+}

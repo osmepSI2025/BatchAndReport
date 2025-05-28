@@ -1,0 +1,18 @@
+[
+  {
+    "ContainingType": "BatchAndReport.Controllers.JobController",
+    "Method": "RunJob",
+    "RelativePath": "api/Job/run",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "jobName",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  }
+]
