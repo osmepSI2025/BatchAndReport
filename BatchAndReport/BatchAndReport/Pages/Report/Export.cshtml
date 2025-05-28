@@ -1,0 +1,9 @@
+@page
+@model BatchAndReport.Pages.Report.ExportModel
+
+<h2>Export Report</h2>
+<ul>
+    <li><a asp-page-handler="Pdf" asp-route="" href="../report/export?handler=Pdf">Export PDF</a></li>
+    <li><a asp-page-handler="Word" asp-route="" href="../report/export?handler=Word">Export Word</a></li>
+    <li><a asp-page-handler="Excel" asp-route="" href="../report/export?handler=Excel">Export Excel</a></li>
+</ul>

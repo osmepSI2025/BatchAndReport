@@ -1,0 +1,187 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|d:\\git_project\\sme_apimanagement\\code_batchandreport\\batchandreport\\batchandreport\\controllers\\jobcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|solutionrelative:batchandreport\\controllers\\jobcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|d:\\git_project\\sme_apimanagement\\code_batchandreport\\batchandreport\\batchandreport\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|solutionrelative:batchandreport\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|d:\\git_project\\sme_apimanagement\\code_batchandreport\\batchandreport\\batchandreport\\service\\scheduledjobservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|solutionrelative:batchandreport\\service\\scheduledjobservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|d:\\git_project\\sme_apimanagement\\code_batchandreport\\batchandreport\\batchandreport\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|solutionrelative:batchandreport\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|d:\\git_project\\sme_apimanagement\\code_batchandreport\\batchandreport\\batchandreport\\pages\\report\\export.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|solutionrelative:batchandreport\\pages\\report\\export.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|d:\\git_project\\sme_apimanagement\\code_batchandreport\\batchandreport\\batchandreport\\pages\\report\\export.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|solutionrelative:batchandreport\\pages\\report\\export.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|d:\\git_project\\sme_apimanagement\\code_batchandreport\\batchandreport\\batchandreport\\batchandreport.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|solutionrelative:batchandreport\\batchandreport.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|d:\\git_project\\sme_apimanagement\\code_batchandreport\\batchandreport\\batchandreport\\entities\\batchdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|solutionrelative:batchandreport\\entities\\batchdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|d:\\git_project\\sme_apimanagement\\code_batchandreport\\batchandreport\\batchandreport\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6214C475-34F4-4A14-907A-91A8FCD85EB5}|BatchAndReport\\BatchAndReport.csproj|solutionrelative:batchandreport\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\.nuget\\packages\\epplus\\7.7.2\\readme.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Export.cshtml.cs",
+              "DocumentMoniker": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Pages\\Report\\Export.cshtml.cs",
+              "RelativeDocumentMoniker": "BatchAndReport\\Pages\\Report\\Export.cshtml.cs",
+              "ToolTip": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Pages\\Report\\Export.cshtml.cs",
+              "RelativeToolTip": "BatchAndReport\\Pages\\Report\\Export.cshtml.cs",
+              "ViewState": "AgIAAC4AAAAAAAAAAAAYwGgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T03:23:46.83Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ScheduledJobService.cs",
+              "DocumentMoniker": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Service\\ScheduledJobService.cs",
+              "RelativeDocumentMoniker": "BatchAndReport\\Service\\ScheduledJobService.cs",
+              "ToolTip": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Service\\ScheduledJobService.cs",
+              "RelativeToolTip": "BatchAndReport\\Service\\ScheduledJobService.cs",
+              "ViewState": "AgIAABcAAAAAAAAAAAAUwB0AAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:37.104Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "JobController.cs",
+              "DocumentMoniker": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Controllers\\JobController.cs",
+              "RelativeDocumentMoniker": "BatchAndReport\\Controllers\\JobController.cs",
+              "ToolTip": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Controllers\\JobController.cs",
+              "RelativeToolTip": "BatchAndReport\\Controllers\\JobController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:22.738Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "BatchDBContext.cs",
+              "DocumentMoniker": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Entities\\BatchDBContext.cs",
+              "RelativeDocumentMoniker": "BatchAndReport\\Entities\\BatchDBContext.cs",
+              "ToolTip": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Entities\\BatchDBContext.cs",
+              "RelativeToolTip": "BatchAndReport\\Entities\\BatchDBContext.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAYwBkAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:36:17.31Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "HomeController.cs",
+              "DocumentMoniker": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Controllers\\HomeController.cs",
+              "RelativeDocumentMoniker": "BatchAndReport\\Controllers\\HomeController.cs",
+              "ToolTip": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Controllers\\HomeController.cs",
+              "RelativeToolTip": "BatchAndReport\\Controllers\\HomeController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T04:20:03.173Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\appsettings.json",
+              "RelativeDocumentMoniker": "BatchAndReport\\appsettings.json",
+              "ToolTip": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\appsettings.json",
+              "RelativeToolTip": "BatchAndReport\\appsettings.json",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAYAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-28T03:43:07.143Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "readme.txt",
+              "DocumentMoniker": "C:\\Users\\Admin\\.nuget\\packages\\epplus\\7.7.2\\readme.txt",
+              "ToolTip": "C:\\Users\\Admin\\.nuget\\packages\\epplus\\7.7.2\\readme.txt",
+              "ViewState": "AgIAABkAAAAAAAAAAABBwCsAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2025-05-28T03:42:49.201Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Export.cshtml",
+              "DocumentMoniker": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Pages\\Report\\Export.cshtml",
+              "RelativeDocumentMoniker": "BatchAndReport\\Pages\\Report\\Export.cshtml",
+              "ToolTip": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Pages\\Report\\Export.cshtml",
+              "RelativeToolTip": "BatchAndReport\\Pages\\Report\\Export.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-28T03:22:34.635Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "BatchAndReport",
+              "DocumentMoniker": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\BatchAndReport.csproj",
+              "RelativeDocumentMoniker": "BatchAndReport\\BatchAndReport.csproj",
+              "ToolTip": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\BatchAndReport.csproj",
+              "RelativeToolTip": "BatchAndReport\\BatchAndReport.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-05-28T02:41:36.846Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Program.cs",
+              "RelativeDocumentMoniker": "BatchAndReport\\Program.cs",
+              "ToolTip": "D:\\Git_project\\SME_APIManagement\\Code_BatchAndReport\\BatchAndReport\\BatchAndReport\\Program.cs",
+              "RelativeToolTip": "BatchAndReport\\Program.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAewBUAAABJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T01:12:49.7Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
