@@ -1,4 +1,6 @@
 ﻿using BatchAndReport.Entities;
+using BatchAndReport.Repository;
+using BatchAndReport.Services;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
 
@@ -18,6 +20,10 @@ builder.Services.AddDbContext<BatchDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Register ScheduledJobService as a singleton and hosted service
+builder.Services.AddScoped<IApiInformationRepository, ApiInformationRepository>();
+builder.Services.AddScoped<ICallAPIService, CallAPIService>();
+builder.Services.AddHttpClient<ICallAPIService, CallAPIService>();
+
 builder.Services.AddSingleton<ScheduledJobService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
 

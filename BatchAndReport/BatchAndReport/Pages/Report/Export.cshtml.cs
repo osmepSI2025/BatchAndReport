@@ -14,7 +14,7 @@ namespace BatchAndReport.Pages.Report
     {
         public IActionResult OnGetPdf()
         {
-            var wordDAO = new WordDAO(); // Create an instance of WordDAO
+            var wordDAO = new WordToPDFDAO(); // Create an instance of WordDAO
           var Resultpdf  =  wordDAO.OnGetPdfWithInterop(); // Call the method on the instance
             return Resultpdf; // Return an empty result since the PDF is handled in WordDAO
         }
