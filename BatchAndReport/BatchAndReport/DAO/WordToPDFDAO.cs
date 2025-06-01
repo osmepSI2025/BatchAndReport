@@ -4,7 +4,7 @@ using Spire.Doc;
 
 namespace BatchAndReport.DAO
 {
-    public class WordDAO : Controller // Added inheritance from Controller to fix CS0103
+    public class WordToPDFDAO : Controller // Added inheritance from Controller to fix CS0103
     {
         public IActionResult OnGetPdfWithInterop()
         {
