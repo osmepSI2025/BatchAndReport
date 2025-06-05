@@ -66,14 +66,36 @@ namespace BatchAndReport.Controllers
 
                 var result = await _serviceApi.GetDataApiAsync(apiParam, smodel);
 
-                var employees = JsonSerializer.Deserialize<List<MEmployeeModels>>(result.ToString());
+                var employees = JsonSerializer.Deserialize<ApiListEmployeeResponse>(result.ToString());
 
                 if (employees == null)
                     return BadRequest("Cannot deserialize employee data");
+                // Map EmployeeResult to MEmployeeModels
+              var xdata = new List<MEmployeeModels>();
+                xdata = employees.Results.Select(emp => new MEmployeeModels
+                {
+                    EmployeeId = emp.EmployeeId,
+                    EmployeeCode = emp.EmployeeCode,
+                    NameTh = emp.NameTh,
+                    NameEn = emp.NameEn,
+                    FirstNameTh = emp.FirstNameTh,
+                    FirstNameEn = emp.FirstNameEn,
+                    LastNameTh = emp.LastNameTh,
+                    LastNameEn = emp.LastNameEn,
+                    Email = emp.Email,
+                    Mobile = emp.Mobile,
+                    EmploymentDate = emp.EmploymentDate,
+                    TerminationDate = emp.TerminationDate,
+                    EmployeeType = emp.EmployeeType,
+                    EmployeeStatus = emp.EmployeeStatus,
+                    SupervisorId = emp.SupervisorId,
+                    CompanyId = emp.CompanyId,
+                    BusinessUnitId = emp.BusinessUnitId,
+                    PositionId = emp.PositionId
+                }).ToList();
+                await InsertOrUpdateEmployeesAsync(xdata);
 
-                await InsertOrUpdateEmployeesAsync(employees);
-
-                return Ok(new { message = "Sync and Save Complete", total = employees.Count });
+                return Ok(new { message = "Sync and Save Complete", total = employees.Results.ToList().Count });
             }
             catch (Exception ex)
             {
