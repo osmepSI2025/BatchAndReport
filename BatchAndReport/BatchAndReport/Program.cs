@@ -19,6 +19,12 @@ QuestPDF.Settings.License = LicenseType.Community;
 builder.Services.AddDbContext<BatchDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
+// Inside the builder.Services section:
+builder.Services.AddDbContext<K2DBContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("K2DBContext")));
+
+
 // Register ScheduledJobService as a singleton and hosted service
 builder.Services.AddScoped<IApiInformationRepository, ApiInformationRepository>();
 builder.Services.AddScoped<ICallAPIService, CallAPIService>();

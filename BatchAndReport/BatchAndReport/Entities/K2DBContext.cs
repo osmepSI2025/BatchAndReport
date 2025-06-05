@@ -11,7 +11,7 @@ public partial class K2DBContext : DbContext
     {
     }
 
-    public K2DBContext(DbContextOptions<BatchDBContext> options)
+    public K2DBContext(DbContextOptions<K2DBContext> options)
         : base(options)
     {
     }
