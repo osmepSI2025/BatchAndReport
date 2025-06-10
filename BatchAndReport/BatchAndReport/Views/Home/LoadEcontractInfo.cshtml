@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "เรียกข้อมูล Employee Contract";
+}
+
+<h2>เรียกข้อมูล Employee Contract จาก API</h2>
+
+<div class="mb-3">
+    <label for="employmentDate" class="form-label">Employment Date (YYYY-MM-DD):</label>
+    <input type="date" id="employmentDate" class="form-control" value="2022-10-03" />
+</div>
+
+<button id="btnCallApiContract" class="btn btn-primary">เรียก API</button>
+
+<div id="resultContract" style="margin-top: 20px; white-space: pre-wrap; font-family: monospace;"></div>
+
+@section Scripts {
+    <script>
+        document.getElementById("btnCallApiContract").addEventListener("click", async function () {
+            const employmentDate = document.getElementById("employmentDate").value;
+            const url = `/api/Econtract/GetEmpContract?employmentDate=${encodeURIComponent(employmentDate)}`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                let data;
+                try { data = await response.json(); } catch { data = null; }
+                if (!response.ok) {
+                    document.getElementById("resultContract").innerText =
+                        "❌ ERROR: " + response.status + "\n" +
+                        (data ? JSON.stringify(data, null, 2) : "No error details.");
+                    return;
+                }
+                document.getElementById("resultContract").innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById("resultContract").innerText = "❌ ERROR: " + error.message;
+            }
+        });
+    </script>
+}

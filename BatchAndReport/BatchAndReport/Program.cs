@@ -1,4 +1,5 @@
-﻿using BatchAndReport.Entities;
+﻿using BatchAndReport.DAO;
+using BatchAndReport.Entities;
 using BatchAndReport.Repository;
 using BatchAndReport.Services;
 using Microsoft.EntityFrameworkCore;
@@ -24,10 +25,24 @@ builder.Services.AddDbContext<BatchDBContext>(options =>
 builder.Services.AddDbContext<K2DBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("K2DBContext")));
 
+// Inside the builder.Services section:
+builder.Services.AddDbContext<K2DBContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("K2DBContext_SME")));
+
+// Inside the builder.Services section:
+builder.Services.AddDbContext<K2DBContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("K2DBContext_Workflow")));
+
+// Inside the builder.Services section:
+builder.Services.AddDbContext<K2DBContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("K2DBContext_EContract")));
+
 
 // Register ScheduledJobService as a singleton and hosted service
 builder.Services.AddScoped<IApiInformationRepository, ApiInformationRepository>();
 builder.Services.AddScoped<ICallAPIService, CallAPIService>();
+builder.Services.AddScoped<SqlConnectionDAO>();
+builder.Services.AddScoped<HrDAO>();
 builder.Services.AddHttpClient<ICallAPIService, CallAPIService>();
 
 builder.Services.AddSingleton<ScheduledJobService>();

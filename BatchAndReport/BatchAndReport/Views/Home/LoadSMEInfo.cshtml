@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "เรียกข้อมูล SME";
+}
+
+<h2>เรียกข้อมูลโครงการจาก API</h2>
+<button id="btnCallApiProject" class="btn btn-primary">เรียก API</button>
+<div id="resultProject" style="margin-top: 20px; white-space: pre-wrap; font-family: monospace;"></div>
+
+@section Scripts {
+    <script>
+        document.getElementById("btnCallApiProject").addEventListener("click", async function () {
+            const page = 1;
+            const perPage = 10;
+            const url = `/api/Sme/GetSME_Project?page=${page}&perPage=${perPage}`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                let data;
+                try { data = await response.json(); } catch { data = null; }
+                if (!response.ok) {
+                    document.getElementById("resultProject").innerText =
+                        "❌ ERROR: " + response.status + "\n" +
+                        (data ? JSON.stringify(data, null, 2) : "No error details.");
+                    return;
+                }
+                document.getElementById("resultProject").innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById("resultProject").innerText = "❌ ERROR: " + error.message;
+            }
+        });
+    </script>
+}

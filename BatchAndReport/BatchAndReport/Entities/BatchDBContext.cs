@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using BatchAndReport.Models;
 using Microsoft.EntityFrameworkCore;
-
+using System;
+using System.Collections.Generic;
 namespace BatchAndReport.Entities;
+
 
 public partial class BatchDBContext : DbContext
 {
@@ -77,6 +78,7 @@ public partial class BatchDBContext : DbContext
                 .HasMaxLength(150)
                 .UseCollation("Thai_CI_AS");
         });
+
 
         OnModelCreatingPartial(modelBuilder);
     }

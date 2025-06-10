@@ -27,7 +27,14 @@ namespace BatchAndReport.Controllers
         {
             return View();
         }
-
+        public IActionResult LoadSMEInfo()
+        {
+            return View();
+        }
+        public IActionResult LoadEcontractInfo()
+        {
+            return View();
+        }
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

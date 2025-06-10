@@ -1,21 +1,22 @@
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 
 namespace BatchAndReport.DAO
 {
     public class SqlConnectionDAO
     {
-        private readonly string _connectionString;
+        private readonly IConfiguration _configuration;
 
         public SqlConnectionDAO(IConfiguration configuration)
         {
-            // "DefaultConnection" should match your connection string name in appsettings.json
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _configuration = configuration;
         }
 
-        public SqlConnection GetConnection()
+        // เลือก connection ตามชื่อ (ที่กำหนดไว้ใน appsettings.json)
+        public SqlConnection GetConnection(string connectionName = "DefaultConnection")
         {
-            return new SqlConnection(_connectionString);
+            var connectionString = _configuration.GetConnectionString(connectionName);
+            return new SqlConnection(connectionString);
         }
     }
 }

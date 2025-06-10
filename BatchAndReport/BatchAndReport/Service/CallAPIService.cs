@@ -1,6 +1,7 @@
 ﻿using BatchAndReport.Models;
 
 using BatchAndReport.Repository;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Text;
@@ -318,6 +319,246 @@ namespace BatchAndReport.Services
             }
         }
 
-        
+        public async Task<string> GetDataByParamApiAsync(MapiInformationModels apiModels, string typeValue)
+        {
+            string requestJson = "";
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+
+            try
+            {
+                using var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                };
+
+                using var httpClient = new HttpClient(handler);
+
+                // Construct URL
+                var url = apiModels.Urlproduction ?? throw new Exception("URL is missing.");
+                if (url.Contains("{EmpId}"))
+                {
+                    url = url.Replace("{EmpId}", typeValue);
+                }
+
+                if (url.Contains("{BudYear}"))
+                {
+                    url = url.Replace("{BudYear}", typeValue);
+                }
+
+                requestJson = url;
+
+                // Create request
+                var request = new HttpRequestMessage(
+                    apiModels.MethodType == "POST" ? HttpMethod.Post : HttpMethod.Get,
+                    requestJson
+                );
+
+                // Set Authorization Headers
+                if (apiModels.AuthorizationType == "Basic")
+                {
+                    var byteArray = System.Text.Encoding.ASCII.GetBytes($"{apiModels.Username}:{apiModels.Password}");
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                }
+                else if (apiModels.AuthorizationType == "Bearer")
+                {
+                    string? token = apiModels.Bearer;
+
+                    // Check if token is expired
+                    if (!string.IsNullOrEmpty(token) && IsTokenExpired(token))
+                    {
+                        var LApi = await _repositoryApi.GetAllAsync(new MapiInformationModels { ServiceNameCode = "user-api" });
+
+                        var apiParamx = LApi.Select(x => new MapiInformationModels
+                        {
+                            ServiceNameCode = x.ServiceNameCode,
+                            ApiKey = x.ApiKey,
+                            AuthorizationType = x.AuthorizationType,
+                            ContentType = x.ContentType,
+                            CreateDate = x.CreateDate,
+                            Id = x.Id,
+                            MethodType = x.MethodType,
+                            ServiceNameTh = x.ServiceNameTh,
+                            Urldevelopment = x.Urldevelopment,
+                            Urlproduction = x.Urlproduction,
+                            Username = x.Username,
+                            Password = x.Password,
+                            UpdateDate = x.UpdateDate,
+                            Bearer = x.Bearer,
+                        }).FirstOrDefault(); // Use FirstOrDefault to handle empty lists
+
+
+                        var result = await GetDataApiAsync_Login(apiParamx);
+                        token = result;
+                    }
+
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        throw new Exception("Bearer token is missing or expired.");
+                    }
+
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                }
+                else if (apiModels.AuthorizationType == "ApiKey")
+                {
+                    request.Headers.Add("X-Api-Key", apiModels.ApiKey);
+                }
+                else
+                {
+                    throw new Exception("Authorization type not supported");
+                }
+
+                // Send Request
+                var response = await httpClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var jsonNode = JsonNode.Parse(content);
+
+
+                return jsonNode?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}";
+            }
+            catch (Exception ex)
+            {
+                var errorLog = new ErrorLogModels
+                {
+                    Message = "Function " + apiModels.ServiceNameTh + " " + ex.Message,
+                    StackTrace = ex.StackTrace,
+                    Source = ex.Source,
+                    TargetSite = ex.TargetSite?.ToString(),
+                    ErrorDate = DateTime.Now,
+                    UserName = apiModels.Username, // ดึงจาก context หรือ session
+                    Path = apiModels.Urlproduction,
+                    HttpMethod = apiModels.MethodType,
+                    RequestData = requestJson, // serialize เป็น JSON
+                    InnerException = ex.InnerException?.ToString(),
+                    SystemCode = Api_SysCode,
+                    CreatedBy = "system"
+
+                };
+                await RecErrorLogApiAsync(apiModels, errorLog);
+                throw new Exception("Error in GetData: " + ex.Message + " | Inner Exception: " + ex.InnerException?.Message);
+            }
+        }
+
+        public async Task<string> GetDataEmpMovementApiAsync(MapiInformationModels apiModels, string EmpId)
+        {
+            string requestJson = "";
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+
+            try
+            {
+                using var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                };
+
+                using var httpClient = new HttpClient(handler);
+
+                // Construct URL
+                var url = apiModels.Urlproduction ?? throw new Exception("URL is missing.");
+                url = url.Replace("{EmpId}", EmpId);
+                
+
+                requestJson = url;
+
+                // Create request
+                var request = new HttpRequestMessage(
+                    apiModels.MethodType == "POST" ? HttpMethod.Post : HttpMethod.Get,
+                    requestJson
+                );
+
+                // Set Authorization Headers
+                if (apiModels.AuthorizationType == "Basic")
+                {
+                    var byteArray = System.Text.Encoding.ASCII.GetBytes($"{apiModels.Username}:{apiModels.Password}");
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                }
+                else if (apiModels.AuthorizationType == "Bearer")
+                {
+                    string? token = apiModels.Bearer;
+
+                    // Check if token is expired
+                    if (!string.IsNullOrEmpty(token) && IsTokenExpired(token))
+                    {
+                        var LApi = await _repositoryApi.GetAllAsync(new MapiInformationModels { ServiceNameCode = "user-api" });
+
+                        var apiParamx = LApi.Select(x => new MapiInformationModels
+                        {
+                            ServiceNameCode = x.ServiceNameCode,
+                            ApiKey = x.ApiKey,
+                            AuthorizationType = x.AuthorizationType,
+                            ContentType = x.ContentType,
+                            CreateDate = x.CreateDate,
+                            Id = x.Id,
+                            MethodType = x.MethodType,
+                            ServiceNameTh = x.ServiceNameTh,
+                            Urldevelopment = x.Urldevelopment,
+                            Urlproduction = x.Urlproduction,
+                            Username = x.Username,
+                            Password = x.Password,
+                            UpdateDate = x.UpdateDate,
+                            Bearer = x.Bearer,
+                        }).FirstOrDefault(); // Use FirstOrDefault to handle empty lists
+
+
+                        var result = await GetDataApiAsync_Login(apiParamx);
+                        token = result;
+                    }
+
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        throw new Exception("Bearer token is missing or expired.");
+                    }
+
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                }
+                else if (apiModels.AuthorizationType == "ApiKey")
+                {
+                    request.Headers.Add("X-Api-Key", apiModels.ApiKey);
+                }
+                else
+                {
+                    throw new Exception("Authorization type not supported");
+                }
+
+                // Send Request
+                var response = await httpClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var jsonNode = JsonNode.Parse(content);
+
+
+                return jsonNode?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}";
+            }
+            catch (Exception ex)
+            {
+                var errorLog = new ErrorLogModels
+                {
+                    Message = "Function " + apiModels.ServiceNameTh + " " + ex.Message,
+                    StackTrace = ex.StackTrace,
+                    Source = ex.Source,
+                    TargetSite = ex.TargetSite?.ToString(),
+                    ErrorDate = DateTime.Now,
+                    UserName = apiModels.Username, // ดึงจาก context หรือ session
+                    Path = apiModels.Urlproduction,
+                    HttpMethod = apiModels.MethodType,
+                    RequestData = requestJson, // serialize เป็น JSON
+                    InnerException = ex.InnerException?.ToString(),
+                    SystemCode = Api_SysCode,
+                    CreatedBy = "system"
+
+                };
+                await RecErrorLogApiAsync(apiModels, errorLog);
+                throw new Exception("Error in GetData: " + ex.Message + " | Inner Exception: " + ex.InnerException?.Message);
+            }
+        }
+
     }
 }
