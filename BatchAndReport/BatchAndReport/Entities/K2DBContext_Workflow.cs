@@ -5,13 +5,13 @@ using System.Collections.Generic;
 namespace BatchAndReport.Entities;
 
 
-public partial class K2DBContext_SME : DbContext
+public partial class K2DBContext_Workflow : DbContext
 {
-    public K2DBContext_SME()
+    public K2DBContext_Workflow()
     {
     }
 
-    public K2DBContext_SME(DbContextOptions<K2DBContext_SME> options)
+    public K2DBContext_Workflow(DbContextOptions<K2DBContext_Workflow> options)
         : base(options)
     {
     }

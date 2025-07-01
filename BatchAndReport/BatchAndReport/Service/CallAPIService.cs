@@ -464,7 +464,6 @@ namespace BatchAndReport.Services
                 // Construct URL
                 var url = apiModels.Urlproduction ?? throw new Exception("URL is missing.");
                 url = url.Replace("{EmpId}", EmpId);
-                
 
                 requestJson = url;
 
@@ -507,7 +506,6 @@ namespace BatchAndReport.Services
                             Bearer = x.Bearer,
                         }).FirstOrDefault(); // Use FirstOrDefault to handle empty lists
 
-
                         var result = await GetDataApiAsync_Login(apiParamx);
                         token = result;
                     }
@@ -529,12 +527,24 @@ namespace BatchAndReport.Services
                 }
 
                 // Send Request
-                var response = await httpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonNode = JsonNode.Parse(content);
+                HttpResponseMessage response;
+                try
+                {
+                    response = await httpClient.SendAsync(request);
+                }
+                catch (HttpRequestException hre)
+                {
+                    throw new Exception($"HTTP request failed: {hre.Message}", hre);
+                }
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}) - Content: {content}");
+                }
 
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var jsonNode = JsonNode.Parse(responseContent);
                 return jsonNode?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}";
             }
             catch (Exception ex)
@@ -553,7 +563,6 @@ namespace BatchAndReport.Services
                     InnerException = ex.InnerException?.ToString(),
                     SystemCode = Api_SysCode,
                     CreatedBy = "system"
-
                 };
                 await RecErrorLogApiAsync(apiModels, errorLog);
                 throw new Exception("Error in GetData: " + ex.Message + " | Inner Exception: " + ex.InnerException?.Message);

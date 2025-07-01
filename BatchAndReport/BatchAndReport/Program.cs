@@ -13,6 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddRazorPages();
 
+
 // ตั้งค่า LicenseType
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -26,11 +27,11 @@ builder.Services.AddDbContext<K2DBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("K2DBContext")));
 
 // Inside the builder.Services section:
-builder.Services.AddDbContext<K2DBContext>(options =>
+builder.Services.AddDbContext<K2DBContext_SME>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("K2DBContext_SME")));
 
 // Inside the builder.Services section:
-builder.Services.AddDbContext<K2DBContext>(options =>
+builder.Services.AddDbContext<K2DBContext_Workflow>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("K2DBContext_Workflow")));
 
 // Inside the builder.Services section:
@@ -39,6 +40,7 @@ builder.Services.AddDbContext<K2DBContext>(options =>
 
 builder.Services.AddDbContext<K2DBContext_SME>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("K2DBContext_SME")));
+
 builder.Services.AddDbContext<K2DBContext_EContract>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("K2DBContext_EContract")));
 
@@ -48,7 +50,11 @@ builder.Services.AddScoped<ICallAPIService, CallAPIService>();
 builder.Services.AddScoped<SqlConnectionDAO>();
 builder.Services.AddScoped<HrDAO>();
 builder.Services.AddScoped<SmeDAO>();
+builder.Services.AddScoped<WorkflowDAO>();
 builder.Services.AddScoped<EContractDAO>();
+builder.Services.AddScoped<IPdfService, PdfService>();
+builder.Services.AddScoped<IWordService, WordService>();
+builder.Services.AddScoped<IWordWFService, WordWFService>();
 builder.Services.AddHttpClient<ICallAPIService, CallAPIService>();
 
 builder.Services.AddSingleton<ScheduledJobService>();

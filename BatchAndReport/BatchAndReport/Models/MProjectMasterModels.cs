@@ -70,8 +70,8 @@ namespace BatchAndReport.Models
 
     public class ApiResponseReturnProjectModels
     {
-        public int? StatusCode { get; set; }
-        public string? Message { get; set; }
-        public Dictionary<string, ProjectMasterResult> Data { get; set; } = new();
+        [JsonPropertyName("results")]
+        public Dictionary<string, ProjectMasterResult> Results { get; set; } = new();
     }
+
 }

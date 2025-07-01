@@ -31,6 +31,10 @@ namespace BatchAndReport.Controllers
         {
             return View();
         }
+        public IActionResult LoadWFInfo()
+        {
+            return View();
+        }
         public IActionResult LoadEcontractInfo()
         {
             return View();

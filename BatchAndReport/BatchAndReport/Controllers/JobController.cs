@@ -73,9 +73,8 @@ namespace BatchAndReport.Controllers
 
                 if (employees == null)
                     return BadRequest("Cannot deserialize employee data");
-                // Map EmployeeResult to MEmployeeModels
-              var xdata = new List<MEmployeeModels>();
-                xdata = employees.Results.Select(emp => new MEmployeeModels
+
+                var xdata = employees.Results.Select(emp => new MEmployeeModels
                 {
                     EmployeeId = emp.EmployeeId,
                     EmployeeCode = emp.EmployeeCode,
@@ -96,7 +95,98 @@ namespace BatchAndReport.Controllers
                     BusinessUnitId = emp.BusinessUnitId,
                     PositionId = emp.PositionId
                 }).ToList();
+
                 await _hrDao.InsertOrUpdateEmployeesAsync(xdata);
+
+                var supervisorApiInfo = await _repositoryApi.GetAllAsync(new MapiInformationModels { ServiceNameCode = "employee-person" });
+                var apiSup = supervisorApiInfo.Select(x => new MapiInformationModels
+                {
+                    ServiceNameCode = x.ServiceNameCode,
+                    ApiKey = x.ApiKey,
+                    AuthorizationType = x.AuthorizationType,
+                    ContentType = x.ContentType,
+                    CreateDate = x.CreateDate,
+                    Id = x.Id,
+                    MethodType = x.MethodType,
+                    ServiceNameTh = x.ServiceNameTh,
+                    Urldevelopment = x.Urldevelopment,
+                    Urlproduction = x.Urlproduction,
+                    Username = x.Username,
+                    Password = x.Password,
+                    UpdateDate = x.UpdateDate
+                }).FirstOrDefault();
+
+                if (apiSup == null) return BadRequest("Supervisor API info not found.");
+
+                var supervisorData = new List<MEmployeeModels>();
+
+                //var excludedIds = new HashSet<string>
+                //{
+                //    "R220817033714_SME_99999",
+                //    "R221102113924_SME_62034",
+                //    "R240130115907_SME_FS005"
+                //};
+
+                //xdata = xdata
+                //    .Where(emp => !excludedIds.Contains(emp.EmployeeId))
+                //    .ToList();
+
+                foreach (var emp in xdata)
+                {
+                    if (string.IsNullOrEmpty(emp.EmployeeId))
+                        continue;
+
+                    // Rename the variable to avoid conflict
+                    var supervisorResult = await _serviceApi.GetDataEmpMovementApiAsync(apiSup, emp.EmployeeId);
+
+                    if (string.IsNullOrEmpty(supervisorResult))
+                        continue;
+
+                    try
+                    {
+                        var json = JsonSerializer.Deserialize<JsonElement>(supervisorResult);
+
+                        string? jsonEmployeeId = null;
+                        string? supervisorId = null;
+
+                        if (json.TryGetProperty("results", out var resultsNode))
+                        {
+                            // ดึง employeeId จาก results
+                            if (resultsNode.TryGetProperty("employeeId", out var empIdElement))
+                            {
+                                jsonEmployeeId = empIdElement.GetString();
+                            }
+
+                            // ดึง supervisorId จาก results
+                            if (resultsNode.TryGetProperty("supervisorId", out var supElement))
+                            {
+                                supervisorId = supElement.GetString();
+                            }
+                        }
+
+                        if (jsonEmployeeId?.Trim() == emp.EmployeeId.Trim() &&
+                            !string.IsNullOrEmpty(supervisorId))
+                        {
+                            supervisorData.Add(new MEmployeeModels
+                            {
+                                EmployeeId = emp.EmployeeId,
+                                SupervisorId = supervisorId
+                            });
+                        }
+                        else
+                        {
+                            Console.WriteLine($"❌ Not matched or missing data: emp = [{emp.EmployeeId}], json = [{jsonEmployeeId}]");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Error parsing JSON for {emp.EmployeeId}: {ex.Message}");
+                    }
+
+
+                }
+
+                await _hrDao.UpdateSupervisorAsync(supervisorData);
 
                 return Ok(new { message = "Sync and Save Complete", total = employees.Results.ToList().Count });
             }

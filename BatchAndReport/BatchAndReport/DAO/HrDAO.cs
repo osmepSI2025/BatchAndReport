@@ -282,6 +282,22 @@ namespace BatchAndReport.DAO
 
             await _k2context.SaveChangesAsync();
         }
+        
+        //Update Supervisor
+        public async Task UpdateSupervisorAsync(List<MEmployeeModels> employees)
+        {
+            foreach (var emp in employees)
+            {
+                var existing = await _k2context.Employees
+                    .FirstOrDefaultAsync(e => e.EmployeeId == emp.EmployeeId);
+
+                if (existing != null)
+                {
+                    existing.SupervisorId = emp.SupervisorId;
+                }
+            }
+            await _k2context.SaveChangesAsync();
+        }
 
     }
 }

@@ -1,21 +1,14 @@
 ﻿@{
-    ViewData["Title"] = "เรียกข้อมูล SME";
+    ViewData["Title"] = "เรียกข้อมูล Workflow";
 }
 
-<h2>เรียกข้อมูลโครงการจาก API</h2>
-<button id="btnCallApiProject" class="btn btn-primary">เรียก API</button>
-<div id="resultProject" style="margin-top: 20px; white-space: pre-wrap; font-family: monospace;"></div>
 
-<h2>เรียกข้อมูลปีงบประมาณ API</h2>
-<button id="btnCallApiFiscalYear" class="btn btn-primary">เรียก API</button>
-<div id="resultFiscalYear" style="margin-top: 20px; white-space: pre-wrap; font-family: monospace;"></div>
-
-<a href="/api/Sme/ExportProjectDetailWord?projectCode=1" target="_blank" class="btn btn-primary">
-    ดาวน์โหลดรายงานโครงการ PDF
+<a href="/api/Workflow/ExportAnnualWorkProcesses" target="_blank" class="btn btn-primary">
+	ดาวน์โหลดรายงานการทบทวนกระบวนการทำงานประจำปี PDF
 </a>
 
-<a href="/api/Sme/ExportSMESummaryWord?budYear=2568" target="_blank" class="btn btn-primary">
-    ดาวน์โหลดภาพรวมโครงการ PDF
+<a href="/api/Workflow/ExportWorkSystem" target="_blank" class="btn btn-primary">
+    ดาวน์โหลดรายงานกระบวนการทำงานตามระบบงาน Excel
 </a>
 
 @section Scripts {

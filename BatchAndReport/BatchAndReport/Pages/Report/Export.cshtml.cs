@@ -7,11 +7,17 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using OfficeOpenXml;
 using QuestPDF.Fluent;
 using System.IO;
-
+using BatchAndReport.Services;
+using System.Threading.Tasks;
 namespace BatchAndReport.Pages.Report
 {
     public class ExportModel : PageModel
     {
+        private readonly SmeDAO _smeDao;
+        public ExportModel(SmeDAO smeDao)
+        {
+            _smeDao = smeDao;
+        }
         public IActionResult OnGetPdf()
         {
             var wordDAO = new WordToPDFDAO(); // Create an instance of WordDAO
@@ -373,5 +379,6 @@ namespace BatchAndReport.Pages.Report
                 )
             );
         }
+
     }
 }
