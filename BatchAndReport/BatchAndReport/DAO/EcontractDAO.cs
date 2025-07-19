@@ -1,4 +1,4 @@
-using BatchAndReport.Entities;
+﻿using BatchAndReport.Entities;
 using BatchAndReport.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -84,5 +84,101 @@ namespace BatchAndReport.DAO
 
             await _context.SaveChangesAsync();
         }
+        public async Task InsertOrUpdatePartyContractsAsync(List<MContractPartyModels> parties)
+        {
+            foreach (var party in parties)
+            {
+                var existingParty = await _context.ContractParties
+                    .FirstOrDefaultAsync(p => p.RegIden == party.RegIden);
+
+                if (existingParty != null)
+                {
+                    // UPDATE
+                    existingParty.ContractPartyName = party.ContractPartyName;
+                    existingParty.RegType = party.RegType;
+                    existingParty.RegDetail = party.RegDetail;
+                    existingParty.AddressNo = party.AddressNo;
+                    existingParty.SubDistrict = party.SubDistrict;
+                    existingParty.District = party.District;
+                    existingParty.Province = party.Province;
+                    existingParty.PostalCode = party.PostalCode;
+                    existingParty.FlagActive = party.FlagActive?.StartsWith("ยัง") == true ? "Y" : "N";
+
+                    _context.ContractParties.Update(existingParty);
+                }
+                else
+                {
+                    // INSERT
+                    var newParty = new ContractParty
+                    {
+                        ContractPartyName = party.ContractPartyName,
+                        RegType = party.RegType,
+                        RegIden = party.RegIden,
+                        RegDetail = party.RegDetail,
+                        AddressNo = party.AddressNo,
+                        SubDistrict = party.SubDistrict,
+                        District = party.District,
+                        Province = party.Province,
+                        PostalCode = party.PostalCode,
+                        FlagActive = party.FlagActive?.StartsWith("ยัง") == true ? "Y" : "N"
+                    };
+
+                    await _context.ContractParties.AddAsync(newParty);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        public async Task<List<MContractPartyModels>> SyncAllContractPartiesAsync(List<MContractPartyModels> externalParties)
+        {
+            var resultList = new List<MContractPartyModels>();
+
+            foreach (var party in externalParties)
+            {
+                var existing = await _context.ContractParties
+                    .FirstOrDefaultAsync(p => p.RegIden == party.RegIden);
+
+                if (existing != null)
+                {
+                    // UPDATE if any field changed
+                    existing.ContractPartyName = party.ContractPartyName;
+                    existing.RegType = party.RegType;
+                    existing.RegDetail = party.RegDetail;
+                    existing.AddressNo = party.AddressNo;
+                    existing.SubDistrict = party.SubDistrict;
+                    existing.District = party.District;
+                    existing.Province = party.Province;
+                    existing.PostalCode = party.PostalCode;
+                    existing.FlagActive = party.FlagActive?.StartsWith("ยัง") == true ? "Y" : "N";
+
+                    _context.ContractParties.Update(existing);
+                    resultList.Add(party); // track updated
+                }
+                else
+                {
+                    // INSERT
+                    var newParty = new ContractParty
+                    {
+                        ContractPartyName = party.ContractPartyName,
+                        RegType = party.RegType,
+                        RegIden = party.RegIden,
+                        RegDetail = party.RegDetail,
+                        AddressNo = party.AddressNo,
+                        SubDistrict = party.SubDistrict,
+                        District = party.District,
+                        Province = party.Province,
+                        PostalCode = party.PostalCode,
+                        FlagActive = party.FlagActive?.StartsWith("ยัง") == true ? "Y" : "N"
+                    };
+
+                    await _context.ContractParties.AddAsync(newParty);
+                    resultList.Add(party); // track inserted
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return resultList;
+        }
+
     }
 }

@@ -30,7 +30,7 @@ public partial class K2DBContext : DbContext
     {
 
         modelBuilder.Entity<Employee>(entity =>
-        {
+{
             entity.ToTable("Employee");
 
             entity.HasKey(e => e.Id);
@@ -124,6 +124,12 @@ public partial class K2DBContext : DbContext
                 .HasColumnName("PositionId")
                 .HasMaxLength(50)
                 .UseCollation("Thai_CI_AS");
+
+            // Fix for CS0305: Correctly specify the generic type argument for HasOne
+            entity.HasOne(e => e.Position)
+                .WithMany()
+                .HasForeignKey(e => e.PositionId)
+                .HasPrincipalKey(p => p.PositionId);
         });
         modelBuilder.Entity<EmployeeMovement>(entity =>
         {

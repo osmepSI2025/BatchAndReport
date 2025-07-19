@@ -106,7 +106,7 @@ public class SMEDashboardModel : PageModel
             result.Add(new SupportIssue
             {
                 Issue = reader["TOPIC"].ToString(),
-                Count = Convert.ToInt32(reader["department_count"])
+                Count = SafeToInt(reader["department_count"])
             });
         }
         return result;
@@ -156,5 +156,10 @@ public class SMEDashboardModel : PageModel
             });
         }
         return result;
+    }
+
+    private int SafeToInt(object obj)
+    {
+        return obj != DBNull.Value ? Convert.ToInt32(obj) : 0;
     }
 }

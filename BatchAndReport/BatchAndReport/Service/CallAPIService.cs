@@ -339,14 +339,26 @@ namespace BatchAndReport.Services
 
                 // Construct URL
                 var url = apiModels.Urlproduction ?? throw new Exception("URL is missing.");
+                requestJson = url;
+
+                bool isPostBodyRequired = false;
+
                 if (url.Contains("{EmpId}"))
                 {
                     url = url.Replace("{EmpId}", typeValue);
                 }
-
-                if (url.Contains("{BudYear}"))
+                else if (url.Contains("{BudYear}"))
                 {
                     url = url.Replace("{BudYear}", typeValue);
+                }
+                else if (url.Contains("{Date}"))
+                {
+                    url = url.Replace("{Date}", typeValue);
+                }
+                else if (apiModels.MethodType == "POST")
+                {
+                    // ไม่มี path param → จะใช้เป็น post body
+                    isPostBodyRequired = true;
                 }
 
                 requestJson = url;
@@ -367,7 +379,6 @@ namespace BatchAndReport.Services
                 {
                     string? token = apiModels.Bearer;
 
-                    // Check if token is expired
                     if (!string.IsNullOrEmpty(token) && IsTokenExpired(token))
                     {
                         var LApi = await _repositoryApi.GetAllAsync(new MapiInformationModels { ServiceNameCode = "user-api" });
@@ -411,12 +422,22 @@ namespace BatchAndReport.Services
                     throw new Exception("Authorization type not supported");
                 }
 
+                // Add POST body if needed
+                if (apiModels.MethodType == "POST" && isPostBodyRequired)
+                {
+                    var jsonBody = JsonSerializer.Serialize(new
+                    {
+                        OrganizationJuristicID = typeValue
+                    });
+
+                    request.Content = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
+                }
+
                 // Send Request
                 var response = await httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
                 var jsonNode = JsonNode.Parse(content);
-
 
                 return jsonNode?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}";
             }
@@ -429,15 +450,15 @@ namespace BatchAndReport.Services
                     Source = ex.Source,
                     TargetSite = ex.TargetSite?.ToString(),
                     ErrorDate = DateTime.Now,
-                    UserName = apiModels.Username, // ดึงจาก context หรือ session
+                    UserName = apiModels.Username,
                     Path = apiModels.Urlproduction,
                     HttpMethod = apiModels.MethodType,
-                    RequestData = requestJson, // serialize เป็น JSON
+                    RequestData = requestJson,
                     InnerException = ex.InnerException?.ToString(),
                     SystemCode = Api_SysCode,
                     CreatedBy = "system"
-
                 };
+
                 await RecErrorLogApiAsync(apiModels, errorLog);
                 throw new Exception("Error in GetData: " + ex.Message + " | Inner Exception: " + ex.InnerException?.Message);
             }

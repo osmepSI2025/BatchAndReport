@@ -3,12 +3,28 @@
 }
 
 
-<a href="/api/Workflow/ExportAnnualWorkProcesses" target="_blank" class="btn btn-primary">
+<a href="/api/Workflow/ExportAnnualWorkProcesses?fiscalYear=2567" target="_blank" class="btn btn-primary">
 	ดาวน์โหลดรายงานการทบทวนกระบวนการทำงานประจำปี PDF
 </a>
-
-<a href="/api/Workflow/ExportWorkSystem" target="_blank" class="btn btn-primary">
-    ดาวน์โหลดรายงานกระบวนการทำงานตามระบบงาน Excel
+<h2>---------------</h2>
+<a href="/api/Workflow/ExportWorkSystem?fiscalYear=&businessUnitId=&processTypeCode=&processGroupCode=&processCode=&processCategory=1" target="_blank" class="btn btn-success">
+    ดาวน์โหลดรายงาน (กำหนดครบ)
+</a>
+<h2>---------------</h2>
+<a href="/api/Workflow/ExportInternalControl?processID=1" target="_blank" class="btn btn-primary">
+    ดาวน์โหลดรายงานระบบการควบคุมภายใน Excel
+</a>
+<h2>---------------</h2>
+<a href="/api/Workflow/ExportWorkProcessPoint?subProcessId=1" target="_blank" class="btn btn-primary">
+    ดาวน์โหลดรายงานกระบวนการทำงานทั่วไปและจุดควบคุม PDF
+</a>
+<h2>---------------</h2>
+<a href="/ExportWorkflowProcess?id_param=1" target="_blank" class="btn btn-secondary">
+    🔗 เปิดหน้ารายละเอียด Workflow Process
+</a>
+<h2>---------------</h2>
+<a href="/api/Workflow/ExportWorkflowProcess?idParam=1" target="_blank" class="btn btn-primary">
+    ดาวน์โหลดรายงานรายละเอียด Workflow Process PDF
 </a>
 
 @section Scripts {

@@ -1,42 +1,109 @@
 ﻿@{
-    ViewData["Title"] = "เรียกข้อมูล Employee Contract";
+    ViewData["Title"] = "เรียกข้อมูล Employee Contract และ Juristic";
 }
 
-<h2>เรียกข้อมูล Employee Contract จาก API</h2>
+<h2>📄 เรียกข้อมูล Employee Contract จาก API</h2>
 
 <div class="mb-3">
     <label for="employmentDate" class="form-label">Employment Date (YYYY-MM-DD):</label>
     <input type="date" id="employmentDate" class="form-control" value="2022-10-03" />
 </div>
 
-<button id="btnCallApiContract" class="btn btn-primary">เรียก API</button>
+<a id="linkCallEmpContract" href="#" target="_blank" class="btn btn-outline-primary mb-2">
+    🔗 เปิดลิงก์ API ในแท็บใหม่
+</a>
 
-<div id="resultContract" style="margin-top: 20px; white-space: pre-wrap; font-family: monospace;"></div>
+<button id="btnCallApiContract" class="btn btn-primary mb-3">
+    ⚙️ เรียกข้อมูลด้วย JavaScript
+</button>
+
+<pre id="resultContract" style="background-color: #f8f9fa; padding: 15px;"></pre>
+
+<hr />
+
+<h2>📁 เรียกข้อมูลนิติบุคคลจาก API</h2>
+
+<div class="mb-3">
+    <label for="organizationJuristicID" class="form-label">เลขนิติบุคคล:</label>
+    <input type="text" id="organizationJuristicID" class="form-control" placeholder="เช่น 0976543210123 (เว้นว่างเพื่อดึงทั้งหมด)" />
+</div>
+
+<a id="linkCallJuristicPerson" href="#" target="_blank" class="btn btn-outline-primary mb-2">
+    🔗 เปิดลิงก์ API ในนิติบุคคล
+</a>
+
+<button id="btnCallApiJuristicPerson" class="btn btn-primary mb-3">
+    ⚙️ เรียกข้อมูลด้วย JavaScript
+</button>
+
+<pre id="resultJuristicPerson" style="background-color: #f8f9fa; padding: 15px;"></pre>
+<h2>📁 รายงาน</h2>
+<a href="/api/Econtract/ExportJointContractWord" target="_blank" class="btn btn-primary">
+    ดาวน์โหลดสัญญาร่วมดำเนินการ PDF
+</a>
 
 @section Scripts {
     <script>
+        function buildApiUrl(baseUrl, params) {
+            const url = new URL(baseUrl, window.location.origin);
+            Object.entries(params).forEach(([key, value]) => {
+                if (value) url.searchParams.append(key, value);
+            });
+            return url.toString();
+        }
+
+        document.getElementById("employmentDate").addEventListener("change", function () {
+            const date = this.value;
+            const url = buildApiUrl("/api/Econtract/GetEmpContract", { employmentDate: date });
+            document.getElementById("linkCallEmpContract").href = url;
+        });
+
+        document.getElementById("organizationJuristicID").addEventListener("input", function () {
+            const juristicId = this.value;
+            const url = buildApiUrl("/api/Econtract/GetJuristicPerson", { organizationJuristicID: juristicId });
+            document.getElementById("linkCallJuristicPerson").href = url;
+        });
+
         document.getElementById("btnCallApiContract").addEventListener("click", async function () {
             const employmentDate = document.getElementById("employmentDate").value;
-            const url = `/api/Econtract/GetEmpContract?employmentDate=${encodeURIComponent(employmentDate)}`;
+            const url = buildApiUrl("/api/Econtract/GetEmpContract", { employmentDate });
+
+            this.disabled = true;
+            this.innerText = "⏳ กำลังโหลด...";
+
             try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                let data;
-                try { data = await response.json(); } catch { data = null; }
-                if (!response.ok) {
-                    document.getElementById("resultContract").innerText =
-                        "❌ ERROR: " + response.status + "\n" +
-                        (data ? JSON.stringify(data, null, 2) : "No error details.");
-                    return;
-                }
+                const res = await fetch(url);
+                const data = await res.json();
                 document.getElementById("resultContract").innerText = JSON.stringify(data, null, 2);
-            } catch (error) {
-                document.getElementById("resultContract").innerText = "❌ ERROR: " + error.message;
+            } catch (err) {
+                document.getElementById("resultContract").innerText = "❌ ERROR: " + err.message;
+            } finally {
+                this.disabled = false;
+                this.innerText = "⚙️ เรียกข้อมูลด้วย JavaScript";
             }
         });
+
+        document.getElementById("btnCallApiJuristicPerson").addEventListener("click", async function () {
+            const juristicId = document.getElementById("organizationJuristicID").value;
+            const url = buildApiUrl("/api/Econtract/GetJuristicPerson", juristicId ? { organizationJuristicID: juristicId } : {});
+
+            this.disabled = true;
+            this.innerText = "⏳ กำลังโหลด...";
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                document.getElementById("resultJuristicPerson").innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                document.getElementById("resultJuristicPerson").innerText = "❌ ERROR: " + err.message;
+            } finally {
+                this.disabled = false;
+                this.innerText = "⚙️ เรียกข้อมูลด้วย JavaScript";
+            }
+        });
+
+        // Initial auto-link update
+        document.getElementById("employmentDate").dispatchEvent(new Event("change"));
+        document.getElementById("organizationJuristicID").dispatchEvent(new Event("input"));
     </script>
 }

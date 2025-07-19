@@ -13,6 +13,7 @@ namespace BatchAndReport.Entities
 
         public virtual DbSet<EmployeeContract> EmployeeContracts { get; set; }
         public virtual DbSet<EmployeeProfile> EmployeeProfiles { get; set; }
+        public virtual DbSet<ContractParty> ContractParties { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -118,7 +119,6 @@ namespace BatchAndReport.Entities
                     .HasColumnName("Passport_No")
                     .HasMaxLength(100);
             });
-
             modelBuilder.Entity<EmployeeProfile>(entity =>
             {
                 entity.ToTable("EMPLOYEE_PROFILE");
@@ -229,6 +229,57 @@ namespace BatchAndReport.Entities
                     .HasColumnName("Nick_Name")
                     .HasMaxLength(100);
             });
+            modelBuilder.Entity<ContractParty>(entity =>
+            {
+                entity.ToTable("Contract_Party");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("Id")
+                    .IsRequired();
+
+                entity.Property(e => e.ContractPartyName)
+                    .HasColumnName("Contract_Party_Name")
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.RegType)
+                    .HasColumnName("Reg_Type")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.RegIden)
+                    .HasColumnName("Reg_Iden")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.RegDetail)
+                    .HasColumnName("Reg_Detail")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.AddressNo)
+                    .HasColumnName("Address_No")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.SubDistrict)
+                    .HasColumnName("Sub_District")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.District)
+                    .HasColumnName("District")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.Province)
+                    .HasColumnName("Province")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.PostalCode)
+                    .HasColumnName("Postal_Code")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.FlagActive)
+                    .HasColumnName("Flag_Active")
+                    .HasMaxLength(1);
+            });
+
         }
     }
 

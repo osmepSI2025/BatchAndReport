@@ -55,6 +55,7 @@ builder.Services.AddScoped<EContractDAO>();
 builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IWordService, WordService>();
 builder.Services.AddScoped<IWordWFService, WordWFService>();
+builder.Services.AddScoped<IWordEContractService, WordEContractService>();
 builder.Services.AddHttpClient<ICallAPIService, CallAPIService>();
 
 builder.Services.AddSingleton<ScheduledJobService>();

@@ -1,8 +1,16 @@
 @page
 @model WorkflowDashboardModel
 @{
-    Layout = "_Layout";
+    Layout = "_Layout1";
     ViewData["Title"] = "Workflow Dashboard";
+
+    var processLabels = Model.DonutProcessChart.Select(x => x.Label).ToArray();
+    var processValues = Model.DonutProcessChart.Select(x => x.Value).ToArray();
+    var processColors = Model.DonutProcessChart.Select(x => x.Color).ToArray();
+
+    var improveLabels = Model.DonutImproveChart.Select(x => x.Label).ToArray();
+    var improveValues = Model.DonutImproveChart.Select(x => x.Value).ToArray();
+    var improveColors = Model.DonutImproveChart.Select(x => x.Color).ToArray();
 }
 
 <style>
@@ -39,46 +47,37 @@
         text-align: center;
         vertical-align: middle;
     }
-
-    .chart-container {
-        margin-bottom: 2rem;
-    }
 </style>
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Donut Chart: Process -->
         <div class="col-md-6">
             <div class="dashboard-card">
                 <h5><i class="fas fa-chart-pie"></i> กระบวนการทำงานตามแผนงาน</h5>
-                <canvas id="typeChart"></canvas>
+                <canvas id="donutProcessChart" height="250"></canvas>
             </div>
         </div>
-
-        <!-- Donut Chart: Improve -->
         <div class="col-md-6">
             <div class="dashboard-card">
                 <h5><i class="fas fa-chart-pie"></i> ประเภทการปรับปรุงกระบวนการทำงาน</h5>
-                <canvas id="regionChart"></canvas>
+                <canvas id="donutImproveChart" height="250"></canvas>
             </div>
         </div>
     </div>
-    
+
     <div class="row">
-        <!-- Bar Chart -->
         <div class="col-md-6">
             <div class="dashboard-card">
                 <h5><i class="fas fa-chart-bar"></i> Top 10 การเปลี่ยนแปลงระยะเวลาในการดำเนินงาน</h5>
-                <canvas id="barChart"></canvas>
+                <canvas id="barChart" height="250"></canvas>
             </div>
         </div>
 
-        <!-- Grid Table -->
         <div class="col-md-6">
             <div class="dashboard-card">
                 <h5><i class="fas fa-table"></i> รายการระยะเวลาการทำงานของแต่ละกระบวนการ</h5>
                 <table class="table table-bordered table-hover">
-                    <thead class="thead-light">
+                    <thead>
                         <tr>
                             <th>ลำดับ</th>
                             <th>รหัส</th>
@@ -116,7 +115,7 @@
         const donutImproveData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DonutImproveChart));
         const barChartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BarChartData));
 
-        new Chart(document.getElementById('typeChart'), {
+        new Chart(document.getElementById('donutProcessChart'), {
             type: 'doughnut',
             data: {
                 labels: donutProcessData.map(x => x.Label),
@@ -124,10 +123,14 @@
                     data: donutProcessData.map(x => x.Value),
                     backgroundColor: donutProcessData.map(x => x.Color)
                 }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
             }
         });
 
-        new Chart(document.getElementById('regionChart'), {
+        new Chart(document.getElementById('donutImproveChart'), {
             type: 'doughnut',
             data: {
                 labels: donutImproveData.map(x => x.Label),
@@ -135,10 +138,14 @@
                     data: donutImproveData.map(x => x.Value),
                     backgroundColor: donutImproveData.map(x => x.Color)
                 }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
             }
         });
 
-        new Chart(document.getElementById('barChart'), {
+                new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {
                 labels: barChartData.map(x => x.Description),
@@ -158,7 +165,24 @@
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { position: 'top' }
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            // Custom tooltip for each bar
+                            afterBody: function (tooltipItems) {
+                                const index = tooltipItems[0].dataIndex;
+                                const item = barChartData[index];
+                                return [
+                                    `รหัส: ${item.Code}`,
+                                    `ชื่อกระบวนการ: ${item.Description}`,
+                                    `ปีก่อนหน้า: ${item.PreviousYear} วัน`,
+                                    `ปีปัจจุบัน: ${item.CurrentYear} วัน`,
+                                    `ส่วนต่าง: ${item.CurrentYear - item.PreviousYear} วัน`,
+                                    `ส่วนต่าง (%): ${item.PercentChange}%`
+                                ];
+                            }
+                        }
+                    }
                 },
                 scales: {
                     y: {
@@ -168,5 +192,6 @@
                 }
             }
         });
+
     </script>
 }
