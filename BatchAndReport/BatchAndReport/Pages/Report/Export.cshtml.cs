@@ -160,7 +160,53 @@ namespace BatchAndReport.Pages.Report
                 body.AppendChild(NormalParagraph("3.1  หากผู้มีอำนาจลงนามฝ่ายหนึ่งประสงค์จะขอถอนตัว ..."));
                 body.AppendChild(NormalParagraph("3.2  หากผู้มีอำนาจลงนามฝ่ายหนึ่งประสงค์จะขอขยายระยะเวลา ..."));
 
-                // --- Add footer with page number ---
+          
+                // --- Add header with running page number ---
+                var headerPart = mainPart.AddNewPart<HeaderPart>();
+                string headerPartId = mainPart.GetIdOfPart(headerPart);
+                headerPart.Header = new Header(
+                    new Paragraph(
+                        new ParagraphProperties(
+                            new Justification() { Val = JustificationValues.Right }
+                        ),
+                        new Run(
+                            new RunProperties(
+                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                            ),
+                            new FieldChar() { FieldCharType = FieldCharValues.Begin }
+                        ),
+                        new Run(
+                            new RunProperties(
+                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                            ),
+                            new FieldCode(" PAGE ") { Space = SpaceProcessingModeValues.Preserve }
+                        ),
+                        new Run(
+                            new RunProperties(
+                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                            ),
+                            new FieldChar() { FieldCharType = FieldCharValues.Separate }
+                        ),
+                        new Run(
+                            new RunProperties(
+                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                            ),
+                            new Text("1")
+                        ),
+                        new Run(
+                            new RunProperties(
+                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                            ),
+                            new FieldChar() { FieldCharType = FieldCharValues.End }
+                        )
+                    )
+                );
+
                 var footerPart = mainPart.AddNewPart<FooterPart>();
                 string footerPartId = mainPart.GetIdOfPart(footerPart);
                 footerPart.Footer = new Footer(
@@ -171,35 +217,35 @@ namespace BatchAndReport.Pages.Report
                         new Run(
                             new RunProperties(
                                 new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "32" } // Correct namespace and usage // 16pt = 32 half-points
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
                             ),
                             new FieldChar() { FieldCharType = FieldCharValues.Begin }
                         ),
                         new Run(
                             new RunProperties(
                                 new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "32" } // Correct namespace and usage
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
                             ),
                             new FieldCode(" PAGE ") { Space = SpaceProcessingModeValues.Preserve }
                         ),
                         new Run(
                             new RunProperties(
                                 new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "32" }
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
                             ),
                             new FieldChar() { FieldCharType = FieldCharValues.Separate }
                         ),
                         new Run(
                             new RunProperties(
                                 new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "32" } // Correct namespace and usage
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
                             ),
                             new Text("1")
                         ),
                         new Run(
                             new RunProperties(
                                 new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "32" } // Correct namespace and usage
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
                             ),
                             new FieldChar() { FieldCharType = FieldCharValues.End }
                         )
@@ -207,6 +253,7 @@ namespace BatchAndReport.Pages.Report
                 );
 
                 var sectionProps = new SectionProperties(
+                    new HeaderReference() { Type = HeaderFooterValues.Default, Id = headerPartId },
                     new FooterReference() { Type = HeaderFooterValues.Default, Id = footerPartId },
                     new PageSize() { Width = 11906, Height = 16838 }, // A4 size
                     new PageMargin() { Top = 1440, Right = 1440, Bottom = 1440, Left = 1440, Header = 720, Footer = 720, Gutter = 0 }
@@ -559,14 +606,72 @@ namespace BatchAndReport.Pages.Report
                 body.AppendChild(CenteredParagraph("ลงชื่อ.............................................................รับรอง"));
                 body.AppendChild(CenteredParagraph("(............................................................)"));
                 body.AppendChild(CenteredParagraph("ลงชื่อ....................................................พยาน                    ลงชื่อ ........................................................พยาน"));
-
                 body.AppendChild(CenteredParagraph("(............................................................)                                 (.........................................................)"));
 
-        
-                // 5. Section properties (A4, margins)
+                body.AppendChild(EmptyParagraph());
+                body.AppendChild(RightParagraph("........................................................./ผู้พิมพ์"));
+                body.AppendChild(RightParagraph("........................................................./ผู้ตรวจ"));
+
+
+                // --- Add header for first page (empty) ---
+                var firstHeaderPart = mainPart.AddNewPart<HeaderPart>();
+                string firstHeaderPartId = mainPart.GetIdOfPart(firstHeaderPart);
+                firstHeaderPart.Header = new Header(
+                    new Paragraph() // Empty paragraph, so no page number on first page
+                );
+
+                // --- Add header for other pages (centered page number) ---
+                var headerPart = mainPart.AddNewPart<HeaderPart>();
+                string headerPartId = mainPart.GetIdOfPart(headerPart);
+                headerPart.Header = new Header(
+                    new Paragraph(
+                        new ParagraphProperties(
+                            new Justification() { Val = JustificationValues.Center }
+                        ),
+                        new Run(
+                            new RunProperties(
+                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                            ),
+                            new FieldChar() { FieldCharType = FieldCharValues.Begin }
+                        ),
+                        new Run(
+                            new RunProperties(
+                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                            ),
+                            new FieldCode(" PAGE ") { Space = SpaceProcessingModeValues.Preserve }
+                        ),
+                        new Run(
+                            new RunProperties(
+                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                            ),
+                            new FieldChar() { FieldCharType = FieldCharValues.Separate }
+                        ),
+                        new Run(
+                            new RunProperties(
+                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                            ),
+                            new Text("1")
+                        ),
+                        new Run(
+                            new RunProperties(
+                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                            ),
+                            new FieldChar() { FieldCharType = FieldCharValues.End }
+                        )
+                    )
+                );
+
                 var sectionProps = new SectionProperties(
-                    new PageSize() { Width = 11906, Height = 16838 },
-                    new PageMargin() { Top = 1440, Right = 1440, Bottom = 1440, Left = 1440 }
+                    new HeaderReference() { Type = HeaderFooterValues.First, Id = firstHeaderPartId },
+                    new HeaderReference() { Type = HeaderFooterValues.Default, Id = headerPartId },
+                    new PageSize() { Width = 11906, Height = 16838 }, // A4 size
+                    new PageMargin() { Top = 1440, Right = 1440, Bottom = 1440, Left = 1440, Header = 720, Footer = 720, Gutter = 0 },
+                    new TitlePage() // This enables different first page header/footer
                 );
                 body.AppendChild(sectionProps);
             }
