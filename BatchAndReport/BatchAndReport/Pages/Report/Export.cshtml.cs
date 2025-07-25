@@ -1,22 +1,25 @@
 ﻿using BatchAndReport.DAO;
+using BatchAndReport.Services;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OfficeOpenXml;
 using QuestPDF.Fluent;
 using System.IO;
-using BatchAndReport.Services;
 using System.Threading.Tasks;
 namespace BatchAndReport.Pages.Report
 {
     public class ExportModel : PageModel
     {
         private readonly SmeDAO _smeDao;
-        public ExportModel(SmeDAO smeDao)
+        private readonly IWordEContract_AllowanceService _wordEContract_AllowanceService;
+        public ExportModel(SmeDAO smeDao, IWordEContract_AllowanceService wordEContract_AllowanceService    )
         {
             _smeDao = smeDao;
+            this._wordEContract_AllowanceService = wordEContract_AllowanceService;
         }
         public IActionResult OnGetPdf()
         {
@@ -264,28 +267,48 @@ namespace BatchAndReport.Pages.Report
                 new Run(
                     new RunProperties(
                         new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                        new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "32" } // Correct namespace and usage
+                        new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" } // Correct namespace and usage
                     ),
                     new Text(text)
                 )
             );
 
+        private static Paragraph RightParagraph(string text) =>
+        new Paragraph(
+            new ParagraphProperties(new Justification { Val = JustificationValues.Right }),
+            new Run(
+                new RunProperties(
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                    new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" } // Correct namespace and usage
+                ),
+                new Text(text)
+            )
+        );
         // Fix for CS0117: 'FontSize' does not contain a definition for 'Val'
         // The issue arises because the incorrect namespace or type is being used for FontSize.
         // Replace the problematic line with the correct usage of FontSize from DocumentFormat.OpenXml.Wordprocessing.
 
         private static Paragraph NormalParagraph(string text, JustificationValues? align = null) =>
-            new Paragraph(
-                align != null ? new ParagraphProperties(new Justification { Val = align.Value }) : null,
-                new Run(
-                    new RunProperties(
-                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                        new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "32" } // Correct namespace and usage
-                    ),
-                    new Text(text)
+            align != null
+                ? new Paragraph(
+                    new ParagraphProperties(new Justification { Val = align.Value }),
+                    new Run(
+                        new RunProperties(
+                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                        ),
+                        new Text(text)
+                    )
                 )
-            );
-
+                : new Paragraph(
+                    new Run(
+                        new RunProperties(
+                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                        ),
+                        new Text(text)
+                    )
+                );
         private static Paragraph EmptyParagraph() =>
             new Paragraph(new Run(
                 new RunProperties(
@@ -319,7 +342,22 @@ namespace BatchAndReport.Pages.Report
                     new Text(text)
                 )
             );
-
+        private static Paragraph FullLineParagraph()
+{
+    return new Paragraph(
+        new ParagraphProperties(
+            new ParagraphBorders(
+                new BottomBorder
+                {
+                    Val = BorderValues.Single,
+                    Color = "000000",
+                    Size = 12 // 0.5pt
+                }
+            )
+        ),
+        new Run(new Text("")) // Empty run for the line
+    );
+}
         // Helper for image insertion
         private static Drawing CreateImage(string relationshipId, long widthPx, long heightPx)
         {
@@ -380,5 +418,176 @@ namespace BatchAndReport.Pages.Report
             );
         }
 
+        private static Paragraph JustifiedParagraph(string text) =>
+    new Paragraph(
+        new ParagraphProperties(new Justification { Val = JustificationValues.Both }),
+        new Run(
+            new RunProperties(
+                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+            ),
+            new Text(text)
+        )
+    );
+        // Helper: Paragraph with 2 tab spaces at the start of the first line
+        private static Paragraph NormalParagraphWithTabs(string text, JustificationValues? align = null)
+        {
+            var paragraph = new Paragraph();
+
+            // Paragraph properties (alignment and tab stops)
+            var props = new ParagraphProperties();
+            if (align != null)
+                props.Append(new Justification { Val = align.Value });
+
+            // Add two tab stops (every 720 = 0.5 inch, adjust as needed)
+            var tabs = new Tabs(
+                new TabStop { Val = TabStopValues.Left, Position = 720 },
+                new TabStop { Val = TabStopValues.Left, Position = 1440 }
+            );
+            props.Append(tabs);
+            paragraph.Append(props);
+
+            // Add two tab characters at the start
+            var run = new Run(
+                new RunProperties(
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                    new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                ),
+                new TabChar(),
+                new TabChar(),
+                new Text(text)
+            );
+            paragraph.Append(run);
+
+            return paragraph;
+        }
+
+        #region 
+        // This is your specific handler for the contract report
+        public IActionResult OnGetWordContactAllowance()
+        {
+
+            var stream = new MemoryStream();
+
+            using (var wordDoc = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document, true))
+            {
+                var mainPart = wordDoc.AddMainDocumentPart();
+                mainPart.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
+
+                // Styles
+                var stylePart = mainPart.AddNewPart<StyleDefinitionsPart>();
+                stylePart.Styles = CreateDefaultStyles();
+
+                var body = mainPart.Document.AppendChild(new Body());
+
+                // 1. Logo (centered)
+                var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+                if (System.IO.File.Exists(imagePath))
+                {
+                    var imagePart = mainPart.AddImagePart(ImagePartType.Png);
+                    using (var imgStream = new FileStream(imagePath, FileMode.Open))
+                    {
+                        imagePart.FeedData(imgStream);
+                    }
+                    var element = CreateImage(mainPart.GetIdOfPart(imagePart), 160, 40);
+                    var logoPara = new Paragraph(
+                        new ParagraphProperties(new Justification { Val = JustificationValues.Center }),
+                        element
+                    );
+                    body.AppendChild(logoPara);
+                }
+
+                // 2. Document title and subtitle
+                body.AppendChild(EmptyParagraph());
+                body.AppendChild(RightParagraph("เลขที่สัญญา ............................"));
+                body.AppendChild(EmptyParagraph());
+                body.AppendChild(CenteredBoldColoredParagraph("สัญญารับเงินอุดหนุน", "FF0000")); // Blue
+                body.AppendChild(CenteredBoldColoredParagraph("ตามแนวทางการดำเนินโครงการวิสาหกิจขนาดกลางและขนาดย่อมต่อเนื่อง", "FF0000")); // Red
+                body.AppendChild(CenteredParagraph("ที่ศูนย์ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม"));
+                body.AppendChild(CenteredParagraph("วันที่...................................................."));
+
+                // 3. Fillable lines (using underlines)
+              //  body.AppendChild(EmptyParagraph());
+                body.AppendChild(NormalParagraphWithTabs("ข้าพเจ้า ...................................................................................................................."));
+                body.AppendChild(JustifiedParagraph("อายุ ......... ปี สัญชาติ .................. สำนักงาน/บ้านตั้งอยู่เลขที่.................. อาคาร..........................................."));
+                body.AppendChild(JustifiedParagraph("หมู่ที่...........ตรอก/ซอย..........................ถนน...........................ตำบล/แขวง.................. ..................."));
+                body.AppendChild(JustifiedParagraph("เขต/อำเภอ................... จังหวัด.................ทะเบียนนิติบุคคลเลขที่/เลขประจำตัวประชาชนที่............................................"));
+                body.AppendChild(JustifiedParagraph("จดทะเบียนเป็นนิติบุคคลเมื่อวันที่ .........................................."));
+
+                // 4. Main body (sample)
+                //   body.AppendChild(EmptyParagraph());
+                body.AppendChild(NormalParagraph("ซึ่งต่อไปนี้จะเรียกบุคคลผู้มีนามตามที่ระบุข้างต้นทั้งหมดว่า \"ผู้รับการอุดหนุน\" ได้ทำสัญญาฉบับนี้ให้ไว้แก่ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ซึ่งต่อไปนี้จะเรียกว่า \"ผู้ให้การอุดหนุน\" โดยมีสาระสำคัญดังนี้"));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ1. ผู้รับการอุดหนุนได้ขอรับความช่วยเหลือผ่านการอุดหนุนตามมาตรการฟื้นฟูกิจการวิสาหกิจ ขนาดกลางและขนาดย่อมจากผู้ให้การอุดหนุนเป็นจำนวนเงิน ..................... บาท (...........................) ปลอดการชำระเงินต้น ................. เดือน โดยไม่มีดอกเบี้ย แต่มีภาระต้องชำระคืนเงินต้น  "));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ2. ผู้ให้การอุดหนุนจะให้ความช่วยเหลือด้วยการให้เงินอุดหนุนแก่ผู้รับการอุดหนุน ด้วยการนำเงินหรือโอนเงินเข้าบัญชีธนาคารกรุงไทย จำกัด (มหาชน) สาขา ..................................... เลขที่บัญชี ................................................. ชื่อบัญชี .......................... ซึ่งเป็นบัญชีของผู้รับการอุดหนุน จำนวนเงิน ........................... บาท (..............................) และให้ถือว่าผู้รับการอุดหนุนได้รับเงินอุดหนุนตามสัญญานี้ไปจากผู้ให้การอุดหนุนแล้ว ในวันที่เงินเข้าบัญชีของผู้รับการอุดหนุนดังกล่าว"));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ3. ห้ามผู้รับการอุดหนุนนำเงินอุดหนุนไปชำระหนี้เดิมที่มีอยู่ก่อนทำสัญญานี้"));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ4. ผู้รับการอุดหนุนยินยอมให้ธนาคารกรุงไทย จำกัด (มหาชน) ซึ่งกระทำการแทนผู้ให้การอุดหนุน หักเงินอุดหนุนที่จะได้จากผู้ให้การอุดหนุนเป็นค่าใช้จ่ายหรือค่าธรรมเนียมในการโอนเงินเข้าบัญชีของผู้รับการอุดหนุน ซึ่งธนาคารกรุงไทย จำกัด (มหาชน) เรียกเก็บตามระเบียบของธนาคารได้ โดยไม่ต้องบอกกล่าวหรือแจ้งให้ผู้รับการอุดหนุนทราบล่วงหน้า และให้ถือว่าผู้รับการอุดหนุนได้รับเงินตามจำนวนที่เบิกไปครบถ้วนแล้ว "));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ5. ผู้รับการอุดหนุนตกลงผ่อนชำระเงินต้นคืนให้แก่ผู้ให้การอุดหนุนเป็นรายเดือน (งวด) ๆ ละ ไม่น้อยกว่า ....................... บาท (.....................................) ด้วยการโอนเข้าบัญชีตามที่ระบุไว้ในข้อ 2 โดยชำระเงินต้นงวดแรกในเดือนที่ ....................... นับถัดจากวันที่ได้รับเงินอุดหนุน และงวดถัดไปทุกวันที่ .................. ของเดือนจนกว่าจะชำระเสร็จสิ้น  แต่ทั้งนี้จะต้องชำระให้เสร็จสิ้นไม่เกินกว่า .............. ปี (...........) นับแต่วันที่ได้รับเงินอุดหนุน "));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ6. การชำระเงินคืนตาม"));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ5. ผู้รับการอุดหนุนตกลงจะนำเงินเข้าบัญชีเงินฝากของผู้รับการอุดหนุน ที่เปิดบัญชีไว้กับธนาคารกรุงไทย จำกัด (มหาชน) ตามข้อ 2 โดยผู้รับการอุดหนุนยินยอมให้ ธนาคารกรุงไทย จำกัด (มหาชน) ซึ่งดำเนินการแทนผู้ให้การอุดหนุน หักเงินจากบัญชีของผู้รับการอุดหนุนดังกล่าวเพื่อชำระคืนเงินอุดหนุนแก่ผู้ให้การอุดหนุน "));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ6. การชำระเงินคืนตามข้อ 5 ผู้รับการอุดหนุนตกลงจะนำเงินเข้าบัญชีเงินฝากของผู้รับการอุดหนุนที่เปิดบัญชีไว้กับธนาคารกรุงไทย จำกัด (มหาชน) ตามข้อ 2 โดยผู้รับการอุดหนุนยินยอมให้ ธนาคารกรุงไทย จำกัด (มหาชน) ซึ่งดำเนินการแทนผู้ให้การอุดหนุน หักเงินจากบัญชีของผู้รับการอุดหนุนดังกล่าวเพื่อชำระคืนเงินอุดหนุนแก่ผู้ให้การอุดหนุน ในแต่ละงวดเดือน พร้อมทำการโอนเงินที่พักจากบัญชีของผู้รับการอุดหนุนนำเข้าบัญชีของผู้ให้การอุดหนุนที่เปิดบัญชีไว้กับธนาคารกรุงไทย จำกัด (มหาชน) สาขา .....องค์การตลาดเพื่อเกษตรกร (จตุจักร)..... บัญชีออมทรัพย์ ชื่อบัญชีสำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เลขที่บัญชี ....035-1-52709-5.....เพื่อชำระหนี้คืนเงินอุดหนุนแก่ผู้ให้การอุดหนุนตามข้อตกลงในแต่ละงวดเดือน "));
+                body.AppendChild(NormalParagraphWithTabs("ไม่ว่าผู้รับการอุดหนุนจะได้จัดทำหนังสือยินยอมให้ธนาคารกรุงไทย จำกัด (มหาชน) หักบัญชีเงินฝาก ตามวรรคหนึ่งหรือไม่ก็ตาม โดยสัญญนี้ผู้รับการอุดหนุนให้ถือว่าเป็นการทำหนังสือยินยอมให้ธนาคารกรุงไทย จำกัด (มหาชน) หักบัญชีเงินฝากตามวรรคหนึ่งด้วย "));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ7. ผู้รับการอุดหนุนตกลงยินยอมให้ธนาคารกรุงไทย จจำกัด (มหาชน) ซึ่งกระทำการแทนผู้ให้การอุดหนุนหักเงินที่ผู้รับการอุดหนุนได้โอนเข้าบัญชีตามข้อ 2 เพื่อชำระคืนเป็นค่าใช้จ่ายหรือค่าธรรมเนียมในการโอนเงิน"));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ8. ในระหว่างและตลอดระยะเวลาการตามสัญญาฉบับนี้ ผู้รับการอุดหนุนจะต้องรายงานผลการประกอบกิจการมายังผู้ให้การอุดหนุนหรือศูนย์ให้บริหร SMEs ครบวงจร ในจังหวัดที่ผู้รับการอุดหนุนมีภูมิลำเนาอยู่หรือพื้นที่ใกล้เคียงหรือหน่วยงานอื่นใดที่ผู้ให้การอุดหนุนมอบหมาย ตามหลักเกณฑ์และวิธีการที่ผู้ให้การอุดหนุนกำหนด ไม่น้อยกว่าเดือนละหนึ่งครั้ง"));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ9. กรณีต่อไปนี้ให้ถือว่าผู้รับการอุดหนุนปฏิบัติผิดสัญญา"));
+                body.AppendChild(NormalParagraphWithTabs("9.1 ผู้รับการอุดหนุนผิดนัดชำระคืนเงินอุดหนุนไม่ว่างวดหนึ่งวดใดก็ตาม หรือไม่ชำระคืนเงินอุดหนุนภายในกำหนดระยะเวลาที่กำหนดในสัญญานี้ หรือเงินจำนวนอื่นใดที่ต้องชำระตามสัญญาฉบับนี้"));
+                body.AppendChild(NormalParagraphWithTabs("9.2 ผู้รับการอุดหนุนใช้เงินอุดหนุนผิดไปจากเงื่อนไขตามสัญญา หรือผิดสัญญาแม้ข้อใดข้อหนึ่ง หรือไม่รายงานการดำเนินธุรกิจให้ผู้ให้การอุดหนุนทราบตามข้อ 8 หรือตรวจสอบในภายหลังแล้วพบว่ามีการแจ้งคุณสมบัติ หรือส่งเอกสารเป็นเท็จแก่ผู้ให้การอุดหนุน ๆ มีสิทธิบอกเลิกสัญญาได้ "));
+                body.AppendChild(NormalParagraphWithTabs("ข้อ10. อื่นๆ "));
+                body.AppendChild(NormalParagraphWithTabs("10.1 ในระหว่างและตลอดระยะเวลาตามสัญญานี้ ผู้รับการอุดหนุนยินยอมให้ผู้ให้การอุดหนุน หรือตัวแทนผู้ให้การอุดหนุนเข้าไปตรวจสอบติดตามการดำเนินธุรกิจ ตลอดจนเอกสารหลักฐานทางบัญชีของกิจการ สรรพเอกสารอื่น ๆ ของผู้รับการอุดหนุนได้ตลอด"));
+                body.AppendChild(NormalParagraphWithTabs("10.2 คู่สัญญาตกลงให้ถือเอาเอกสารที่แนบท้ายสัญญานี้ บันทึกข้อตกลง และบรรดาข้อสัญญาต่าง ๆ  เป็นส่วนหนึ่งของสัญญานี้ที่มีผลผูกพันให้ผู้รับการอุดหนุนจะต้องปฏิบัติตาม ซึ่งเอกสารแนบท้ายนี้อาจจะทำเพิ่มเติมในภายหลังจากวันทำสัญญานี้ โดยให้ถือเป็นส่วนหนึ่งของสัญญานี้เช่นกัน และหากเอกสารแนบท้ายสัญญาขัดหรือแย้งกันผู้รับการอุดหนุนตกลงปฏิบัติตามคำวินิจฉัยของผู้ให้การอุดหนุน "));
+                body.AppendChild(NormalParagraphWithTabs("10.3 บรรดาหนังสือ จดหมาย คำบอกกล่าวใด ๆ เช่น การทวงถาม การบอกเลิกสัญญา ของผู้ให้การอุดหนุนหรือผู้ที่ได้รับมอบหมายส่งไปยังสถานที่ที่ระบุไว้เป็นที่อยู่ของผู้รับการอุดหนุนข้างต้น หรือสถานที่อยู่ที่ผู้รับการอุดหนุนแจ้งเปลี่ยนแปลง โดยส่งเองหรือส่งทางไปรษณีย์ลงทะเบียน หรือไม่ลงทะเบียน ไม่ว่าจะมีผู้รับไว้ หรือไม่มีผู้ใดยอมรับไว้ หรือส่งไม่ได้เพราะผู้รับการอุดหนุนย้ายสถานที่อยู่ไปโดยมิได้แจ้งให้ผู้ให้การอุดหนุนทราบหรือหาไม่พบ หรือถูกรื้อถอนทำลายทุก ๆ กรณีดังกล่าวให้ถือว่าผู้รับการอุดหนุนได้รับโดยชอบแล้ว"));
+                body.AppendChild(NormalParagraphWithTabs("10.4 การสละสิทธิ์ตามสัญญานี้ ในคราวหนึ่งคราวใดของผู้ให้การอุดหนุน หรือการที่ผู้ให้การอุดหนุนมิได้ ใช้สิทธิ์ที่มีอยู่ ไม่ถือเป็นการสละสิทธิ์ของผู้ให้การอุดหนุนในคราวต่อไปและไม่มีผลกระทบต่อการใช้สิทธิของผู้ให้การอุดหนุน ในคราวต่อไป "));
+                body.AppendChild(NormalParagraphWithTabs("10.5 หากข้อกำหนด และ/หรือเงื่อนไขข้อใดข้อหนึ่งของสัญญานี้ตกเป็นโมฆะ หรือใช้บังคับไม่ได้ตามกฎหมาย ให้ข้อกำหนดและเงื่อนไขอื่น ๆ ยังคงมีผลใช้บังคับได้ต่อไปได้ โดยแยกต่างหากจากส่วนที่เป็นโมฆะหรือไม่สมบูรณ์นั้น"));
+                body.AppendChild(NormalParagraphWithTabs("สัญญานี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน คู่สัญญาทั้งสองฝ่ายได้ตรวจ อ่าน และเข้าใจข้อความในสัญญานี้โดยละเอียดแล้ว เห็นว่าถูกต้องตามเจตนาทุกประการ จึงได้ลงลายมือชื่อพร้อมประทับตรา (ถ้ามี) ไว้เป็นสำคัญ ต่อหน้าพยาน ณ วัน เดือน ปี ที่ระบุไว้ข้างต้น "));
+
+                body.AppendChild(CenteredParagraph("ลงชื่อ........................................................................ผู้ให้การอุดหนุน"));
+                body.AppendChild(CenteredParagraph("(................................................................................)"));
+                body.AppendChild(CenteredParagraph("ลงชื่อ.......................................................................ผู้รับการอุดหนุน"));
+                body.AppendChild(CenteredParagraph("(................................................................................)"));
+                body.AppendChild(CenteredParagraph("ลงชื่อ.......................................................................คู่สมรสให้ความยินยอม"));
+                body.AppendChild(CenteredParagraph("(...............................................................................)"));
+                body.AppendChild(CenteredParagraph("ลงชื่อ......................................................................พยาน"));
+                body.AppendChild(CenteredParagraph("(...............................................................................)"));
+                body.AppendChild(CenteredParagraph("ลงชื่อ.....................................................................พยาน"));
+                body.AppendChild(CenteredParagraph("(...............................................................................)"));
+
+                // next page
+                body.AppendChild(new Paragraph(new Run(new Break() { Type = BreakValues.Page })));
+
+                body.AppendChild(CenteredParagraph("คำรับรองสถานภาพการสมรส"));
+                body.AppendChild(NormalParagraphWithTabs("ข้าพเจ้า………………………………………………………………………………………………………………………………………….\r\nขอรับรองว่าสถานภาพการสมรสของข้าพเจ้าปัจจุบันมีสถานะ\r\n"));
+                body.AppendChild(NormalParagraphWithTabs("“ข้าพเจ้าขอรับรองว่าสถานภาพการสมรสที่แจ้งในหนังสือฉบับนี้เป็นความจริงทุกประการหากไม่เป็นความจริงแล้ว ความเสียหายใด ๆ ที่จะเกิดกับผู้ให้การอุดหนุน ข้าพเจ้ายินยอมรับผิดชดใช้ให้แก่ผู้ให้การอุดหนุนทั้งสิ้น”"));
+                body.AppendChild(CenteredParagraph("ลงชื่อ.............................................................รับรอง"));
+                body.AppendChild(CenteredParagraph("(............................................................)"));
+                body.AppendChild(CenteredParagraph("ลงชื่อ....................................................พยาน                    ลงชื่อ ........................................................พยาน"));
+
+                body.AppendChild(CenteredParagraph("(............................................................)                                 (.........................................................)"));
+
+                body.AppendChild(NormalParagraphWithTabs("FirstlineTab"));
+                // 5. Section properties (A4, margins)
+                var sectionProps = new SectionProperties(
+                    new PageSize() { Width = 11906, Height = 16838 },
+                    new PageMargin() { Top = 1440, Right = 1440, Bottom = 1440, Left = 1440 }
+                );
+                body.AppendChild(sectionProps);
+            }
+            stream.Position = 0;
+            return File(stream, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สสว. สัญญารับเงินอุดหนุน.docx");
+        }
+        // Helper for colored, bold, centered paragraph
+        private static Paragraph CenteredBoldColoredParagraph(string text, string hexColor) =>
+            new Paragraph(
+                new ParagraphProperties(new Justification { Val = JustificationValues.Center }),
+                new Run(
+                    new RunProperties(
+                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                        new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" },
+                        new Bold(),
+                        new Color { Val = hexColor }
+                    ),
+                    new Text(text)
+                )
+            );
+
+        #endregion
     }
 }

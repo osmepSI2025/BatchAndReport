@@ -58,6 +58,8 @@ builder.Services.AddScoped<IWordWFService, WordWFService>();
 builder.Services.AddScoped<IWordEContractService, WordEContractService>();
 builder.Services.AddHttpClient<ICallAPIService, CallAPIService>();
 
+builder.Services.AddScoped<IWordEContract_AllowanceService, WordEContract_AllowanceService>();
+
 builder.Services.AddSingleton<ScheduledJobService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
 

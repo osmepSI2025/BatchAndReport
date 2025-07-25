@@ -5,7 +5,7 @@ using iText.Kernel.Pdf.Canvas.Wmf;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.X509;
+//using Org.BouncyCastle.Asn1.X509;
 using QuestPDF.Infrastructure;
 using System.Collections.Generic;
 using System.Data;

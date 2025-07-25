@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model BatchAndReport.Pages.Report.ExportModel
 
 <h2>Export Report</h2>
@@ -11,3 +11,11 @@
 </ul>
 
 <a asp-page-handler="PdfReport" class="btn btn-primary">Export SME Report PDF</a>
+
+
+<h2>Export Report สัญญา  by palmmy</h2>
+<ul>
+
+    <li><a asp-page-handler="Word" asp-route="" href="../report/export?handler=WordContactAllowance">สสว.สัญญารับเงินอุดหนุน</a></li>
+
+</ul>
