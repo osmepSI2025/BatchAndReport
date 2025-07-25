@@ -453,19 +453,19 @@ namespace BatchAndReport.Pages.Report
             );
         }
 
-        private static Paragraph JustifiedParagraph(string text) =>
+        private static Paragraph JustifiedParagraph(string text,string fontSize ="28") =>
     new Paragraph(
         new ParagraphProperties(new Justification { Val = JustificationValues.Both }),
         new Run(
             new RunProperties(
                 new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = fontSize }
             ),
             new Text(text)
         )
     );
         // Helper: Paragraph with 2 tab spaces at the start of the first line
-        private static Paragraph NormalParagraphWith_1Tabs(string text, JustificationValues? align = null, string fontZise = null)
+        private static Paragraph NormalParagraphWith_1Tabs(string text, JustificationValues? align = null, string fontZise = "28")
         {
             if (fontZise == null)
             {
@@ -499,7 +499,7 @@ namespace BatchAndReport.Pages.Report
 
             return paragraph;
         }
-        private static Paragraph NormalParagraphWith_2Tabs(string text, JustificationValues? align = null, string fontZise = null)
+        private static Paragraph NormalParagraphWith_2Tabs(string text, JustificationValues? align = null, string fontZise = "28")
         {
             if (fontZise == null)
             {
@@ -534,7 +534,7 @@ namespace BatchAndReport.Pages.Report
 
             return paragraph;
         }
-        private static Paragraph NormalParagraphWith_3Tabs(string text, JustificationValues? align = null, string fontZise = null)
+        private static Paragraph NormalParagraphWith_3Tabs(string text, JustificationValues? align = null, string fontZise = "28")
         {
             if (fontZise == null)
             {
@@ -617,6 +617,71 @@ namespace BatchAndReport.Pages.Report
                   new Text(text)
               )
           );
+
+        private static void AddHeaderWithPageNumber(MainDocumentPart mainPart, Body body)
+        {
+            // --- Add header for first page (empty) ---
+            var firstHeaderPart = mainPart.AddNewPart<HeaderPart>();
+            string firstHeaderPartId = mainPart.GetIdOfPart(firstHeaderPart);
+            firstHeaderPart.Header = new Header(
+                new Paragraph() // Empty paragraph, so no page number on first page
+            );
+
+            // --- Add header for other pages (centered page number) ---
+            var headerPart = mainPart.AddNewPart<HeaderPart>();
+            string headerPartId = mainPart.GetIdOfPart(headerPart);
+            headerPart.Header = new Header(
+                new Paragraph(
+                    new ParagraphProperties(
+                        new Justification() { Val = JustificationValues.Center }
+                    ),
+                    new Run(
+                        new RunProperties(
+                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                        ),
+                        new FieldChar() { FieldCharType = FieldCharValues.Begin }
+                    ),
+                    new Run(
+                        new RunProperties(
+                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                        ),
+                        new FieldCode(" PAGE") { Space = SpaceProcessingModeValues.Preserve }
+                    ),
+                    new Run(
+                        new RunProperties(
+                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                        ),
+                        new FieldChar() { FieldCharType = FieldCharValues.Separate }
+                    ),
+                    new Run(
+                        new RunProperties(
+                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                        ),
+                        new Text("1")
+                    ),
+                    new Run(
+                        new RunProperties(
+                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+                            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
+                        ),
+                        new FieldChar() { FieldCharType = FieldCharValues.End }
+                    )
+                )
+            );
+
+            var sectionProps = new SectionProperties(
+                new HeaderReference() { Type = HeaderFooterValues.First, Id = firstHeaderPartId },
+                new HeaderReference() { Type = HeaderFooterValues.Default, Id = headerPartId },
+                new PageSize() { Width = 11906, Height = 16838 }, // A4 size
+                new PageMargin() { Top = 1440, Right = 1440, Bottom = 1440, Left = 1440, Header = 720, Footer = 720, Gutter = 0 },
+                new TitlePage() // This enables different first page header/footer
+            );
+            body.AppendChild(sectionProps);
+        }
 
         #region สสว. สัญญารับเงินอุดหนุน
         // This is your specific handler for the contract report
@@ -722,67 +787,7 @@ namespace BatchAndReport.Pages.Report
                 body.AppendChild(RightParagraph("........................................................./ผู้ตรวจ"));
 
 
-                // --- Add header for first page (empty) ---
-                var firstHeaderPart = mainPart.AddNewPart<HeaderPart>();
-                string firstHeaderPartId = mainPart.GetIdOfPart(firstHeaderPart);
-                firstHeaderPart.Header = new Header(
-                    new Paragraph() // Empty paragraph, so no page number on first page
-                );
-
-                // --- Add header for other pages (centered page number) ---
-                var headerPart = mainPart.AddNewPart<HeaderPart>();
-                string headerPartId = mainPart.GetIdOfPart(headerPart);
-                headerPart.Header = new Header(
-                    new Paragraph(
-                        new ParagraphProperties(
-                            new Justification() { Val = JustificationValues.Center }
-                        ),
-                        new Run(
-                            new RunProperties(
-                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                            ),
-                            new FieldChar() { FieldCharType = FieldCharValues.Begin }
-                        ),
-                        new Run(
-                            new RunProperties(
-                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                            ),
-                            new FieldCode(" PAGE") { Space = SpaceProcessingModeValues.Preserve }
-                        ),
-                        new Run(
-                            new RunProperties(
-                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                            ),
-                            new FieldChar() { FieldCharType = FieldCharValues.Separate }
-                        ),
-                        new Run(
-                            new RunProperties(
-                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                            ),
-                            new Text("1")
-                        ),
-                        new Run(
-                            new RunProperties(
-                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                            ),
-                            new FieldChar() { FieldCharType = FieldCharValues.End }
-                        )
-                    )
-                );
-
-                var sectionProps = new SectionProperties(
-                    new HeaderReference() { Type = HeaderFooterValues.First, Id = firstHeaderPartId },
-                    new HeaderReference() { Type = HeaderFooterValues.Default, Id = headerPartId },
-                    new PageSize() { Width = 11906, Height = 16838 }, // A4 size
-                    new PageMargin() { Top = 1440, Right = 1440, Bottom = 1440, Left = 1440, Header = 720, Footer = 720, Gutter = 0 },
-                    new TitlePage() // This enables different first page header/footer
-                );
-                body.AppendChild(sectionProps);
+                AddHeaderWithPageNumber(mainPart, body);
             }
             stream.Position = 0;
             return File(stream, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สสว.สัญญารับเงินอุดหนุน.docx");
@@ -937,66 +942,7 @@ namespace BatchAndReport.Pages.Report
 
 
                 // --- Add header for first page (empty) ---
-                var firstHeaderPart = mainPart.AddNewPart<HeaderPart>();
-                string firstHeaderPartId = mainPart.GetIdOfPart(firstHeaderPart);
-                firstHeaderPart.Header = new Header(
-                    new Paragraph() // Empty paragraph, so no page number on first page
-                );
-
-                // --- Add header for other pages (centered page number) ---
-                var headerPart = mainPart.AddNewPart<HeaderPart>();
-                string headerPartId = mainPart.GetIdOfPart(headerPart);
-                headerPart.Header = new Header(
-                    new Paragraph(
-                        new ParagraphProperties(
-                            new Justification() { Val = JustificationValues.Center }
-                        ),
-                        new Run(
-                            new RunProperties(
-                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                            ),
-                            new FieldChar() { FieldCharType = FieldCharValues.Begin }
-                        ),
-                        new Run(
-                            new RunProperties(
-                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                            ),
-                            new FieldCode(" PAGE") { Space = SpaceProcessingModeValues.Preserve }
-                        ),
-                        new Run(
-                            new RunProperties(
-                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                            ),
-                            new FieldChar() { FieldCharType = FieldCharValues.Separate }
-                        ),
-                        new Run(
-                            new RunProperties(
-                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                            ),
-                            new Text("1")
-                        ),
-                        new Run(
-                            new RunProperties(
-                                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                            ),
-                            new FieldChar() { FieldCharType = FieldCharValues.End }
-                        )
-                    )
-                );
-
-                var sectionProps = new SectionProperties(
-                    new HeaderReference() { Type = HeaderFooterValues.First, Id = firstHeaderPartId },
-                    new HeaderReference() { Type = HeaderFooterValues.Default, Id = headerPartId },
-                    new PageSize() { Width = 11906, Height = 16838 }, // A4 size
-                    new PageMargin() { Top = 1440, Right = 1440, Bottom = 1440, Left = 1440, Header = 720, Footer = 720, Gutter = 0 },
-                    new TitlePage() // This enables different first page header/footer
-                );
-                body.AppendChild(sectionProps);
+                AddHeaderWithPageNumber(mainPart, body);
             }
             stream.Position = 0;
             return File(stream, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สสว.สัญญาเงินกู้ยืมโครงการพลิกฟื้นวิสาห.docx");
@@ -1022,7 +968,7 @@ namespace BatchAndReport.Pages.Report
                 if (System.IO.File.Exists(imagePath))
                 {
                     // Add empty paragraph above logo for spacing
-                  //  body.AppendChild(EmptyParagraph());
+                    //  body.AppendChild(EmptyParagraph());
 
                     var imagePart = mainPart.AddImagePart(ImagePartType.Png);
                     using (var imgStream = new FileStream(imagePath, FileMode.Open))
@@ -1038,9 +984,9 @@ namespace BatchAndReport.Pages.Report
                     body.AppendChild(logoPara);
                 }
                 // 2. Document title and subtitle
-               
-                body.AppendChild(CenteredBoldColoredParagraph("สัญญาจ้างลูกจ้าง", "000000","36"));
-             
+
+                body.AppendChild(CenteredBoldColoredParagraph("สัญญาจ้างลูกจ้าง", "000000", "36"));
+
                 body.AppendChild(NormalParagraphWith_2Tabs("สัญญาฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เลขที่ 21 ถนนวิภาวดีรังสิต เขตจตุจักร กรุงเทพมหานคร เมื่อวันที่ {param1}", null, "32"));
                 body.AppendChild(NormalParagraphWith_2Tabs("ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย........................................." +
                     "\r\nผู้อำนวยการฝ่ายศูนย์ให้บริการ SMEs ครบวงจร สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ผู้รับมอบหมายตามคำสั่งสำนักงานฯ ที่ 629/2564 ลงวันที่ 30 กันยายน 2564 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้ว่าจ้าง”\r\n", null, "32"));
@@ -1152,8 +1098,194 @@ namespace BatchAndReport.Pages.Report
             stream.Position = 0;
             return File(stream, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างลูกจ้าง.docx");
             #endregion
-
-
         }
+            #region สัญญาจ้างทำของ
+    public IActionResult OnGetWordContactToDoThing()
+    {
+
+      var stream = new MemoryStream();
+
+      using (var wordDoc = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document, true))
+      {
+        var mainPart = wordDoc.AddMainDocumentPart();
+        mainPart.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
+
+        // Styles
+        var stylePart = mainPart.AddNewPart<StyleDefinitionsPart>();
+        stylePart.Styles = CreateDefaultStyles();
+
+        var body = mainPart.Document.AppendChild(new Body());
+
+        body.AppendChild(CenteredBoldColoredParagraph("แบบสัญญา", "000000", "36"));
+        body.AppendChild(CenteredBoldColoredParagraph("สัญญาจ้างทำของ", "000000", "36"));
+        // 2. Document title and subtitle
+        body.AppendChild(EmptyParagraph());
+        body.AppendChild(RightParagraph("สัญญาเลขที่………….…… (1)...........……..……..."));
+
+
+        body.AppendChild(NormalParagraphWith_2Tabs("สัญญาฉบับนี้ทำขึ้น ณ ………….……..…………………………………………………………………………......."));
+        body.AppendChild(JustifiedParagraph("ตำบล/แขวง…………………..………………….………………. อำเภอ/เขต……………………….….……………………………...\r\n" +
+          "จังหวัด…….…………………………….………….เมื่อวันที่ ……….……… เดือน …………………….. พ.ศ. ……....……… \r\n" +
+          "ระหว่าง……………………………………………………………… (2) ………………………………………………………………………..\r\n" +
+          "โดย………...…………….…………………………….……………(3) ………..…………………………………………..…………………ซึ่ง\r\n" +
+          "ต่อไปในสัญญานี้เรียกว่า “ผู้ว่าจ้าง” ฝ่ายหนึ่ง กับ…………….…………..…… (4 ก) …………..…………………….ซึ่ง\r\n" +
+          "จดทะเบียนเป็นนิติบุคคล ณ ……………………………………………………………………………………….………….……..มี\r\n" +
+          "สำนักงานใหญ่อยู่เลขที่ ……………......……ถนน……………….……………..ตำบล/แขวง…….……….…..……….…....\r\n" +
+          "อำเภอ/เขต………………….…..…….จังหวัด………..…………………..….โดย………….…………………………………..……...\r\n" +
+          "มีอำนาจลงนามผูกพันนิติบุคคลปรากฏตามหนังสือรับรองของสำนักงานทะเบียนหุ้นส่วนบริษัท ……………\r\n" +
+          "ลงวันที่………………………………..… (5)(และหนังสือมอบอำนาจลงวันที่ ……………….……..) แนบท้ายสัญญานี้\r\n" +
+          "(6)(ในกรณีที่ผู้รับจ้างเป็นบุคคลธรรมดาให้ใช้ข้อความว่า กับ …………………..….… (4 ข) …………………….............\r\n" +
+          "อยู่บ้านเลขที่ …………….….…..….ถนน…………………..……..…...……ตำบล/แขวง ……..………………….….…………\r\n" +
+          "อำเภอ/เขต…………………….………….…..จังหวัด…………...…..………….……...……. ผู้ถือบัตรประจำตัวประชาชน\r\n" +
+          "เลขที่................................ ดังปรากฏตามสำเนาบัตรประจำตัวประชาชนแนบท้ายสัญญานี้) ซึ่งต่อไปใน\r\n" +
+          "สัญญานี้เรียกว่า “ผู้รับจ้าง” อีกฝ่ายหนึ่ง", "32"));
+
+        body.AppendChild(NormalParagraphWith_2Tabs("คู่สัญญาได้ตกลงกันมีข้อความดังต่อไปนี้",null,"32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 1ข้อตกลงว่าจ้าง", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้ว่าจ้างตกลงจ้างและผู้รับจ้างตกลงรับจ้างทำงาน….………….…… (7) ………...…..……… \r\n" +
+          "ณ …..……………................." +
+          "ตำบล/แขวง….…………………………….……..อำเภอ/เขต …………..…………..………................\r\n" +
+          "จังหวัด……………………….……….….. ตามข้อกำหนดและเงื่อนไขแห่งสัญญานี้รวมทั้งเอกสารแนบท้ายสัญญา", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้รับจ้างตกลงที่จะจัดหาแรงงานและวัสดุ เครื่องมือเครื่องใช้ ตลอดจนอุปกรณ์ต่างๆ ชนิดดีเพื่อใช้ในงานจ้างตามสัญญานี้", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 2\tเอกสารอันเป็นส่วนหนึ่งของสัญญา", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("2.1 ผนวก 1.………..….(รายละเอียดงานจ้าง)…….……..\tจำนวน.…..(…..….….….) หน้า", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("2.2 ผนวก 2……….…....(ใบเสนอราคา)…………….…......\tจำนวน……(………….….) หน้า", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ความใดในเอกสารแนบท้ายสัญญาที่ขัดหรือแย้งกับข้อความในสัญญานี้ ให้ใช้ข้อความ\r\nในสัญญานี้บังคับ และในกรณีที่เอกสารแนบท้ายสัญญาขัดแย้งกันเอง ผู้รับจ้างจะต้องปฏิบัติตามคำวินิจฉัยของผู้ว่าจ้าง คำวินิจฉัยของผู้ว่าจ้างให้ถือเป็นที่สุด และผู้รับจ้างไม่มีสิทธิเรียกร้องค่าจ้าง หรือค่าเสียหาย หรือค่าใช้จ่ายใดๆ เพิ่มเติมจากผู้ว่าจ้างทั้งสิ้น\r\n", null, "32"));
+
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 3\tหลักประกันการปฏิบัติตามสัญญา", null, "32"));
+         body.AppendChild(NormalParagraphWith_3Tabs("ในขณะทำสัญญานี้ผู้รับจ้างได้นำหลักประกันเป็น…………….…...…..(8)..………..………" +
+           "เป็นจำนวนเงิน……………....บาท(……………..………….) ซึ่งเท่ากับร้อยละ………(9)…..…(…………..………...) ของราคาค่าจ้างตามสัญญา มามอบให้แก่ผู้ว่าจ้างเพื่อเป็นหลักประกันการปฏิบัติตามสัญญานี้", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("(10)กรณีผู้รับจ้างใช้หนังสือค้ำประกันมาเป็นหลักประกันการปฏิบัติตามสัญญา \r\nหนังสือค้ำประกันดังกล่าวจะต้องออกโดยธนาคารที่ประกอบกิจการในประเทศไทย หรือโดยบริษัทเงินทุนหรือบริษัทเงินทุนหลักทรัพย์ที่ได้รับอนุญาตให้ประกอบกิจการเงินทุนเพื่อการพาณิชย์และประกอบธุรกิจ\r\nค้ำประกันตามประกาศของธนาคารแห่งประเทศไทย ตามรายชื่อบริษัทเงินทุนที่ธนาคารแห่งประเทศไทยแจ้งเวียนให้ทราบตามแบบที่คณะกรรมการนโยบายการจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐกำหนด หรืออาจเป็นหนังสือค้ำประกันอิเล็กทรอนิกส์ตามวิธีการที่กรมบัญชีกลางกำหนดก็ได้ และจะต้องมีอายุ\r\nการค้ำประกันตลอดไปจนกว่าผู้รับจ้างพ้นข้อผูกพันตามสัญญานี้\r\n", null, "32"));
+
+        body.AppendChild(NormalParagraphWith_3Tabs("หลักประกันที่ผู้รับจ้างนำมามอบให้ตามวรรคหนึ่ง จะต้องมีอายุครอบคลุมความรับผิด\r\n" +
+          "ทั้งปวงของผู้รับจ้างตลอดอายุสัญญา ถ้าหลักประกันที่ผู้รับจ้างนำมามอบให้ดังกล่าวลดลงหรือเสื่อมค่าลง " +
+          "หรือมีอายุไม่ครอบคลุมถึงความรับผิดของผู้รับจ้างตลอดอายุสัญญา ไม่ว่าด้วยเหตุใดๆ ก็ตาม รวมถึงกรณี\r\n" +
+          "ผู้รับจ้างส่งมอบงานล่าช้าเป็นเหตุให้ระยะเวลาแล้วเสร็จหรือวันครบกำหนดความรับผิดในความชำรุดบกพร่องตามสัญญาเปลี่ยนแปลงไป ไม่ว่าจะเกิดขึ้นคราวใด ผู้รับจ้างต้องหาหลักประกันใหม่หรือหลักประกันเพิ่มเติมให้มีจำนวนครบถ้วนตามวรรคหนึ่งมามอบให้แก่ผู้ว่าจ้างภายใน...............(……………………..….) วัน นับถัดจากวันที่ได้รับแจ้งเป็นหนังสือจากผู้ว่าจ้าง\r\n", null, "32"));
+
+        body.AppendChild(NormalParagraphWith_3Tabs("หลักประกันที่ผู้รับจ้างนำมามอบไว้ตามข้อนี้ ผู้ว่าจ้างจะคืนให้แก่ผู้รับจ้างโดยไม่มีดอกเบี้ยเมื่อผู้รับจ้างพ้นจากข้อผูกพันและความรับผิดทั้งปวงตามสัญญานี้แล้ว", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 4  ค่าจ้างและการจ่ายเงิน ", null, "32")); 
+        body.AppendChild(NormalParagraphWith_3Tabs("(11)(ก) สำหรับการจ่ายเงินค่าจ้างให้ผู้รับจ้างเป็นงวด", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้ว่าจ้างตกลงจ่ายและผู้รับจ้างตกลงรับเงินค่าจ้างจำนวนเงิน……………………..บาท(……………………………..…) ซึ่งได้รวมภาษีมูลค่าเพิ่ม จำนวน…………………บาท (......................................) ตลอดจนภาษีอากรอื่นๆ และค่าใช้จ่ายทั้งปวงด้วยแล้ว โดยกำหนดการจ่ายเงินเป็นงวดๆ ดังนี้", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("งวดที่ 1 เป็นจำนวนเงิน………………………...บาท (…………………………………...………….) เมื่อผู้รับจ้างได้ปฏิบัติงาน……………………………………ให้แล้วเสร็จภายใน…………………………………………………..", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("งวดที่ 2 เป็นจำนวนเงิน…….………………...บาท (…………………………………...………….) เมื่อผู้รับจ้างได้ปฏิบัติงาน…………………………..…..……ให้แล้วเสร็จภายใน……………………………………………", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("งวดสุดท้าย เป็นจำนวนเงิน……………..………....บาท (…………………………………...….…..) เมื่อผู้รับจ้างได้ปฏิบัติงานทั้งหมดให้แล้วเสร็จเรียบร้อยตามสัญญาและผู้ว่าจ้างได้ตรวจรับงานจ้างตามข้อ 11 ไว้โดยครบถ้วนแล้ว", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("(12)(ข) สำหรับการจ่ายเงินค่าจ้างให้ผู้รับจ้างครั้งเดียว", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้ว่าจ้างตกลงจ่ายและผู้รับจ้างตกลงรับเงินค่าจ้างจำนวนเงิน……………………..บาท(……………………………..…) ซึ่งได้รวมภาษีมูลค่าเพิ่ม จำนวน…………………บาท (......................................) ตลอดจนภาษีอากรอื่นๆ และค่าใช้จ่ายทั้งปวงด้วยแล้ว เมื่อผู้รับจ้างได้ปฏิบัติงานทั้งหมดให้แล้วเสร็จเรียบร้อยตามสัญญาและผู้ว่าจ้างได้ตรวจรับงานจ้างตามข้อ 11 ไว้โดยครบถ้วนแล้ว ", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("(13)การจ่ายเงินตามเงื่อนไขแห่งสัญญานี้ ผู้ว่าจ้างจะโอนเงินเข้าบัญชีเงินฝากธนาคารของผู้รับจ้าง ชื่อธนาคาร………..………….……….สาขา……………..…….…..ชื่อบัญชี……………….……………………เลขที่บัญชี……………………………ทั้งนี้ ผู้รับจ้างตกลงเป็นผู้รับภาระเงินค่าธรรมเนียมหรือค่าบริการอื่นใดเกี่ยวกับการโอน รวมทั้งค่าใช้จ่ายอื่นใด (ถ้ามี) ที่ธนาคารเรียกเก็บ และยินยอมให้มีการหักเงินดังกล่าว\r\nจากจำนวนเงินโอนในงวดนั้นๆ (ความในวรรคนี้ใช้สำหรับกรณีที่หน่วยงานของรัฐจะจ่ายเงินตรง\r\nให้แก่ผู้รับจ้าง (ระบบ Direct Payment) โดยการโอนเงินเข้าบัญชีเงินฝากธนาคารของผู้รับจ้าง \r\nตามแนวทางที่กระทรวงการคลังหรือหน่วยงานของรัฐเจ้าของงบประมาณเป็นผู้กำหนด แล้วแต่กรณี)\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(14)ข้อ 5 เงินค่าจ้างล่วงหน้า", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้ว่าจ้างตกลงจ่ายเงินค่าจ้างล่วงหน้าให้แก่ผู้รับจ้าง เป็นจำนวนเงิน…………..…..…บาท(………………..….…) ซึ่งเท่ากับร้อยละ……....…(……….…………....) ของราคาค่าจ้างตามสัญญาที่ระบุไว้ในข้อ 4", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("เงินค่าจ้างล่วงหน้าดังกล่าวจะจ่ายให้ภายหลังจากที่ผู้รับจ้างได้วางหลักประกันการรับเงินค่าจ้างล่วงหน้าเป็น...................... (หนังสือค้ำประกันหรือหนังสือค้ำประกันอิเล็กทรอนิกส์ของธนาคาร\r\nภายในประเทศหรือพันธบัตรรัฐบาลไทย) ………………....เต็มตามจำนวนเงินค่าจ้างล่วงหน้านั้นให้แก่ผู้ว่าจ้าง ผู้รับจ้างจะต้องออกใบเสร็จรับเงินค่าจ้างล่วงหน้าตามแบบที่ผู้ว่าจ้างกำหนดให้และผู้รับจ้างตกลงที่จะกระทำตามเงื่อนไขอันเกี่ยวกับการใช้จ่ายและการใช้คืนเงินค่าจ้างล่วงหน้านั้น ดังต่อไปนี้\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("5.1 ผู้รับจ้างจะใช้เงินค่าจ้างล่วงหน้านั้นเพื่อเป็นค่าใช้จ่ายในการปฏิบัติงานตามสัญญาเท่านั้น หากผู้รับจ้างใช้จ่ายเงินค่าจ้างล่วงหน้าหรือส่วนใดส่วนหนึ่งของเงินค่าจ้างล่วงหน้านั้นในทางอื่น ผู้ว่าจ้างอาจจะเรียกเงินค่าจ้างล่วงหน้านั้นคืนจากผู้รับจ้างหรือบังคับเอาจากหลักประกันการรับเงินค่าจ้างล่วงหน้า\r\nได้ทันที\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("5.2 เมื่อผู้ว่าจ้างเรียกร้อง ผู้รับจ้างต้องแสดงหลักฐานการใช้จ่ายเงินค่าจ้างล่วงหน้า เพื่อพิสูจน์ว่าได้เป็นไปตามข้อ 5.1 ภายในกำหนด 15 (สิบห้า) วัน นับถัดจากวันได้รับแจ้งเป็นหนังสือจากผู้ว่าจ้าง \r\nหากผู้รับจ้างไม่อาจแสดงหลักฐานดังกล่าวภายในกำหนด 15 (สิบห้า) วัน ผู้ว่าจ้างอาจเรียกเงินค่าจ้างล่วงหน้าคืนจากผู้รับจ้างหรือบังคับเอาจากหลักประกันการรับเงินค่าจ้างล่วงหน้าได้ทันที\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("5.3 ในการจ่ายเงินค่าจ้างให้แก่ผู้รับจ้างตามข้อ 4 ผู้ว่าจ้างจะหักคืนเงินค่าจ้างล่วงหน้าในแต่ละงวดเพื่อชดใช้คืนเงินค่าจ้างล่วงหน้าไว้จำนวนร้อยละ .............(...........) ของจำนวนเงินค่าจ้างในแต่ละงวดจนกว่าจำนวนเงินที่หักไว้จะครบตามจำนวนเงินที่หักค่าจ้างล่วงหน้าที่ผู้รับจ้างได้รับไปแล้ว ยกเว้นค่าจ้างงวดสุดท้ายจะหักไว้เป็นจำนวนเท่ากับจำนวนเงินค่าจ้างล่วงหน้าที่เหลือทั้งหมด", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("5.4 เงินจำนวนใดๆ ก็ตามที่ผู้รับจ้างจะต้องจ่ายให้แก่ผู้ว่าจ้างเพื่อชำระหนี้หรือ\r\nเพื่อชดใช้ความรับผิดต่างๆ ตามสัญญา ผู้ว่าจ้างจะหักเอาจากเงินค่าจ้างงวดที่จะจ่ายให้แก่ผู้รับจ้าง\r\nก่อนที่จะหักชดใช้คืนเงินค่าจ้างล่วงหน้า\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("5.5 ในกรณีที่มีการบอกเลิกสัญญา หากเงินค่าจ้างล่วงหน้าที่เหลือเกินกว่าจำนวนเงินที่ผู้รับจ้างจะได้รับหลังจากหักชดใช้ในกรณีอื่นแล้ว ผู้รับจ้างจะต้องจ่ายคืนเงินจำนวนที่เหลือนั้นให้แก่\r\nผู้ว่าจ้างภายใน 7 (เจ็ด) วัน นับถัดจากวันได้รับแจ้งเป็นหนังสือจากผู้ว่าจ้าง\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("5.6 ผู้ว่าจ้างจะคืนหลักประกันเงินค่าจ้างล่วงหน้าให้แก่ผู้รับจ้างต่อเมื่อผู้ว่าจ้างได้หักเงินค่าจ้างไว้ครบจำนวนเงินค่าจ้างล่วงหน้าตามข้อ 5.3", null, "32"));
+        
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 6  กำหนดเวลาแล้วเสร็จและสิทธิของผู้ว่าจ้างในการบอกเลิกสัญญา", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้รับจ้างต้องเริ่มทำงานที่รับจ้างภายในวันที่….... เดือน……………… พ.ศ. ………. และจะต้องทำงานให้แล้วเสร็จบริบูรณ์ภายในวันที่ ….... เดือน …………. พ.ศ. …...…. ถ้าผู้รับจ้างมิได้ลงมือทำงานภายในกำหนดเวลา หรือไม่สามารถทำงานให้แล้วเสร็จตามกำหนดเวลา หรือมีเหตุให้เชื่อได้ว่า\r\nผู้รับจ้างไม่สามารถทำงานให้แล้วเสร็จภายในกำหนดเวลา หรือจะแล้วเสร็จล่าช้าเกินกว่ากำหนดเวลา \r\nหรือผู้รับจ้างทำผิดสัญญาข้อใดข้อหนึ่ง หรือตกเป็นผู้ถูกพิทักษ์ทรัพย์เด็ดขาดหรือตกเป็นผู้ล้มละลาย หรือเพิกเฉยไม่ปฏิบัติตามคำสั่งของคณะกรรมการตรวจรับพัสดุ ผู้ว่าจ้างมีสิทธิที่จะบอกเลิกสัญญานี้ได้ และมีสิทธิจ้างผู้รับจ้างรายใหม่เข้าทำงานของผู้รับจ้างให้ลุล่วงไปได้ด้วย การใช้สิทธิบอกเลิกสัญญานั้นไม่กระทบสิทธิของผู้ว่าจ้างที่จะเรียกร้องค่าเสียหายจากผู้รับจ้าง \r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("การที่ผู้ว่าจ้างไม่ใช้สิทธิเลิกสัญญาดังกล่าวข้างต้นนั้น ไม่เป็นเหตุให้ผู้รับจ้างพ้นจาก\r\nความรับผิดตามสัญญา\r\n", null, "32"));
+
+        body.AppendChild(NormalParagraphWith_2Tabs("(15)ข้อ 7 ความรับผิดชอบในความชำรุดบกพร่องของงานจ้าง", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("เมื่องานแล้วเสร็จบริบูรณ์ และผู้ว่าจ้างได้รับมอบงานจากผู้รับจ้างหรือจากผู้รับจ้างรายใหม่ ในกรณีที่มีการบอกเลิกสัญญาตามข้อ 6 หากมีเหตุชำรุดบกพร่องหรือเสียหายเกิดขึ้นจากการจ้างนี้ \r\nภายในกำหนด.....(16)…..….(……..…..) ปี …….…(……....….) เดือน นับถัดจากวันที่ได้รับมอบงานดังกล่าว \r\nซึ่งความชำรุดบกพร่องหรือเสียหายนั้นเกิดจากความบกพร่องของผู้รับจ้างอันเกิดจากการใช้วัสดุที่ไม่ถูกต้องหรือทำไว้ไม่เรียบร้อย หรือทำไม่ถูกต้องตามมาตรฐานแห่งหลักวิชา ผู้รับจ้างจะต้องรีบทำการแก้ไข\r\nให้เป็นที่เรียบร้อยโดยไม่ชักช้า โดยผู้ว่าจ้างไม่ต้องออกเงินใดๆ ในการนี้ทั้งสิ้น หากผู้รับจ้างไม่กระทำการ\r\nดังกล่าวภายในกำหนด……...(………..……) วัน นับถัดจากวันที่ได้รับแจ้งเป็นหนังสือจากผู้ว่าจ้างหรือไม่ทำการแก้ไขให้ถูกต้องเรียบร้อยภายในเวลาที่ผู้ว่าจ้างกำหนด ให้ผู้ว่าจ้างมีสิทธิที่จะทำการนั้นเอง\r\nหรือจ้างผู้อื่นให้ทำงานนั้น โดยผู้รับจ้างต้องเป็นผู้ออกค่าใช้จ่ายเองทั้งสิ้น\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ในกรณีเร่งด่วนจำเป็นต้องรีบแก้ไขเหตุชำรุดบกพร่องหรือเสียหายโดยเร็ว และไม่อาจรอให้ผู้รับจ้างแก้ไขในระยะเวลาที่กำหนดไว้ตามวรรคหนึ่งได้ ผู้ว่าจ้างมีสิทธิเข้าจัดการแก้ไขเหตุชำรุดบกพร่องหรือเสียหายนั้นเอง หรือจ้างผู้อื่นให้ซ่อมแซมความชำรุดบกพร่องหรือเสียหาย โดยผู้รับจ้าง\r\nต้องรับผิดชอบชำระค่าใช้จ่ายทั้งหมด\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("การที่ผู้ว่าจ้างทำการนั้นเอง หรือจ้างผู้อื่นให้ทำงานนั้นแทนผู้รับจ้าง ไม่ทำให้ผู้รับจ้าง\r\nหลุดพ้นจากความรับผิดตามสัญญา หากผู้รับจ้างไม่ชดใช้ค่าใช้จ่ายหรือค่าเสียหายตามที่ผู้ว่าจ้างเรียกร้องผู้ว่าจ้างมีสิทธิบังคับจากหลักประกันการปฏิบัติตามสัญญาได้\r\n", null, "32"));
+       
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 8\tการจ้างช่วง", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้รับจ้างจะต้องไม่เอางานทั้งหมดหรือแต่บางส่วนแห่งสัญญานี้ไปจ้างช่วงอีกทอดหนึ่ง เว้นแต่การจ้างช่วงงานแต่บางส่วนที่ได้รับอนุญาตเป็นหนังสือจากผู้ว่าจ้างแล้ว การที่ผู้ว่าจ้างได้อนุญาต\r\nให้จ้างช่วงงานแต่บางส่วนดังกล่าวนั้น ไม่เป็นเหตุให้ผู้รับจ้างหลุดพ้นจากความรับผิดหรือพันธะหน้าที่\r\nตามสัญญานี้ และผู้รับจ้างจะยังคงต้องรับผิดในความผิดและความประมาทเลินเล่อของผู้รับจ้างช่วง \r\nหรือของตัวแทนหรือลูกจ้างของผู้รับจ้างช่วงนั้นทุกประการ\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("กรณีผู้รับจ้างไปจ้างช่วงงานแต่บางส่วนโดยฝ่าฝืนความในวรรคหนึ่ง ผู้รับจ้างต้องชำระค่าปรับให้แก่ผู้ว่าจ้างเป็นจำนวนเงินในอัตราร้อยละ........(17)….....(.........................) ของวงเงินของงาน\r\nที่จ้างช่วงตามสัญญา ทั้งนี้ ไม่ตัดสิทธิผู้ว่าจ้างในการบอกเลิกสัญญา\r\n", null, "32"));
+        
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 9\tความรับผิดของผู้รับจ้าง", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้รับจ้างจะต้องรับผิดต่ออุบัติเหตุ ความเสียหาย หรือภยันตรายใดๆ อันเกิดจาก\r\nการปฏิบัติงานของผู้รับจ้าง และจะต้องรับผิดต่อความเสียหายจากการกระทำของลูกจ้างหรือตัวแทน\r\nของผู้รับจ้าง และจากการปฏิบัติงานของผู้รับจ้างช่วงด้วย (ถ้ามี)\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ความเสียหายใดๆ อันเกิดแก่งานที่ผู้รับจ้างได้ทำขึ้น แม้จะเกิดขึ้นเพราะเหตุสุดวิสัย\r\nก็ตาม ผู้รับจ้างจะต้องรับผิดชอบโดยซ่อมแซมให้คืนดีหรือเปลี่ยนให้ใหม่โดยค่าใช้จ่ายของผู้รับจ้างเอง เว้นแต่ความเสียหายนั้นเกิดจากความผิดของผู้ว่าจ้าง ทั้งนี้ ความรับผิดของผู้รับจ้างดังกล่าวในข้อนี้จะสิ้นสุดลง\r\nเมื่อผู้ว่าจ้างได้รับมอบงานครั้งสุดท้าย ซึ่งหลังจากนั้นผู้รับจ้างคงต้องรับผิดเพียงในกรณีชำรุดบกพร่อง \r\nหรือความเสียหายดังกล่าวในข้อ 7 เท่านั้น\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้รับจ้างจะต้องรับผิดต่อบุคคลภายนอกในความเสียหายใดๆ อันเกิดจาก\r\nการปฏิบัติงานของผู้รับจ้าง หรือลูกจ้างหรือตัวแทนของผู้รับจ้าง รวมถึงผู้รับจ้างช่วง (ถ้ามี) ตามสัญญานี้ หากผู้ว่าจ้างถูกเรียกร้องหรือฟ้องร้องหรือต้องชดใช้ค่าเสียหายให้แก่บุคคลภายนอกไปแล้ว ผู้รับจ้างจะต้อง\r\nดำเนินการใดๆ เพื่อให้มีการว่าต่างแก้ต่างให้แก่ผู้ว่าจ้างโดยค่าใช้จ่ายของผู้รับจ้างเอง รวมทั้งผู้รับจ้างจะต้องชดใช้ค่าเสียหายนั้นๆ ตลอดจนค่าใช้จ่ายใดๆ อันเกิดจากการถูกเรียกร้องหรือถูกฟ้องร้องให้แก่ผู้ว่าจ้างทันที\r\n", null, "32"));
+
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 10\tการจ่ายเงินแก่ลูกจ้าง", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้รับจ้างจะต้องจ่ายเงินแก่ลูกจ้างที่ผู้รับจ้างได้จ้างมาในอัตราและตามกำหนดเวลา\r\nที่ผู้รับจ้างได้ตกลงหรือทำสัญญาไว้ต่อลูกจ้างดังกล่าว\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ถ้าผู้รับจ้างไม่จ่ายเงินค่าจ้างหรือค่าทดแทนอื่นใดแก่ลูกจ้างดังกล่าวในวรรคหนึ่ง \r\nผู้ว่าจ้างมีสิทธิที่จะเอาเงินค่าจ้างที่จะต้องจ่ายแก่ผู้รับจ้างมาจ่ายให้แก่ลูกจ้างของผู้รับจ้างดังกล่าว และให้ถือว่าผู้ว่าจ้างได้จ่ายเงินจำนวนนั้นเป็นค่าจ้างให้แก่ผู้รับจ้างตามสัญญาแล้ว\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้รับจ้างจะต้องจัดให้มีประกันภัยสำหรับลูกจ้างทุกคนที่จ้างมาทำงาน โดยให้ครอบคลุมถึงความรับผิดทั้งปวงของผู้รับจ้าง รวมทั้งผู้รับจ้างช่วง (ถ้ามี) ในกรณีความเสียหายที่คิดค่าสินไหมทดแทนได้ตามกฎหมาย ซึ่งเกิดจากอุบัติเหตุหรือภยันตรายใดๆ ต่อลูกจ้างหรือบุคคลอื่นที่ผู้รับจ้าง\r\nหรือผู้รับจ้างช่วงจ้างมาทำงาน ผู้รับจ้างจะต้องส่งมอบกรมธรรม์ประกันภัยดังกล่าวพร้อมทั้งหลักฐาน\r\nการชำระเบี้ยประกันให้แก่ผู้ว่าจ้างเมื่อผู้ว่าจ้างเรียกร้อง\r\n", null, "32"));
+       
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 11\tการตรวจรับงานจ้าง", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("เมื่อผู้ว่าจ้างได้ตรวจรับงานจ้างที่ส่งมอบและเห็นว่าถูกต้องครบถ้วนตามสัญญาแล้ว \r\nผู้ว่าจ้างจะออกหลักฐานการรับมอบเป็นหนังสือไว้ให้ เพื่อผู้รับจ้างนำมาเป็นหลักฐานประกอบการขอรับเงินค่างานจ้างนั้น\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ถ้าผลของการตรวจรับงานจ้างปรากฏว่างานจ้างที่ผู้รับจ้างส่งมอบไม่ตรงตามสัญญา\r\nผู้ว่าจ้างทรงไว้ซึ่งสิทธิที่จะไม่รับงานจ้างนั้น ในกรณีเช่นว่านี้ ผู้รับจ้างต้องทำการแก้ไขให้ถูกต้องตาม\r\nสัญญาด้วยค่าใช้จ่ายของผู้รับจ้างเอง และระยะเวลาที่เสียไปเพราะเหตุดังกล่าวผู้รับจ้างจะนำมาอ้างเป็นเหตุขอขยายเวลาส่งมอบงานจ้างตามสัญญาหรือของดหรือลดค่าปรับไม่ได้\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("(18)ในกรณีที่ผู้รับจ้างส่งมอบงานจ้างถูกต้องแต่ไม่ครบจำนวน หรือส่งมอบครบจำนวน แต่ไม่ถูกต้องทั้งหมด ผู้ว่าจ้างจะตรวจรับงานจ้างเฉพาะส่วนที่ถูกต้อง โดยออกหลักฐานการตรวจรับงานจ้างเฉพาะส่วนนั้นก็ได้ (ความในวรรคสามนี้ จะไม่กำหนดไว้ในกรณีที่ผู้ว่าจ้างต้องการงานจ้างทั้งหมด\r\nในคราวเดียวกัน หรืองานจ้างที่ประกอบเป็นชุดหรือหน่วย ถ้าขาดส่วนประกอบอย่างหนึ่งอย่างใด\r\nไปแล้ว จะไม่สามารถใช้งานได้โดยสมบูรณ์)\r\n", null, "32"));
+       
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 12\tรายละเอียดของงานจ้างคลาดเคลื่อน", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ผู้รับจ้างรับรองว่าได้ตรวจสอบและทำความเข้าใจในรายละเอียดของงานจ้าง\r\nโดยถี่ถ้วนแล้ว หากปรากฏว่ารายละเอียดของงานจ้างนั้นผิดพลาดหรือคลาดเคลื่อนไปจากหลักการ\r\nทางวิศวกรรมหรือทางเทคนิค ผู้รับจ้างตกลงที่จะปฏิบัติตามคำวินิจฉัยของผู้ว่าจ้าง คณะกรรมการตรวจรับพัสดุ เพื่อให้งานแล้วเสร็จบริบูรณ์ คำวินิจฉัยดังกล่าวให้ถือเป็นที่สุด โดยผู้รับจ้างจะคิดค่าจ้าง ค่าเสียหาย หรือค่าใช้จ่ายใดๆ เพิ่มขึ้นจากผู้ว่าจ้าง หรือขอขยายอายุสัญญาไม่ได้\r\n", null, "32"));
+       
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 13\tค่าปรับ", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("หากผู้รับจ้างไม่สามารถทำงานให้แล้วเสร็จภายในเวลาที่กำหนดไว้ในสัญญา\r\nและผู้ว่าจ้างยังมิได้บอกเลิกสัญญา ผู้รับจ้างจะต้องชำระค่าปรับให้แก่ผู้ว่าจ้างเป็นจำนวนเงิน\r\nวันละ…..(19)…. บาท (……………...) นับถัดจากวันที่ครบกำหนดเวลาแล้วเสร็จของงานตามสัญญาหรือวันที่\r\nผู้ว่าจ้างได้ขยายเวลาทำงานให้ จนถึงวันที่ทำงานแล้วเสร็จจริง นอกจากนี้ ผู้รับจ้างยอมให้ผู้ว่าจ้าง\r\nเรียกค่าเสียหายอันเกิดขึ้นจากการที่ผู้รับจ้างทำงานล่าช้าเฉพาะส่วนที่เกินกว่าจำนวนค่าปรับดังกล่าวได้อีกด้วย\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ในระหว่างที่ผู้ว่าจ้างยังมิได้บอกเลิกสัญญานั้น หากผู้ว่าจ้างเห็นว่าผู้รับจ้าง\r\nจะไม่สามารถปฏิบัติตามสัญญาต่อไปได้ ผู้ว่าจ้างจะใช้สิทธิบอกเลิกสัญญาและใช้สิทธิตามข้อ 14 ก็ได้ \r\nและถ้าผู้ว่าจ้างได้แจ้งข้อเรียกร้องไปยังผู้รับจ้างเมื่อครบกำหนดเวลาแล้วเสร็จของงานขอให้ชำระค่าปรับแล้ว ผู้ว่าจ้างมีสิทธิที่จะปรับผู้รับจ้างจนถึงวันบอกเลิกสัญญาได้อีกด้วย\r\n", null, "32"));
+        
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 14\tสิทธิของผู้ว่าจ้างภายหลังบอกเลิกสัญญา", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ในกรณีที่ผู้ว่าจ้างบอกเลิกสัญญา ผู้ว่าจ้างอาจทำงานนั้นเองหรือว่าจ้างผู้อื่นให้ทำงานนั้นต่อจนแล้วเสร็จก็ได้ และในกรณีดังกล่าว ผู้ว่าจ้างมีสิทธิริบหรือบังคับจากหลักประกันการปฏิบัติตามสัญญาทั้งหมดหรือบางส่วนตามแต่จะเห็นสมควร นอกจากนั้น ผู้รับจ้างจะต้องรับผิดชอบในค่าเสียหายซึ่งเป็นจำนวนเกินกว่าหลักประกันการปฏิบัติตามสัญญา รวมทั้งค่าใช้จ่ายที่เพิ่มขึ้นในการทำงานนั้นต่อให้แล้วเสร็จตามสัญญา ซึ่งผู้ว่าจ้างจะหักเอาจากจำนวนเงินใดๆ ที่จะจ่ายให้แก่ผู้รับจ้างก็ได้", null, "32"));
+       
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 15\tการบังคับค่าปรับ ค่าเสียหาย และค่าใช้จ่าย", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ในกรณีที่ผู้รับจ้างไม่ปฏิบัติตามสัญญาข้อใดข้อหนึ่งด้วยเหตุใดๆ ก็ตาม จนเป็นเหตุ\r\nให้เกิดค่าปรับ ค่าเสียหาย หรือค่าใช้จ่ายแก่ผู้ว่าจ้าง ผู้รับจ้างต้องชดใช้ค่าปรับ ค่าเสียหาย หรือค่าใช้จ่ายดังกล่าวให้แก่ผู้ว่าจ้างโดยสิ้นเชิงภายในกำหนด.................(....................) วัน นับถัดจากวันที่ได้รับแจ้ง\r\nเป็นหนังสือจากผู้ว่าจ้าง หากผู้รับจ้างไม่ชดใช้ให้ถูกต้องครบถ้วนภายในระยะเวลาดังกล่าวให้ผู้ว่าจ้างมีสิทธิที่จะหักเอาจากจำนวนเงินค่าจ้างที่ต้องชำระ หรือบังคับจากหลักประกันการปฏิบัติตามสัญญาได้ทันที\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("หากค่าปรับ ค่าเสียหาย หรือค่าใช้จ่ายที่บังคับจากเงินค่าจ้างที่ต้องชำระ \r\nหรือหลักประกันการปฏิบัติตามสัญญาแล้วยังไม่เพียงพอ ผู้รับจ้างยินยอมชำระส่วนที่เหลือที่ยังขาดอยู่\r\nจนครบถ้วนตามจำนวนค่าปรับ ค่าเสียหาย หรือค่าใช้จ่ายนั้น ภายในกำหนด ..................(......................) วัน นับถัดจากวันที่ได้รับแจ้งเป็นหนังสือจากผู้ว่าจ้าง\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("หากมีเงินค่าจ้างตามสัญญาที่หักไว้จ่ายเป็นค่าปรับ ค่าเสียหาย หรือค่าใช้จ่ายแล้ว\r\nยังเหลืออยู่อีกเท่าใด ผู้ว่าจ้างจะคืนให้แก่ผู้รับจ้างทั้งหมด\r\n", null, "32"));
+        
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 16\tการงดหรือลดค่าปรับ หรือการขยายเวลาปฏิบัติงานตามสัญญา", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ในกรณีที่มีเหตุเกิดจากความผิดหรือความบกพร่องของฝ่ายผู้ว่าจ้าง หรือเหตุสุดวิสัย \r\nหรือเกิดจากพฤติการณ์อันหนึ่งอันใดที่ผู้รับจ้างไม่ต้องรับผิดตามกฎหมาย หรือเหตุอื่นตามที่กำหนด\r\nในกฎกระทรวง ซึ่งออกตามความในกฎหมายว่าด้วยการจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐ ทำให้ผู้รับจ้างไม่สามารถทำงานให้แล้วเสร็จตามเงื่อนไขและกำหนดเวลาแห่งสัญญานี้ได้ ผู้รับจ้างจะต้องแจ้งเหตุหรือพฤติการณ์ดังกล่าวพร้อมหลักฐานเป็นหนังสือให้ผู้ว่าจ้างทราบ เพื่อของดหรือลดค่าปรับ หรือขยายเวลาทำงานออกไปภายใน 15 (สิบห้า) วันนับถัดจากวันที่เหตุนั้นสิ้นสุดลง หรือตามที่กำหนดในกฎกระทรวงดังกล่าว แล้วแต่กรณี\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ถ้าผู้รับจ้างไม่ปฏิบัติให้เป็นไปตามความในวรรคหนึ่ง ให้ถือว่าผู้รับจ้างได้สละสิทธิเรียกร้องในการที่จะของดหรือลดค่าปรับ หรือขยายเวลาทำงานออกไปโดยไม่มีเงื่อนไขใดๆ ทั้งสิ้น เว้นแต่\r\nกรณีเหตุเกิดจากความผิดหรือความบกพร่องของฝ่ายผู้ว่าจ้าง ซึ่งมีหลักฐานชัดแจ้ง หรือผู้ว่าจ้างทราบ\r\nดีอยู่แล้วตั้งแต่ต้น\r\n", null, "32"));
+
+        body.AppendChild(NormalParagraphWith_2Tabs("ข้อ 17\tการใช้เรือไทย", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ในการปฏิบัติตามสัญญานี้ หากผู้รับจ้างจะต้องสั่งหรือนำของเข้ามาจากต่างประเทศรวมทั้งเครื่องมือและอุปกรณ์ที่ต้องนำเข้ามาเพื่อปฏิบัติงานตามสัญญา ไม่ว่าผู้รับจ้างจะเป็นผู้ที่นำของเข้ามาเอง หรือนำเข้ามาโดยผ่านตัวแทนหรือบุคคลอื่นใด ถ้าสิ่งของนั้นต้องนำเข้ามาโดยทางเรือในเส้นทางเดินเรือที่มีเรือไทยเดินอยู่และสามารถให้บริการรับขนได้ตามที่รัฐมนตรีว่าการกระทรวงคมนาคมประกาศกำหนด \r\nผู้รับจ้างต้องจัดการให้สิ่งของดังกล่าวบรรทุกโดยเรือไทยหรือเรือที่มีสิทธิเช่นเดียวกับเรือไทยจากต่างประเทศมายังประเทศไทย เว้นแต่จะได้รับอนุญาตจากกรมเจ้าท่าก่อนบรรทุกของนั้นลงเรืออื่นที่มิใช่เรือไทย\r\nหรือเป็นของที่รัฐมนตรีว่าการกระทรวงคมนาคมประกาศยกเว้นให้บรรทุกโดยเรืออื่นได้ ทั้งนี้ไม่ว่าการสั่งหรือนำเข้าสิ่งของดังกล่าวจากต่างประเทศจะเป็นแบบใด\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ในการส่งมอบงานตามสัญญาให้แก่ผู้ว่าจ้าง ถ้างานนั้นมีสิ่งของตามวรรคหนึ่ง \r\nผู้รับจ้างจะต้องส่งมอบใบตราส่ง (Bill of Lading) หรือสำเนาใบตราส่งสำหรับของนั้น ซึ่งแสดงว่าได้บรรทุกมาโดยเรือไทยหรือเรือที่มีสิทธิเช่นเดียวกับเรือไทยให้แก่ผู้ว่าจ้างพร้อมกับการส่งมอบงานด้วย\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ในกรณีที่สิ่งของดังกล่าวไม่ได้บรรทุกจากต่างประเทศมายังประเทศไทยโดยเรือไทยหรือเรือที่มีสิทธิเช่นเดียวกับเรือไทย ผู้รับจ้างต้องส่งมอบหลักฐานซึ่งแสดงว่าได้รับอนุญาตจากกรมเจ้าท่า ให้บรรทุกของโดยเรืออื่นได้ หรือหลักฐานซึ่งแสดงว่าได้ชำระค่าธรรมเนียมพิเศษเนื่องจากการไม่บรรทุกของโดยเรือไทยตามกฎหมายว่าด้วยการส่งเสริมการพาณิชยนาวีแล้วอย่างใดอย่างหนึ่งแก่ผู้ว่าจ้างด้วย", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ในกรณีที่ผู้รับจ้างไม่ส่งมอบหลักฐานอย่างใดอย่างหนึ่งดังกล่าวในวรรคสอง\r\nและวรรคสามให้แก่ผู้ว่าจ้าง แต่จะขอส่งมอบงานดังกล่าวให้ผู้ว่าจ้างก่อนโดยไม่รับชำระเงินค่าจ้าง ผู้ว่าจ้าง มีสิทธิรับงานดังกล่าวไว้ก่อน และชำระเงินค่าจ้างเมื่อผู้รับจ้างได้ปฏิบัติถูกต้องครบถ้วนดังกล่าวแล้วได้\r\n", null, "32"));
+        
+        body.AppendChild(NormalParagraphWith_2Tabs("สัญญานี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน คู่สัญญาได้อ่านและเข้าใจ\r\nข้อความ โดยละเอียดตลอดแล้ว จึงได้ลงลายมือชื่อ พร้อมทั้งประทับตรา (ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยาน \r\nและคู่สัญญาต่างยึดถือไว้ฝ่ายละหนึ่งฉบับ\r\n", null, "32"));
+
+        body.AppendChild(EmptyParagraph());
+
+
+        body.AppendChild(CenteredParagraph("ลงชื่อ........................................................................ผู้ว่าจ้าง"));
+        body.AppendChild(CenteredParagraph("(................................................................................)"));
+        body.AppendChild(CenteredParagraph("ลงชื่อ........................................................................ผู้ว่าจ้าง"));
+        body.AppendChild(CenteredParagraph("(................................................................................)"));     
+        body.AppendChild(CenteredParagraph("ลงชื่อ......................................................................พยาน"));
+        body.AppendChild(CenteredParagraph("(...............................................................................)"));
+        body.AppendChild(CenteredParagraph("ลงชื่อ......................................................................พยาน"));
+        body.AppendChild(CenteredParagraph("(...............................................................................)"));
+
+        // next page
+        body.AppendChild(new Paragraph(new Run(new Break() { Type = BreakValues.Page })));
+
+        body.AppendChild(CenteredParagraph("วิธีปฏิบัติเกี่ยวกับสัญญาจ้าง"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(1) ให้ระบุเลขที่สัญญาในปีงบประมาณหนึ่งๆ ตามลำดับ", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(2) ให้ระบุชื่อของหน่วยงานของรัฐที่เป็นนิติบุคคล เช่น กรม ก. หรือรัฐวิสาหกิจ ข. เป็นต้น", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(3) ให้ระบุชื่อและตำแหน่งของหัวหน้าหน่วยงานของรัฐที่เป็นนิติบุคคลนั้น หรือผู้ที่ได้รับมอบอำนาจ เช่น นาย ก. อธิบดีกรม……………… หรือ นาย ข. ผู้ได้รับมอบอำนาจจากอธิบดีกรม………………..", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(4) ให้ระบุชื่อผู้รับจ้าง", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ก. กรณีนิติบุคคล เช่น ห้างหุ้นส่วนสามัญจดทะเบียน ห้างหุ้นส่วนจำกัด บริษัทจำกัด", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("ข. กรณีบุคคลธรรมดา ให้ระบุชื่อและที่อยู่", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(5) เป็นข้อความหรือเงื่อนไขเพิ่มเติม ซึ่งหน่วยงานของรัฐผู้ทำสัญญาอาจเลือกใช้หรือตัดออกได้ตามข้อเท็จจริง", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(6) เป็นข้อความหรือเงื่อนไขเพิ่มเติม ซึ่งหน่วยงานของรัฐผู้ทำสัญญาอาจเลือกใช้หรือตัดออกได้ตามข้อเท็จจริง", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(7) ให้ระบุงานที่ต้องการจ้าง", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(8) “หลักประกัน” หมายถึง หลักประกันที่ผู้รับจ้างนำมามอบไว้แก่หน่วยงานของรัฐ \r\nเมื่อลงนามในสัญญา เพื่อเป็นการประกันความเสียหายที่อาจจะเกิดขึ้นจากการปฏิบัติตามสัญญา \r\nดังนี้\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("(๑)\tเงินสด ", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("(๒)\tเช็คหรือดราฟท์ ที่ธนาคารเซ็นสั่งจ่าย ซึ่งเป็นเช็คหรือดราฟท์ลงวันที่ที่ใช้เช็ค\r\nหรือดราฟท์นั้นชำระต่อเจ้าหน้าที่ หรือก่อนวันนั้นไม่เกิน ๓ วันทำการ \r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("(๓)\tหนังสือคํ้าประกันของธนาคารภายในประเทศตามตัวอย่างที่คณะกรรมการนโยบายกําหนด โดยอาจกำหนดเป็นหนังสือค้ำประกันอิเล็กทรอนิกส์ตามวิธีการที่กรมบัญชีกลางกำหนดก็ได้", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("(๔)\tหนังสือค้ำประกันของบริษัทเงินทุนหรือบริษัทเงินทุนหลักทรัพย์ที่ได้รับอนุญาตให้ประกอบกิจการเงินทุนเพื่อการพาณิชย์และประกอบธุรกิจค้ำประกันตามประกาศของธนาคาร\r\nแห่งประเทศไทย ตามรายชื่อบริษัทเงินทุนที่ธนาคารแห่งประเทศไทยแจ้งเวียนให้ทราบ โดยอนุโลม\r\nให้ใช้ตามตัวอย่างหนังสือค้ำประกันของธนาคารที่คณะกรรมการนโยบายกําหนด\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_3Tabs("(๕)\tพันธบัตรรัฐบาลไทย", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(9) ให้กำหนดจำนวนเงินหลักประกันการปฏิบัติตามสัญญาตามระเบียบกระทรวงการคลัง\r\nว่าด้วยหลักเกณฑ์การจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐ พ.ศ. 2560 ข้อ 168\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(10) เป็นข้อความหรือเงื่อนไขเพิ่มเติม ซึ่งหน่วยงานของรัฐผู้ทำสัญญาอาจเลือกใช้หรือตัดออกได้ตามข้อเท็จจริง", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(11) เป็นข้อความหรือเงื่อนไขเพิ่มเติม ซึ่งหน่วยงานของรัฐผู้ทำสัญญาอาจเลือกใช้หรือตัดออกได้ตามข้อเท็จจริง", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(12) เป็นข้อความหรือเงื่อนไขเพิ่มเติม ซึ่งหน่วยงานของรัฐผู้ทำสัญญาอาจเลือกใช้หรือตัดออกได้ตามข้อเท็จจริง", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(13) เป็นข้อความหรือเงื่อนไขเพิ่มเติม ซึ่งหน่วยงานของรัฐผู้ทำสัญญาอาจเลือกใช้หรือตัดออกได้ตามข้อเท็จจริง", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(14) เป็นข้อความหรือเงื่อนไขเพิ่มเติม ซึ่งหน่วยงานของรัฐผู้ทำสัญญาอาจเลือกใช้หรือตัดออกได้ตามข้อเท็จจริง", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(15) เป็นข้อความหรือเงื่อนไขเพิ่มเติม ซึ่งหน่วยงานของรัฐผู้ทำสัญญาอาจเลือกใช้หรือตัดออกได้ตามข้อเท็จจริง", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(16) กำหนดเวลาที่ผู้รับจ้างจะรับผิดในความชำรุดบกพร่อง โดยปกติจะต้องกำหนด\r\nไม่น้อยกว่า 1 ปี นับถัดจากวันที่ผู้รับจ้างได้รับมอบงานจ้าง หรือกำหนดตามความเหมาะสม\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(17) อัตราค่าปรับตามสัญญาข้อ 8 กรณีผู้รับจ้างไปจ้างช่วงบางส่วนโดยไม่ได้รับอนุญาต\r\nจากผู้ว่าจ้าง ต้องกำหนดค่าปรับเป็นจำนวนเงินไม่น้อยกว่าร้อยละสิบของวงเงินของงานที่จ้างช่วงตามสัญญา\r\n", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(18) ความในวรรคนี้ จะไม่กำหนดไว้ในกรณีที่ผู้ว่าจ้างต้องการสิ่งของทั้งหมดในคราวเดียวกัน หรืองานจ้างที่ประกอบเป็นชุดหรือหน่วย ถ้าขาดส่วนประกอบอย่างหนึ่งอย่างใดไปแล้ว จะไม่สามารถใช้งานได้โดยสมบูรณ์", null, "32"));
+        body.AppendChild(NormalParagraphWith_2Tabs("(19) อัตราค่าปรับตามสัญญาข้อ 13 ให้กำหนด ตามระเบียบกระทรวงการคลังว่าด้วยหลักเกณฑ์การจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐ พ.ศ. 2560 ข้อ 162 ส่วนกรณีจะปรับร้อยละเท่าใด ให้อยู่ในดุลพินิจของหน่วยงานของรัฐผู้ว่าจ้างที่จะพิจารณาแต่ทั้งนี้การที่จะกำหนดค่าปรับเป็นร้อยละเท่าใด จะต้องกำหนดไว้ในเอกสารเชิญชวนด้วย", null, "32"));
+       
+        AddHeaderWithPageNumber(mainPart, body);
+        
+      }
+      stream.Position = 0;
+      return File(stream, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างทำของ.docx");
+    }
+        #endregion
     }
 }
