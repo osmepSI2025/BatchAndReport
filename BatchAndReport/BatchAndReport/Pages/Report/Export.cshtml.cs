@@ -562,7 +562,7 @@ namespace BatchAndReport.Pages.Report
 
                 body.AppendChild(CenteredParagraph("(............................................................)                                 (.........................................................)"));
 
-                body.AppendChild(NormalParagraphWithTabs("FirstlineTab"));
+        
                 // 5. Section properties (A4, margins)
                 var sectionProps = new SectionProperties(
                     new PageSize() { Width = 11906, Height = 16838 },
@@ -571,7 +571,7 @@ namespace BatchAndReport.Pages.Report
                 body.AppendChild(sectionProps);
             }
             stream.Position = 0;
-            return File(stream, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สสว. สัญญารับเงินอุดหนุน.docx");
+            return File(stream, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สสว.สัญญารับเงินอุดหนุน.docx");
         }
         // Helper for colored, bold, centered paragraph
         private static Paragraph CenteredBoldColoredParagraph(string text, string hexColor) =>
