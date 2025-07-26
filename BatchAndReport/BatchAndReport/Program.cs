@@ -58,7 +58,15 @@ builder.Services.AddScoped<IWordWFService, WordWFService>();
 builder.Services.AddScoped<IWordEContractService, WordEContractService>();
 builder.Services.AddHttpClient<ICallAPIService, CallAPIService>();
 
-builder.Services.AddScoped<IWordEContract_AllowanceService, WordEContract_AllowanceService>();
+builder.Services.AddSingleton<WordServiceSetting>();
+builder.Services.AddScoped< WordEContract_AllowanceService>();
+
+builder.Services.AddScoped<WordEContract_ContactToDoThingService>();
+builder.Services.AddScoped<WordEContract_BorrowMoneyService>();
+builder.Services.AddScoped<WordEContract_HireEmployee>();
+
+builder.Services.AddSingleton<WordEContract_LoanPrinterService>();
+
 
 builder.Services.AddSingleton<ScheduledJobService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());

@@ -10,6 +10,7 @@ namespace BatchAndReport.Services
 
         byte[] ConvertWordToPdf(byte[] wordBytes);
         byte[] GenerateWordContactAllowance();
+
     }
 
 }
