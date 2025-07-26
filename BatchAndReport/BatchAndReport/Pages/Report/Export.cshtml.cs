@@ -17,12 +17,14 @@ namespace BatchAndReport.Pages.Report
         private readonly WordEContract_HireEmployee _HireEmployee;
         private readonly WordEContract_BorrowMoneyService _BorrowMoneyService;
         private readonly WordEContract_MaintenanceComputerService _maintenanceComputerService;
+        private readonly WordEContract_LoanComputerService _LoanComputerService;
         public ExportModel(SmeDAO smeDao, WordEContract_AllowanceService allowanceService
             , WordEContract_LoanPrinterService wordEContract_LoanPrinterService
             , WordEContract_ContactToDoThingService  ContactToDoThingService
             , WordEContract_HireEmployee HireEmployee
             , WordEContract_BorrowMoneyService BorrowMoneyService
             , WordEContract_MaintenanceComputerService maintenanceComputerService
+            , WordEContract_LoanComputerService LoanComputerService
             )
         {
             _smeDao = smeDao;
@@ -32,6 +34,7 @@ namespace BatchAndReport.Pages.Report
             _HireEmployee = HireEmployee;
             _BorrowMoneyService = BorrowMoneyService;
              _maintenanceComputerService = maintenanceComputerService;
+            this._LoanComputerService = LoanComputerService;
         }
         public IActionResult OnGetPdf()
         {
@@ -517,6 +520,14 @@ namespace BatchAndReport.Pages.Report
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60.docx");
         }
         #endregion
+
+        #region 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60
+        public IActionResult OnGetWordContact_LoanComputer()
+        {
+            var wordBytes = _LoanComputerService.OnGetWordContact_LoanComputer();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาเช่าคอมพิวเตอร์ ร.309-60.docx");
+        }
+        #endregion 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60
 
     }
 }
