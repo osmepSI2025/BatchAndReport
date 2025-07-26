@@ -18,6 +18,7 @@ namespace BatchAndReport.Pages.Report
         private readonly WordEContract_MaintenanceComputerService _maintenanceComputerService;
         private readonly WordEContract_LoanComputerService _LoanComputerService;
         private readonly WordEContract_BuyAgreeProgram _BuyAgreeProgram;
+        private readonly WordEContract_BuyOrSellComputerService _BuyOrSellComputerService;
         public ExportModel(SmeDAO smeDao, WordEContract_AllowanceService allowanceService
             , WordEContract_LoanPrinterService wordEContract_LoanPrinterService
             , WordEContract_ContactToDoThingService ContactToDoThingService
@@ -26,6 +27,7 @@ namespace BatchAndReport.Pages.Report
             , WordEContract_MaintenanceComputerService maintenanceComputerService
             , WordEContract_LoanComputerService LoanComputerService
             , WordEContract_BuyAgreeProgram BuyAgreeProgram
+            , WordEContract_BuyOrSellComputerService BuyOrSellComputerService
             )
         {
             _smeDao = smeDao;
@@ -37,6 +39,7 @@ namespace BatchAndReport.Pages.Report
             _maintenanceComputerService = maintenanceComputerService;
             this._LoanComputerService = LoanComputerService;
             this._BuyAgreeProgram = BuyAgreeProgram;
+             _BuyOrSellComputerService = BuyOrSellComputerService;
         }
         public IActionResult OnGetPdf()
         {
@@ -538,5 +541,14 @@ namespace BatchAndReport.Pages.Report
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์.docx");
         }
         #endregion 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60
+
+        #region 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์
+        public IActionResult OnGetWordContact_BuyOrSellComputer()
+        {
+            var wordBytes = _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายคอมพิวเตอร์.docx");
+        }
+
+        #endregion 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์
     }
 }
