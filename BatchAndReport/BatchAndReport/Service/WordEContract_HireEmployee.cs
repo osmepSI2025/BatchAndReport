@@ -56,7 +56,7 @@ public class WordEContract_HireEmployee
 
             body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สัญญาฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เลขที่ 21 ถนนวิภาวดีรังสิต เขตจตุจักร กรุงเทพมหานคร เมื่อวันที่ {param1}", null, "32"));
             body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย........................................." +
-                "\r\nผู้อำนวยการฝ่ายศูนย์ให้บริการ SMEs ครบวงจร สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ผู้รับมอบหมายตามคำสั่งสำนักงานฯ ที่ 629/2564 ลงวันที่ 30 กันยายน 2564 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้ว่าจ้าง”\r\n", null, "32"));
+                "ผู้อำนวยการฝ่ายศูนย์ให้บริการ SMEs ครบวงจร สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ผู้รับมอบหมายตามคำสั่งสำนักงานฯ ที่ 629/2564 ลงวันที่ 30 กันยายน 2564 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้ว่าจ้าง”", null, "32"));
             body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ฝ่ายหนึ่ง กับ .................................. เลขประจำตัวประชาชน ........................... อยู่บ้านเลขที่ ......................................... " +
                 "ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ลูกจ้าง” อีกฝ่ายหนึ่ง โดยทั้งสองฝ่ายได้ตกลงทำร่วมกันดังมีรายละเอียดต่อไปนี้", null, "32"));
 
@@ -82,7 +82,7 @@ public class WordEContract_HireEmployee
             body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("9. ในกรณีที่สัญญาสิ้นสุดตามข้อ 8.3 และ 8.4 ลูกจ้างยินยอมให้ผู้ว่าจ้างสั่งให้ลูกจ้างพ้นสภาพการเป็นลูกจ้างได้ทันที โดยไม่จำเป็นต้องมีหนังสือว่ากล่าวตักเตือน และผู้ว่าจ้างไม่ต้องจ่ายค่าชดเชยหรือเงินอื่นใดให้แก่ลูกจ้างทั้งสิ้น เว้นแต่ค่าจ้างที่ลูกจ้างจะพึงได้รับตามสิทธิ", null, "32"));
             body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("10. ลูกจ้างมีสิทธิบอกเลิกสัญญาจ้างได้ก่อนสัญญาครบกำหนด โดยทำหนังสือแจ้งเป็นลายลักษณ์อักษรต่อผู้ว่าจ้างได้ทราบล่วงหน้าไม่น้อยกว่า 30 วัน เมื่อผู้ว่าจ้างได้อนุมัติแล้ว ให้ถือว่าสัญญาจ้างนี้ได้สิ้นสุดลง", null, "32"));
             body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("11. ในกรณีที่ลูกจ้างกระทำการใดอันทำให้ผู้ว่าจ้างได้รับความเสียหาย ไม่ว่าเหตุนั้นผู้ว่าจ้างจะนำมาเป็นเหตุบอกเลิกสัญญาจ้างหรือไม่ก็ตาม ผู้ว่าจ้างมีสิทธิจะเรียกร้องค่าเสียหาย และลูกจ้างยินยอมชดใช้ค่าเสียหายตามที่ผู้ว่าจ้างเรียกร้องทุกประการ ", null, "32"));
-            body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("12. ลูกจ้างจะต้องไม่เปิดเผยหรือบอกกล่าวอัตราค่าจ้างของลูกจ้างให้แก่บุคคลใดทราบ ไม่ว่าจะ\r\nโดยวิธีใดหรือเวลาใด เว้นแต่จะเป็นการกระทำตามกฎหมายหรือคำสั่งศาล\r\n", null, "32"));
+            body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("12. ลูกจ้างจะต้องไม่เปิดเผยหรือบอกกล่าวอัตราค่าจ้างของลูกจ้างให้แก่บุคคลใดทราบ ไม่ว่าจะโดยวิธีใดหรือเวลาใด เว้นแต่จะเป็นการกระทำตามกฎหมายหรือคำสั่งศาล", null, "32"));
             body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สัญญาฉบับนี้ได้จัดทำขึ้นเป็นสัญญาอิเล็กทรอนิกส์คู่สัญญาได้อ่านตรวจสอบและทำความเข้าใจข้อความในสัญญาฉบับนี้โดยละเอียดแล้ว จึงได้ลงลายมือชื่ออิเล็กทรอนิกส์ไว้เป็นหลักฐาน ณ วัน เดือน ปี ดังกล่าวข้างต้น และมีพยานรู้ถึงการลงนามของคู่สัญญา และคู่สัญญาต่างฝ่ายต่างเก็บรักษาไฟล์สัญญาอิเล็กทรอนิกส์ฉบับนี้ไว้เป็นหลักฐาน", null, "32"));
 
             body.AppendChild(WordServiceSetting.EmptyParagraph());
@@ -99,15 +99,15 @@ public class WordEContract_HireEmployee
 
             body.AppendChild(WordServiceSetting.NormalParagraph("หน้าที่ความรับผิดชอบ : เจ้าหน้าที่ศูนย์กลุ่มจังหวัดให้บริการ SMEs ครบวงจร และ", null, "32"));
             body.AppendChild(WordServiceSetting.NormalParagraph("                เจ้าหน้าที่ศูนย์ให้บริการ SMEs ครบวงจร กรุงเทพมหานคร", null, "32"));
-            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("-\tการปรับปรุงข้อมูลผู้ประกอบการ SME (ไม่น้อยกว่า 30 ราย/เดือน)", null, "32"));
-            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("-\tการให้บริการคำปรึกษา แนะนำทางธุรกิจ อาทิเช่น ด้านบัญชี การเงิน การตลาด การบริหารจัดการ การผลิต กฎหมาย เทคโนโลยีสารสนเทศ และอื่น ๆ ที่เกี่ยวข้องทางธุรกิจ (ไม่น้อยกว่า 30 ราย/เดือน)", null, "32"));
-            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("-\tสนับสนุน เสนอแนะแนวทางการแก้ไขปัญหาให้ SME ได้รับประโยชน์ตามมาตรการของภาครัฐ", null, "32"));
-            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("-\tสนับสนุนการพัฒนาเครือข่ายหน่วยงานให้บริการส่งเสริม SME ให้บริการส่งต่อภายใต้หน่วยงานพันธมิตร การติดตามผลและประสานงานแก้ไขปัญหา", null, "32"));
-            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("-\tสนับสนุนนโยบาย มาตรการ และการทำงานของ สสว. ในการสร้าง ประสาน เชื่อมโยงเครือข่ายในพื้นที่ (รูปแบบ Online & Offline) เพื่อสนับสนุนการปฏิบัติงานตามภารกิจ", null, "32"));
-            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("-\tสนับสนุนจัดทำข้อมูล SME จังหวัด เพื่อนำข้อมูลมาใช้ประโยชน์ในการเสนอแนะทางธุรกิจแก่ SME และเชื่อมโยงไปสู่การแก้ปัญหาหรือการจัดทำมาตรการภาครัฐ", null, "32"));
-            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("-\tปฏิบัติงานภายใต้การบังคับบัญชาของผู้จัดการศูนย์กลุ่มจังหวัดฯ หรือ ผู้จัดการศูนย์ให้บริการ SMEs ครบวงจร กรุงเทพมหานคร ตามประกาศ สสว. และเข้าร่วมกิจกรรมต่าง ๆ ", null, "32"));
-            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("-\tกำกับดูแลข้อมูลตาม พ.ร.บ.การคุ้มครองข้อมูลส่วนบุคคล", null, "32"));
-            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("-\tงานอื่น ๆ ตามที่ได้รับมอบหมาย", null, "32"));
+            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("- การปรับปรุงข้อมูลผู้ประกอบการ SME (ไม่น้อยกว่า 30 ราย/เดือน)", null, "32"));
+            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("- การให้บริการคำปรึกษา แนะนำทางธุรกิจ อาทิเช่น ด้านบัญชี การเงิน การตลาด การบริหารจัดการ การผลิต กฎหมาย เทคโนโลยีสารสนเทศ และอื่น ๆ ที่เกี่ยวข้องทางธุรกิจ (ไม่น้อยกว่า 30 ราย/เดือน)", null, "32"));
+            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("- สนับสนุน เสนอแนะแนวทางการแก้ไขปัญหาให้ SME ได้รับประโยชน์ตามมาตรการของภาครัฐ", null, "32"));
+            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("- สนับสนุนการพัฒนาเครือข่ายหน่วยงานให้บริการส่งเสริม SME ให้บริการส่งต่อภายใต้หน่วยงานพันธมิตร การติดตามผลและประสานงานแก้ไขปัญหา", null, "32"));
+            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("- สนับสนุนนโยบาย มาตรการ และการทำงานของ สสว. ในการสร้าง ประสาน เชื่อมโยงเครือข่ายในพื้นที่ (รูปแบบ Online & Offline) เพื่อสนับสนุนการปฏิบัติงานตามภารกิจ", null, "32"));
+            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("- สนับสนุนจัดทำข้อมูล SME จังหวัด เพื่อนำข้อมูลมาใช้ประโยชน์ในการเสนอแนะทางธุรกิจแก่ SME และเชื่อมโยงไปสู่การแก้ปัญหาหรือการจัดทำมาตรการภาครัฐ", null, "32"));
+            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("- ปฏิบัติงานภายใต้การบังคับบัญชาของผู้จัดการศูนย์กลุ่มจังหวัดฯ หรือ ผู้จัดการศูนย์ให้บริการ SMEs ครบวงจร กรุงเทพมหานคร ตามประกาศ สสว. และเข้าร่วมกิจกรรมต่าง ๆ ", null, "32"));
+            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("- กำกับดูแลข้อมูลตาม พ.ร.บ.การคุ้มครองข้อมูลส่วนบุคคล", null, "32"));
+            body.AppendChild(WordServiceSetting.NormalParagraphWith_1Tabs("- งานอื่น ๆ ตามที่ได้รับมอบหมาย", null, "32"));
 
             // --- Add footer with page number centered ---
             var footerPart = mainPart.AddNewPart<FooterPart>();

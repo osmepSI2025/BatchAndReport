@@ -24,19 +24,6 @@ public class WordServiceSetting
         );
     }
 
-    // Helper methods for formatting
-    public static Paragraph CenteredBoldParagraph(string text) =>
-        new Paragraph(
-            new ParagraphProperties(new Justification { Val = JustificationValues.Center }),
-            new Run(
-                new RunProperties(
-                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                    new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "32" }, // Correct namespace and usage,
-                    new Bold()
-                ),
-                new Text(text)
-            )
-        );
 
     public static Paragraph CenteredBoldParagraph(string text, string fontSize = "32") =>
         new Paragraph(
@@ -51,13 +38,13 @@ public class WordServiceSetting
             )
         );
 
-    public static Paragraph CenteredParagraph(string text) =>
+    public static Paragraph CenteredParagraph(string text, string fontSize = "32") =>
         new Paragraph(
             new ParagraphProperties(new Justification { Val = JustificationValues.Center }),
             new Run(
                 new RunProperties(
                     new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                    new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" } // Correct namespace and usage
+                    new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = fontSize } // Correct namespace and usage
                 ),
                 new Text(text)
             )
@@ -196,20 +183,62 @@ public class WordServiceSetting
         );
     }
 
-    public static Paragraph JustifiedParagraph(string text, string fontSize = "28") =>
-new Paragraph(
-    new ParagraphProperties(new Justification { Val = JustificationValues.Both }),
-    new Run(
-        new RunProperties(
+    public static Paragraph JustifiedParagraph_1tab(string text, string fontSize = "28", bool pitalic = false)
+    {
+        text = text.Replace(" ", "\u00A0");
+        var runProps = new RunProperties(
             new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
             new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = fontSize }
-        ),
-        new Text(text)
-    )
-);
+        );
+        if (pitalic)
+            runProps.Append(new Italic());
+
+        var props = new ParagraphProperties(new Justification { Val = JustificationValues.Both });
+        props.Append(new Tabs(new TabStop { Val = TabStopValues.Left, Position = 720 }));
+
+        return new Paragraph(
+            props,
+            new Run(runProps, new TabChar(), new Text(text))
+        );
+    }
+    public static Paragraph JustifiedParagraph_2tab(string text, string fontSize = "28", bool pitalic = false)
+    {
+        text = text.Replace(" ", "\u00A0");
+        var runProps = new RunProperties(
+            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = fontSize }
+        );
+        if (pitalic)
+            runProps.Append(new Italic());
+
+        var props = new ParagraphProperties(new Justification { Val = JustificationValues.Both });
+        props.Append(new Tabs(new TabStop { Val = TabStopValues.Left, Position = 720 }));
+
+        return new Paragraph(
+            props,
+            new Run(runProps, new TabChar(), new Text(text))
+        );
+    }
+    public static Paragraph JustifiedParagraph(string text, string fontSize = "28", bool pitalic = false)
+    {
+        text = text.Replace(" ", "\u00A0");
+        var runProps = new RunProperties(
+            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = fontSize }
+        );
+        if (pitalic)
+            runProps.Append(new Italic());
+
+        return new Paragraph(
+            new ParagraphProperties(new Justification { Val = JustificationValues.Both }),
+
+            new Run(runProps, new Text(text))
+        );
+    }
     // Helper: Paragraph with 2 tab spaces at the start of the first line
     public static Paragraph NormalParagraphWith_1Tabs(string text, JustificationValues? align = null, string fontZise = "28")
     {
+        text = text.Replace(" ", "\u00A0");
         if (fontZise == null)
         {
             fontZise = "28";
@@ -244,6 +273,7 @@ new Paragraph(
     }
     public static Paragraph NormalParagraphWith_2Tabs(string text, JustificationValues? align = null, string fontZise = "28", bool bold = false)
     {
+        //text = text.Replace(" ", "\u00A0");
         if (fontZise == null)
         {
             fontZise = "28";
@@ -258,8 +288,8 @@ new Paragraph(
         // Add two tab stops (every 720 = 0.5 inch, adjust as needed)
         var tabs = new Tabs(
             new TabStop { Val = TabStopValues.Left, Position = 720 }
-            //,
-            //new TabStop { Val = TabStopValues.Left, Position = 1440 }
+            ,
+            new TabStop { Val = TabStopValues.Left, Position = 1440 }
         );
         props.Append(tabs);
         paragraph.Append(props);
@@ -284,28 +314,31 @@ new Paragraph(
     }
     public static Paragraph NormalParagraphWith_3Tabs(string text, JustificationValues? align = null, string fontZise = "28")
     {
+      // text = text.Replace(" ", "\u00A0");
         if (fontZise == null)
         {
             fontZise = "28";
         }
+
         var paragraph = new Paragraph();
 
         // Paragraph properties (alignment and tab stops)
         var props = new ParagraphProperties();
         if (align != null)
+        {
             props.Append(new Justification { Val = align.Value });
+        }
 
-        // Add three tab stops (every 720 = 0.5 inch, adjust as needed)
+        // Add three explicit tab stops for 0.5, 1.0, and 1.5 inches
         var tabs = new Tabs(
-            new TabStop { Val = TabStopValues.Left, Position = 720 }
-            //,
-            //new TabStop { Val = TabStopValues.Left, Position = 1440 },
-            //new TabStop { Val = TabStopValues.Left, Position = 2160 }
+            new TabStop { Val = TabStopValues.Left, Position = 720 },
+            new TabStop { Val = TabStopValues.Left, Position = 1440 },
+            new TabStop { Val = TabStopValues.Left, Position = 2160 }
         );
         props.Append(tabs);
         paragraph.Append(props);
 
-        // Add three tab characters at the start
+        // Add three tab characters at the start of the run
         var run = new Run(
             new RunProperties(
                 new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
@@ -314,7 +347,7 @@ new Paragraph(
             new TabChar(),
             new TabChar(),
             new TabChar(),
-            new Text(text)
+            new Text(text) { Space = SpaceProcessingModeValues.Preserve }
         );
         paragraph.Append(run);
 
@@ -322,6 +355,7 @@ new Paragraph(
     }
     public static Paragraph NormalParagraphWith_2TabsColor(string text, JustificationValues? align = null, string hexColor = null)
     {
+        text = text.Replace(" ", "\u00A0");
         var paragraph = new Paragraph();
 
         // Paragraph properties (alignment and tab stops)

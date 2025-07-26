@@ -19,6 +19,12 @@ namespace BatchAndReport.Pages.Report
         private readonly WordEContract_LoanComputerService _LoanComputerService;
         private readonly WordEContract_BuyAgreeProgram _BuyAgreeProgram;
         private readonly WordEContract_BuyOrSellComputerService _BuyOrSellComputerService;
+        private readonly WordEContract_BuyOrSellService _BuyOrSellService;
+        private readonly WordEContract_DataSecretService _DataSecretService;
+        private readonly WordEContract_MemorandumService _MemorandumService;
+        private readonly WordEContract_PersernalProcessService _PersernalProcessService;
+        private readonly WordEContract_SupportSMEsService _SupportSMEsService;
+        private readonly WordEContract_JointOperationService _JointOperationService;
         public ExportModel(SmeDAO smeDao, WordEContract_AllowanceService allowanceService
             , WordEContract_LoanPrinterService wordEContract_LoanPrinterService
             , WordEContract_ContactToDoThingService ContactToDoThingService
@@ -28,6 +34,14 @@ namespace BatchAndReport.Pages.Report
             , WordEContract_LoanComputerService LoanComputerService
             , WordEContract_BuyAgreeProgram BuyAgreeProgram
             , WordEContract_BuyOrSellComputerService BuyOrSellComputerService
+            , WordEContract_BuyOrSellService BuyOrSellService
+            , WordEContract_DataSecretService DataSecretService
+
+            , WordEContract_MemorandumService MemorandumService
+            , WordEContract_PersernalProcessService PersernalProcessService
+            , WordEContract_SupportSMEsService SupportSMEsService
+            , WordEContract_JointOperationService JointOperationService
+
             )
         {
             _smeDao = smeDao;
@@ -40,6 +54,12 @@ namespace BatchAndReport.Pages.Report
             this._LoanComputerService = LoanComputerService;
             this._BuyAgreeProgram = BuyAgreeProgram;
              _BuyOrSellComputerService = BuyOrSellComputerService;
+            this._BuyOrSellService = BuyOrSellService;
+            this._DataSecretService = DataSecretService;
+            this._MemorandumService = MemorandumService;
+            this._PersernalProcessService = PersernalProcessService;
+            this._SupportSMEsService = SupportSMEsService;
+            this._JointOperationService = JointOperationService;
         }
         public IActionResult OnGetPdf()
         {
@@ -550,5 +570,59 @@ namespace BatchAndReport.Pages.Report
         }
 
         #endregion 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์
+
+        #region 4.1.1.2.8.สัญญาซื้อขาย ร.305-60
+
+        public IActionResult OnGetWordContact_BuyOrSell()
+        {
+            var wordBytes = _BuyOrSellService.OnGetWordContact_BuyOrSellService();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขาย.docx");
+        }
+
+        #endregion 4.1.1.2.8.สัญญาซื้อขาย ร.305-60
+
+        #region 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ
+        public IActionResult OnGetWordContact_DataSecretService()
+        {
+            var wordBytes = _DataSecretService.OnGetWordContact_DataSecretService();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาการรักษาข้อมูลที่เป็นความลับ.docx");
+        }
+
+        #endregion
+
+        #region 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล
+        public IActionResult OnGetWordContact_PersernalProcess()
+        {
+            var wordBytes = _PersernalProcessService.OnGetWordContact_PersernalProcessService();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.docx");
+        }
+
+        #endregion
+
+        #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ
+        public IActionResult OnGetWordContact_Memorandum()
+        {
+            var wordBytes = _MemorandumService.OnGetWordContact_MemorandumService();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือ.docx");
+        }
+
+        #endregion
+
+        #region 4.1.1.2.2.สัญญารับเงินอุดหนุน
+        public IActionResult OnGetWordContact_SupportSMEs()
+        {
+            var wordBytes = _SupportSMEsService.OnGetWordContact_SupportSMEsService();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือในการสนับสนุน SMEs.docx");
+        }
+        #endregion 4.1.1.2.2.สัญญารับเงินอุดหนุน
+
+
+        #region 4.1.1.2.1.สัญญาร่วมดำเนินการ
+        public IActionResult OnGetWordContact_JointOperation()
+        {
+            var wordBytes = _JointOperationService.OnGetWordContact_JointOperationService();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
+        }
+        #endregion
     }
 }

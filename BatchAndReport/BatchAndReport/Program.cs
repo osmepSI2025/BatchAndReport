@@ -71,6 +71,12 @@ builder.Services.AddScoped<WordEContract_LoanComputerService>();
 builder.Services.AddSingleton<ScheduledJobService>();
 builder.Services.AddScoped<WordEContract_BuyAgreeProgram>();
 builder.Services.AddScoped<WordEContract_BuyOrSellComputerService>();
+builder.Services.AddScoped<WordEContract_BuyOrSellService>();
+builder.Services.AddScoped<WordEContract_DataSecretService>();
+builder.Services.AddScoped<WordEContract_MemorandumService>();
+builder.Services.AddScoped<WordEContract_PersernalProcessService>();
+builder.Services.AddScoped<WordEContract_SupportSMEsService>();
+builder.Services.AddScoped<WordEContract_JointOperationService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
 
 var app = builder.Build();
