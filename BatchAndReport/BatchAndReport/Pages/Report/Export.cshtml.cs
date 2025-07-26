@@ -16,11 +16,13 @@ namespace BatchAndReport.Pages.Report
         private readonly WordEContract_ContactToDoThingService _ContactToDoThingService;
         private readonly WordEContract_HireEmployee _HireEmployee;
         private readonly WordEContract_BorrowMoneyService _BorrowMoneyService;
+        private readonly WordEContract_MaintenanceComputerService _maintenanceComputerService;
         public ExportModel(SmeDAO smeDao, WordEContract_AllowanceService allowanceService
             , WordEContract_LoanPrinterService wordEContract_LoanPrinterService
             , WordEContract_ContactToDoThingService  ContactToDoThingService
             , WordEContract_HireEmployee HireEmployee
             , WordEContract_BorrowMoneyService BorrowMoneyService
+            , WordEContract_MaintenanceComputerService maintenanceComputerService
             )
         {
             _smeDao = smeDao;
@@ -29,6 +31,7 @@ namespace BatchAndReport.Pages.Report
             _ContactToDoThingService = ContactToDoThingService;
             _HireEmployee = HireEmployee;
             _BorrowMoneyService = BorrowMoneyService;
+             _maintenanceComputerService = maintenanceComputerService;
         }
         public IActionResult OnGetPdf()
         {
@@ -504,10 +507,16 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter();
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60.docx");
         }
-        
+
         #endregion 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60
 
-
+        #region 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60
+        public IActionResult OnGetWordContact_MaintenanceComputer()
+        {
+            var wordBytes = _maintenanceComputerService.OnGetWordContact_MaintenanceComputer();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60.docx");
+        }
+        #endregion
 
     }
 }

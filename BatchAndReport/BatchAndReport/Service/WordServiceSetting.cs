@@ -257,8 +257,9 @@ new Paragraph(
 
         // Add two tab stops (every 720 = 0.5 inch, adjust as needed)
         var tabs = new Tabs(
-            new TabStop { Val = TabStopValues.Left, Position = 720 },
-            new TabStop { Val = TabStopValues.Left, Position = 1440 }
+            new TabStop { Val = TabStopValues.Left, Position = 720 }
+            //,
+            //new TabStop { Val = TabStopValues.Left, Position = 1440 }
         );
         props.Append(tabs);
         paragraph.Append(props);
@@ -296,9 +297,10 @@ new Paragraph(
 
         // Add three tab stops (every 720 = 0.5 inch, adjust as needed)
         var tabs = new Tabs(
-            new TabStop { Val = TabStopValues.Left, Position = 720 },
-            new TabStop { Val = TabStopValues.Left, Position = 1440 },
-            new TabStop { Val = TabStopValues.Left, Position = 2160 }
+            new TabStop { Val = TabStopValues.Left, Position = 720 }
+            //,
+            //new TabStop { Val = TabStopValues.Left, Position = 1440 },
+            //new TabStop { Val = TabStopValues.Left, Position = 2160 }
         );
         props.Append(tabs);
         paragraph.Append(props);

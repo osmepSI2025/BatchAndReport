@@ -66,7 +66,7 @@ builder.Services.AddScoped<WordEContract_BorrowMoneyService>();
 builder.Services.AddScoped<WordEContract_HireEmployee>();
 
 builder.Services.AddSingleton<WordEContract_LoanPrinterService>();
-
+builder.Services.AddScoped<WordEContract_MaintenanceComputerService>(); 
 
 builder.Services.AddSingleton<ScheduledJobService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
