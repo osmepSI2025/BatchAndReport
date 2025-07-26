@@ -1,5 +1,4 @@
 ﻿using BatchAndReport.DAO;
-using BatchAndReport.Services;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -18,13 +17,15 @@ namespace BatchAndReport.Pages.Report
         private readonly WordEContract_BorrowMoneyService _BorrowMoneyService;
         private readonly WordEContract_MaintenanceComputerService _maintenanceComputerService;
         private readonly WordEContract_LoanComputerService _LoanComputerService;
+        private readonly WordEContract_BuyAgreeProgram _BuyAgreeProgram;
         public ExportModel(SmeDAO smeDao, WordEContract_AllowanceService allowanceService
             , WordEContract_LoanPrinterService wordEContract_LoanPrinterService
-            , WordEContract_ContactToDoThingService  ContactToDoThingService
+            , WordEContract_ContactToDoThingService ContactToDoThingService
             , WordEContract_HireEmployee HireEmployee
             , WordEContract_BorrowMoneyService BorrowMoneyService
             , WordEContract_MaintenanceComputerService maintenanceComputerService
             , WordEContract_LoanComputerService LoanComputerService
+            , WordEContract_BuyAgreeProgram BuyAgreeProgram
             )
         {
             _smeDao = smeDao;
@@ -33,8 +34,9 @@ namespace BatchAndReport.Pages.Report
             _ContactToDoThingService = ContactToDoThingService;
             _HireEmployee = HireEmployee;
             _BorrowMoneyService = BorrowMoneyService;
-             _maintenanceComputerService = maintenanceComputerService;
+            _maintenanceComputerService = maintenanceComputerService;
             this._LoanComputerService = LoanComputerService;
+            this._BuyAgreeProgram = BuyAgreeProgram;
         }
         public IActionResult OnGetPdf()
         {
@@ -464,8 +466,8 @@ namespace BatchAndReport.Pages.Report
         // This is your specific handler for the contract report
         public IActionResult OnGetWordContactAllowance()
         {
-            
-                    var wordBytes = _AllowanceService.OnGetWordContact_Allowance();
+
+            var wordBytes = _AllowanceService.OnGetWordContact_Allowance();
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญารับเงินอุดหนุน.docx");
 
 
@@ -529,5 +531,12 @@ namespace BatchAndReport.Pages.Report
         }
         #endregion 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60
 
+        #region 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60
+        public IActionResult OnGetWordContact_BuyAgreeProgram()
+        {
+            var wordBytes = _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์.docx");
+        }
+        #endregion 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60
     }
 }

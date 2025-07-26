@@ -69,6 +69,7 @@ builder.Services.AddSingleton<WordEContract_LoanPrinterService>();
 builder.Services.AddScoped<WordEContract_MaintenanceComputerService>(); 
 builder.Services.AddScoped<WordEContract_LoanComputerService>();
 builder.Services.AddSingleton<ScheduledJobService>();
+builder.Services.AddScoped<WordEContract_BuyAgreeProgram>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
 
 var app = builder.Build();
