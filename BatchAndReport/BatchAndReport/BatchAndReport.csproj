@@ -9,10 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Service\WordEContract_DataPersonalService.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
     <PackageReference Include="EPPlus" Version="7.7.2" />
     <PackageReference Include="FreeSpire.Doc" Version="12.2.0" />

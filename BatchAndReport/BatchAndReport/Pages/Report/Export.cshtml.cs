@@ -25,6 +25,9 @@ namespace BatchAndReport.Pages.Report
         private readonly WordEContract_PersernalProcessService _PersernalProcessService;
         private readonly WordEContract_SupportSMEsService _SupportSMEsService;
         private readonly WordEContract_JointOperationService _JointOperationService;
+        private readonly WordEContract_ControlDataService _ControlDataService;
+        private readonly WordEContract_DataPersonalService _DataPersonalService;
+        private readonly WordEContract_ConsultantService _ConsultantService;
         public ExportModel(SmeDAO smeDao, WordEContract_AllowanceService allowanceService
             , WordEContract_LoanPrinterService wordEContract_LoanPrinterService
             , WordEContract_ContactToDoThingService ContactToDoThingService
@@ -41,6 +44,9 @@ namespace BatchAndReport.Pages.Report
             , WordEContract_PersernalProcessService PersernalProcessService
             , WordEContract_SupportSMEsService SupportSMEsService
             , WordEContract_JointOperationService JointOperationService
+            , WordEContract_ControlDataService ControlDataService
+            , WordEContract_DataPersonalService DataPersonalService
+            , WordEContract_ConsultantService ConsultantService
 
             )
         {
@@ -60,6 +66,9 @@ namespace BatchAndReport.Pages.Report
             this._PersernalProcessService = PersernalProcessService;
             this._SupportSMEsService = SupportSMEsService;
             this._JointOperationService = JointOperationService;
+            this._ControlDataService = ControlDataService;
+            this._DataPersonalService = DataPersonalService;
+            this._ConsultantService = ConsultantService;
         }
         public IActionResult OnGetPdf()
         {
@@ -528,6 +537,16 @@ namespace BatchAndReport.Pages.Report
 
         }
         #endregion 4.1.1.2.15.สัญญาจ้างทำของ
+
+        #region 4.1.1.2.14.สัญญาจ้างที่ปรึกษา
+        public IActionResult OnGetWordContact_ConsultantService()
+        {
+            var wordBytes = _ConsultantService.OnGetWordContact_ConsultantService();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างที่ปรึกษา.docx");
+        }
+
+        #endregion
+
         #region 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60
 
         public IActionResult OnGetWordContact_LoanPrinter()
@@ -590,6 +609,24 @@ namespace BatchAndReport.Pages.Report
 
         #endregion
 
+        #region 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล
+        public IActionResult OnGetWordContact_DataPersonalService()
+        {
+            var wordBytes = _DataPersonalService.OnGetWordContact_DataPersonalService();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
+        }
+
+        #endregion
+
+        #region 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ
+
+        public IActionResult OnGetWordContact_ControlDataService()
+        {
+            var wordBytes = _ControlDataService.OnGetWordContact_ControlDataService();
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.docx");
+
+        }
+        #endregion 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ
         #region 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล
         public IActionResult OnGetWordContact_PersernalProcess()
         {
@@ -618,11 +655,13 @@ namespace BatchAndReport.Pages.Report
 
 
         #region 4.1.1.2.1.สัญญาร่วมดำเนินการ
-        public IActionResult OnGetWordContact_JointOperation()
+        public IActionResult OnGetWordContact_JointOperation(string param)
         {
             var wordBytes = _JointOperationService.OnGetWordContact_JointOperationService();
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
         }
         #endregion
+
+   
     }
 }

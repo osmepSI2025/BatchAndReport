@@ -127,19 +127,32 @@ public class WordEContract_MemorandumService
             body.AppendChild(WordServiceSetting.NormalParagraphWith_3Tabs("3.6 ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับข้อมูลส่วนบุคคลและการคุ้มครองทรัพย์สินทางปัญญา “ชื่อหน่วยร่วม” จะต้องปฏิบัติตามกฎหมายว่าด้วยการคุ้มครองข้อมูลส่วนบุคคลและการคุ้มครองทรัพย์สินทางปัญญาอย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้องร้องใด ๆ “ชื่อหน่วยร่วม” จะต้องเป็นผู้รับผิดชอบต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าวแต่เพียงฝ่ายเดียวโดยสิ้นเชิง", null, "32"));
             body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน ทั้งสองฝ่ายได้อ่านและเข้าใจข้อความโดยละเอียดแล้ว จึงได้ลงลายมือชื่อพร้อมประทับตรา (ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยานและยึดถือไว้ฝ่ายละฉบับ", null, "32"));
             body.AppendChild(WordServiceSetting.EmptyParagraph());
-            body.AppendChild(WordServiceSetting.EmptyParagraph());
-            body.AppendChild(WordServiceSetting.RightParagraph("ลงชื่อ........................................................................"));
-            body.AppendChild(WordServiceSetting.RightParagraph("(................................................................................)"));
-            body.AppendChild(WordServiceSetting.RightParagraph("(.............................ชื่อเต็มหน่วยงาน...................................)"));
-
-            body.AppendChild(WordServiceSetting.RightParagraph("ลงชื่อ......................................................................พยาน"));
-            body.AppendChild(WordServiceSetting.RightParagraph("(...............................................................................)"));
-            body.AppendChild(WordServiceSetting.RightParagraph("ลงชื่อ......................................................................พยาน"));
-            body.AppendChild(WordServiceSetting.RightParagraph("(...............................................................................)"));
+          
 
             // --- 6. Signature lines ---
             body.AppendChild(WordServiceSetting.EmptyParagraph());
 
+            // สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม
+            body.AppendChild(WordServiceSetting.CenteredParagraph("(ลงชื่อ)...................................................."));
+            body.AppendChild(WordServiceSetting.CenteredParagraph("(                              )"));
+            body.AppendChild(WordServiceSetting.CenteredParagraph("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม"));
+            body.AppendChild(WordServiceSetting.EmptyParagraph());
+
+            // หน่วยงานร่วม
+            body.AppendChild(WordServiceSetting.CenteredParagraph("(ลงชื่อ)...................................................."));
+            body.AppendChild(WordServiceSetting.CenteredParagraph("(                              )"));
+            body.AppendChild(WordServiceSetting.CenteredParagraph("ชื่อเต็มหน่วยงาน"));
+            body.AppendChild(WordServiceSetting.EmptyParagraph());
+
+            // พยาน 1
+            body.AppendChild(WordServiceSetting.CenteredParagraph("(ลงชื่อ)....................................................พยาน"));
+            body.AppendChild(WordServiceSetting.CenteredParagraph("(                              )"));
+            body.AppendChild(WordServiceSetting.EmptyParagraph());
+
+            // พยาน 2
+            body.AppendChild(WordServiceSetting.CenteredParagraph("(ลงชื่อ)....................................................พยาน"));
+            body.AppendChild(WordServiceSetting.CenteredParagraph("(                              )"));
+            body.AppendChild(WordServiceSetting.EmptyParagraph());
 
             // --- 7. Add header/footer if needed ---
             WordServiceSetting.AddHeaderWithPageNumber(mainPart, body);

@@ -142,18 +142,114 @@ public class WordEContract_PersernalProcessService
 
   
           body.AppendChild(WordServiceSetting.EmptyParagraph());
-            body.AppendChild(WordServiceSetting.EmptyParagraph());
-            body.AppendChild(WordServiceSetting.RightParagraph("ลงชื่อ.......................................ลงชื่อ......................................."));
-            body.AppendChild(WordServiceSetting.RightParagraph("(................................................................................)"));
-            body.AppendChild(WordServiceSetting.RightParagraph("(.............................ชื่อเต็มหน่วยงาน...................................)"));
-
-            body.AppendChild(WordServiceSetting.RightParagraph("ลงชื่อ......................................................................พยาน"));
-            body.AppendChild(WordServiceSetting.RightParagraph("(...............................................................................)"));
-            body.AppendChild(WordServiceSetting.RightParagraph("ลงชื่อ......................................................................พยาน"));
-            body.AppendChild(WordServiceSetting.RightParagraph("(...............................................................................)"));
 
             // --- 6. Signature lines ---
+            // --- 6. Signature lines ---
             body.AppendChild(WordServiceSetting.EmptyParagraph());
+
+            // Main signature table: two columns
+            var signatureTable = new Table(
+                new TableProperties(
+                    new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
+                    new TableBorders(
+                        new TopBorder { Val = BorderValues.None },
+                        new BottomBorder { Val = BorderValues.None },
+                        new LeftBorder { Val = BorderValues.None },
+                        new RightBorder { Val = BorderValues.None },
+                        new InsideHorizontalBorder { Val = BorderValues.None },
+                        new InsideVerticalBorder { Val = BorderValues.None }
+                    )
+                ),
+                // First row: signatures
+                new TableRow(
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.RightParagraph("ลงชื่อ.................................................................")
+                    ),
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.RightParagraph("ลงชื่อ.................................................................")
+                    )
+                ),
+                // Second row: names
+                new TableRow(
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.CenteredParagraph("(............................................................)")
+                    ),
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.CenteredParagraph("(...........................ชื่อคู่สัญญา............................)")
+                    )
+                ),
+                // Third row: organization/role
+                new TableRow(
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.CenteredBoldColoredParagraph("ผู้ควบคุมข้อมูลสำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม หรือผู้ที่ผู้ควบคุมมอบหมาย", "#00000")
+                    ),
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.CenteredParagraph("............................................................")
+                    )
+                )
+            );
+            body.AppendChild(signatureTable);
+            body.AppendChild(WordServiceSetting.EmptyParagraph());
+
+            // Witness table: two columns
+            var witnessTable = new Table(
+                new TableProperties(
+                    new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
+                    new TableBorders(
+                        new TopBorder { Val = BorderValues.None },
+                        new BottomBorder { Val = BorderValues.None },
+                        new LeftBorder { Val = BorderValues.None },
+                        new RightBorder { Val = BorderValues.None },
+                        new InsideHorizontalBorder { Val = BorderValues.None },
+                        new InsideVerticalBorder { Val = BorderValues.None }
+                    )
+                ),
+                // First row: witness signatures
+                new TableRow(
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.RightParagraph("ลงชื่อ.................................................................พยาน")
+                    ),
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.RightParagraph("ลงชื่อ.................................................................พยาน")
+                    )
+                ),
+                // Second row: witness names
+                new TableRow(
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.CenteredParagraph("(............................................................)")
+                    ),
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.CenteredParagraph("(...........................ชื่อคู่สัญญา............................)")
+                    )
+                ),
+                // Third row: organization/role
+                new TableRow(
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.CenteredBoldColoredParagraph("(สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม)", "#000000")
+                    ),
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.CenteredBoldColoredParagraph("(ชื่อคู่สัญญา)", "#000000")
+                    )
+                )
+            );
+            body.AppendChild(witnessTable);
+            body.AppendChild(WordServiceSetting.EmptyParagraph());
+      
+
+
+body.AppendChild(WordServiceSetting.EmptyParagraph());
 
 
             // --- 7. Add header/footer if needed ---

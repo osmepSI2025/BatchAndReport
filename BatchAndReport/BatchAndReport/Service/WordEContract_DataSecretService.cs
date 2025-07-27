@@ -200,19 +200,57 @@ public class WordEContract_DataSecretService
             body.AppendChild(WordServiceSetting.NormalParagraphWith_3Tabs("9.1 ในกรณีที่ปรากฏภายหลังว่าส่วนใดส่วนหนึ่งในสัญญาฉบับนี้เป็นโมฆะให้ถือว่าข้อกําหนดส่วนที่เป็นโมฆะไม่มีผลบังคับในสัญญานี้ และข้อกําหนดที่เหลืออยู่ในสัญญาฉบับนี้ยังคงใช้บังคับและมีผลอยู่อย่างสมบูรณ์", null,"32"));
             body.AppendChild(WordServiceSetting.NormalParagraphWith_3Tabs("9.2 สัญญาฉบับนี้อยู่ภายใต้การบังคับและตีความตามกฎหมายของประเทศไทย ให้ศาลของประเทศไทยมีอำนาจในกรณีที่มีข้อพิพาทใด ๆ อันเกิดขึ้นจากสัญญาฉบับนี้", null,"32"));
             body.AppendChild(WordServiceSetting.NormalParagraphWith_3Tabs("สัญญานี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน คู่สัญญาได้อ่าน และเข้าใจข้อความในสัญญาโดยละเอียดตลอดแล้ว เห็นว่าตรงตามเจตนารมณ์ทุกประการ จึงได้ลงลายมือชื่อพร้อมทั้งประทับตราสำคัญผูกพันนิติบุคคล (ถ้ามี) ไว้เป็นสำคัญ ณ วัน เดือน ปี ที่ระบุข้างต้น และคู่สัญญาต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับ", null,"32"));
-            body.AppendChild(WordServiceSetting.CenteredParagraph("ลงชื่อ....................................................ผู้ให้ข้อมูล                     ลงชื่อ ........................................................ผู้ให้ข้อมูล"));
-            body.AppendChild(WordServiceSetting.CenteredParagraph("(..สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม.)                                 (......................(    ระบุชื่อคู่สัญญา    .....................)"));
-
-            body.AppendChild(WordServiceSetting.CenteredParagraph("ลงชื่อ....................................................พยาน                     ลงชื่อ ........................................................พยาน"));
-            body.AppendChild(WordServiceSetting.CenteredParagraph("(..สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม.)                                   (......................(    ระบุชื่อคู่สัญญา    .....................)"));
-
-
+   
             // --- 6. Signature lines ---
             body.AppendChild(WordServiceSetting.EmptyParagraph());
 
+            var signatureTable = new Table(
+                new TableProperties(
+                    new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
+                    new TableBorders(
+                        new TopBorder { Val = BorderValues.None },
+                        new BottomBorder { Val = BorderValues.None },
+                        new LeftBorder { Val = BorderValues.None },
+                        new RightBorder { Val = BorderValues.None },
+                        new InsideHorizontalBorder { Val = BorderValues.None },
+                        new InsideVerticalBorder { Val = BorderValues.None }
+                    )
+                ),
+                // Row 1: Main signatures
+                new TableRow(
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.NormalParagraph("ลงชื่อ............................................................ผู้ให้ข้อมูล", JustificationValues.Left, "32"),
+                        WordServiceSetting.CenteredParagraph("(สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม)", "32")
+                    ),
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.NormalParagraph("ลงชื่อ............................................................ผู้รับข้อมูล", JustificationValues.Left, "32"),
+                        WordServiceSetting.CenteredBoldColoredParagraph("(ระบุชื่อคู่สัญญา.....)", "FF0000", "32")
+                    )
+                ),
+                // Row 2: Witnesses
+                new TableRow(
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.NormalParagraph("ลงชื่อ............................................................พยาน", JustificationValues.Left, "32"),
+                        WordServiceSetting.CenteredParagraph("(สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม)", "32")
+                    ),
+                    new TableCell(
+                        new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "50" }),
+                        WordServiceSetting.NormalParagraph("ลงชื่อ............................................................พยาน", JustificationValues.Left, "32"),
+                        WordServiceSetting.CenteredBoldColoredParagraph("(ระบุชื่อคู่สัญญา.....)", "FF0000", "32")
+                    )
+                )
+            );  
 
-                // --- 7. Add header/footer if needed ---
-                WordServiceSetting.AddHeaderWithPageNumber(mainPart, body);
+            // Add signature table
+            body.AppendChild(signatureTable);
+
+
+
+            // --- 7. Add header/footer if needed ---
+            WordServiceSetting.AddHeaderWithPageNumber(mainPart, body);
             }
             stream.Position = 0;
             return stream.ToArray();

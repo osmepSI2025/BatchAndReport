@@ -77,6 +77,10 @@ builder.Services.AddScoped<WordEContract_MemorandumService>();
 builder.Services.AddScoped<WordEContract_PersernalProcessService>();
 builder.Services.AddScoped<WordEContract_SupportSMEsService>();
 builder.Services.AddScoped<WordEContract_JointOperationService>();
+builder.Services.AddScoped<WordEContract_ControlDataService>();
+builder.Services.AddScoped<WordEContract_DataPersonalService>();
+builder.Services.AddScoped<WordEContract_ConsultantService>();
+
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
 
 var app = builder.Build();

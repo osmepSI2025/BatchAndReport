@@ -312,9 +312,9 @@ public class WordServiceSetting
 
         return paragraph;
     }
-    public static Paragraph NormalParagraphWith_3Tabs(string text, JustificationValues? align = null, string fontZise = "28")
+    public static Paragraph NormalParagraphWith_3Tabs(string text, JustificationValues? align = null, string fontZise = "28", bool bold = false)
     {
-      // text = text.Replace(" ", "\u00A0");
+       
         if (fontZise == null)
         {
             fontZise = "28";
@@ -338,12 +338,16 @@ public class WordServiceSetting
         props.Append(tabs);
         paragraph.Append(props);
 
-        // Add three tab characters at the start of the run
+        // Correctly apply bold if requested
+        var runProps = new RunProperties(
+            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = fontZise }
+        );
+        if (bold)
+            runProps.Append(new Bold());
+
         var run = new Run(
-            new RunProperties(
-                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
-                new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = fontZise }
-            ),
+            runProps,
             new TabChar(),
             new TabChar(),
             new TabChar(),
@@ -353,6 +357,7 @@ public class WordServiceSetting
 
         return paragraph;
     }
+
     public static Paragraph NormalParagraphWith_2TabsColor(string text, JustificationValues? align = null, string hexColor = null)
     {
         text = text.Replace(" ", "\u00A0");
