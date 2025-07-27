@@ -263,15 +263,36 @@ namespace BatchAndReport.DAO
 
             return model;
         }
+
         public async Task<WFProcessDetailModels?> GetWFProcessDetailAsync(int idParam)
         {
+            // Fetch related ProcessMasterDetails for idParam
             var all = await _k2context_workflow.ProcessMasterDetails
                 .Where(p => p.ProcessMasterId == idParam)
                 .ToListAsync();
 
+            if (all == null || !all.Any())
+                return null;
+
+            // Fetch the first FiscalYearId from the retrieved list
+            var fiscalYearId = all.First().FiscalYearId;
+
+            // JOIN to fetch the FiscalYearDesc
+            var fiscalYearDesc = await _k2context_workflow.ProjectFiscalYears
+                .Where(f => f.FiscalYearId == fiscalYearId)
+                .Select(f => f.FiscalYearDesc)
+                .FirstOrDefaultAsync();
+
+            // Fix: Parse the FiscalYearDesc string to an integer
+            if (!int.TryParse(fiscalYearDesc, out var fiscalYear))
+            {
+                // Handle the case where parsing fails (e.g., log an error or return null)
+                return null;
+            }
+
             var detail = new WFProcessDetailModels
             {
-                FiscalYear = 2568,
+                FiscalYear = fiscalYear, // Assign the parsed integer value
                 CoreProcesses = all
                     .Where(p => p.ProcessTypeCode == "CORE")
                     .OrderBy(p => p.ProcessGroupCode)

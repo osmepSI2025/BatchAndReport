@@ -29,70 +29,81 @@ public class WordService : IWordService
             body.Append(CreateEmptyLine());
 
             body.Append(CreateBoldParagraph("□ ใช้งบประมาณ"));
-            //foreach (var plan in model.Plans)
-                body.Append(CreateIndentedParagraph("   □ " + "xxxxxxxxxxx"));
-                body.Append(CreateIndentedParagraph("   □ " + "xxxxxxxxxxx"));
+            body.Append(CreateIndentedParagraph("   □ " + "xxxxxxxxxxx"));
+            body.Append(CreateIndentedParagraph("   □ " + "xxxxxxxxxxx"));
             body.Append(CreateNormalParagraph("□ ไม่ใช้งบประมาณ"));
 
             body.Append(CreateBoldParagraph("สถานภาพโครงการ : □ โครงการใหม่ □ โครงการต่อเนื่อง □ โครงการเดิม □ โครงการ Flagship"));
             body.Append(CreateEmptyLine());
 
-            var table = new Table(new TableProperties(
-                new TableWidth { Type = TableWidthUnitValues.Pct, Width = "5000" }
-            ,   new TableBorders(
-                new TopBorder { Val = BorderValues.Single },
-                new BottomBorder { Val = BorderValues.Single },
-                new LeftBorder { Val = BorderValues.Single },
-                new RightBorder { Val = BorderValues.Single },
-                new InsideHorizontalBorder { Val = BorderValues.Single },
-                new InsideVerticalBorder { Val = BorderValues.Single })));
-            table.Append(CreateTableRowColor("", "ผู้รับผิดชอบโครงการ", "ผู้ประสานงาน"));
-            table.Append(CreateTableRow("ชื่อ-นามสกุล", model.OwnerName, model.ContactName));
-            table.Append(CreateTableRow("ตำแหน่ง", model.OwnerPosition, model.ContactPosition));
-            table.Append(CreateTableRow("โทรศัพท์", model.OwnerPhone, model.ContactPhone));
-            table.Append(CreateTableRow("มือถือ", model.OwnerMobile, model.ContactMobile));
-            table.Append(CreateTableRow("Email", model.OwnerEmail, model.ContactEmail));
-            table.Append(CreateTableRow("Line ID", model.OwnerLineId, model.ContactLineId));
-            body.Append(table);
+            // ตารางผู้รับผิดชอบ
+            var tableResponsible = new Table(new TableProperties(
+                new TableWidth { Type = TableWidthUnitValues.Pct, Width = "5000" },
+                new TableBorders(
+                    new TopBorder { Val = BorderValues.Single },
+                    new BottomBorder { Val = BorderValues.Single },
+                    new LeftBorder { Val = BorderValues.Single },
+                    new RightBorder { Val = BorderValues.Single },
+                    new InsideHorizontalBorder { Val = BorderValues.Single },
+                    new InsideVerticalBorder { Val = BorderValues.Single })));
+            tableResponsible.Append(CreateTableRowColor("", "ผู้รับผิดชอบโครงการ", "ผู้ประสานงาน"));
+            tableResponsible.Append(CreateTableRow("ชื่อ-นามสกุล", model.OwnerName, model.ContactName));
+            tableResponsible.Append(CreateTableRow("ตำแหน่ง", model.OwnerPosition, model.ContactPosition));
+            tableResponsible.Append(CreateTableRow("โทรศัพท์", model.OwnerPhone, model.ContactPhone));
+            tableResponsible.Append(CreateTableRow("มือถือ", model.OwnerMobile, model.ContactMobile));
+            tableResponsible.Append(CreateTableRow("Email", model.OwnerEmail, model.ContactEmail));
+            tableResponsible.Append(CreateTableRow("Line ID", model.OwnerLineId, model.ContactLineId));
+            body.Append(tableResponsible);
 
-            body.Append(CreateBoldParagraph("ประเด็นสำคัญในการส่งเสริม SME ปี พ.ศ.{model.FiscalYear}"));
-            //foreach (var item in model.PromotionStrategies)
-            //body.Append(CreateNormalParagraph("□ " + item));
+            body.Append(CreateBoldParagraph($"ประเด็นสำคัญในการส่งเสริม SME ปี พ.ศ.{model.FiscalYear}"));
             body.Append(CreateBoldParagraph("□ Digital □ Environment/Green □ Social □ Governance □ Soft power"));
 
             body.Append(CreateNormalParagraph($"ประเด็นสำคัญในการส่งเสริม SME ปี พ.ศ.{model.FiscalYear} ประเด็นการส่งเสริม/กลยุทธ์ที่สอดคล้องกับแผนปฎิบัติการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อมประจำปีงบประมาณ (เลือกเพียง 1 ประเด็นการส่งเสริม 1 กลยุทธ์ ต่อ 1 โครงการ)"));
-            // Header
-            table.Append(CreateTableRowColor("ประเด็นการส่งเสริม", "กลยุทธ์"));
 
-            // Rows
-            foreach (var group in model.Strategies)
+            // ตารางกลยุทธ์
+            var tableStrategy = new Table(new TableProperties(
+                new TableWidth { Type = TableWidthUnitValues.Pct, Width = "5000" },
+                new TableBorders(
+                    new TopBorder { Val = BorderValues.Single },
+                    new BottomBorder { Val = BorderValues.Single },
+                    new LeftBorder { Val = BorderValues.Single },
+                    new RightBorder { Val = BorderValues.Single },
+                    new InsideHorizontalBorder { Val = BorderValues.Single },
+                    new InsideVerticalBorder { Val = BorderValues.Single })));
+            tableStrategy.Append(CreateTableRowColor("ประเด็นการส่งเสริม", "กลยุทธ์"));
+
+            if (model.Strategies != null)
             {
-                var first = true;
-                int index = 1;
-
-                foreach (var item in model.Strategies)
+                foreach (var group in model.Strategies)
                 {
-                    var row = new TableRow();
-                    if (first)
+                    var first = true;
+                    int index = 1;
+                    foreach (var item in model.Strategies)
                     {
-                        row.Append(new TableCell(
-                            new TableCellProperties(new VerticalMerge { Val = MergedCellValues.Restart }),
-                            new Paragraph(new Run(new Text($"□ {group.StrategyId}")))));
-                        first = false;
-                    }
-                    else
-                    {
-                        row.Append(new TableCell(
-                            new TableCellProperties(new VerticalMerge { Val = MergedCellValues.Continue }),
-                            new Paragraph(new Run()))); // Empty cell
-                    }
+                        var row = new TableRow();
 
-                    row.Append(new TableCell(new Paragraph(new Run(new Text($"□ {index++} {item.StrategyDesc}")))));
-                    table.Append(row);
+                        if (first)
+                        {
+                            row.Append(new TableCell(
+                                new TableCellProperties(new VerticalMerge { Val = MergedCellValues.Restart }),
+                                new Paragraph(new Run(new Text($"□ {group.StrategyId}")))));
+                            first = false;
+                        }
+                        else
+                        {
+                            row.Append(new TableCell(
+                                new TableCellProperties(new VerticalMerge { Val = MergedCellValues.Continue }),
+                                new Paragraph(new Run())));
+                        }
+
+                        row.Append(new TableCell(new Paragraph(new Run(new Text($"□ {index++} {item.StrategyDesc}")))));
+                        tableStrategy.Append(row);
+                    }
                 }
             }
 
-            body.Append(table);
+            body.Append(tableStrategy);
+
             body.Append(CreateBoldParagraph("ความสำคัญของโครงการ/หลักการและเหตุผล :"));
             body.Append(CreateNormalParagraph(model.ProjectRationale ?? ""));
 
@@ -100,94 +111,74 @@ public class WordService : IWordService
             body.Append(CreateNormalParagraph(model.ProjectObjective ?? ""));
 
             body.Append(CreateBoldParagraph("กลุ่มเป้าหมาย (สามารถเลือกได้มากกว่า 1 กลุ่มเป้าหมาย):"));
-            //foreach (var group in model.TargetGroups)
-                //body.Append(CreateNormalParagraph("□ " + group));
-                body.Append(CreateIndentedParagraph("□ วิสาหกิจระยะเริ่มต้น Early-Stage Enterprise □ วิสาหกิจขนาดย่อม Small Enterprise"));
-                body.Append(CreateIndentedParagraph("□ วิสาหกิจรายย่อย Micro Enterprise □ วิสาหกิจขนาดกลาง Medium Enterprise □ ทุกกลุ่ม"));
+            body.Append(CreateIndentedParagraph("□ วิสาหกิจระยะเริ่มต้น Early-Stage Enterprise □ วิสาหกิจขนาดย่อม Small Enterprise"));
+            body.Append(CreateIndentedParagraph("□ วิสาหกิจรายย่อย Micro Enterprise □ วิสาหกิจขนาดกลาง Medium Enterprise □ ทุกกลุ่ม"));
 
-            body.Append(CreateBoldParagraph("รายละเอียดแผนการดำเนินงาน/กิจกรรม (โปรดอธิบายขั้นตอนการดำเนินงานในแต่ละกิจกรรมของโครงงานทั้งหมด จำแนกเป็นข้อๆ ตามลำดับขั้นตอนการไหลของงาน โดยละเอียด)\r\n :"));
+            body.Append(CreateBoldParagraph("รายละเอียดแผนการดำเนินงาน/กิจกรรม..."));
             body.Append(CreateNormalParagraph(model.Activities ?? ""));
 
-            body.Append(CreateBoldParagraph("จุดเด่นของโครงการ (อธิบายภาพรวมโดยย่อ และแสดงให้เห็นถึงจุดเด่นและความสำคัญของโครงการ) :"));
+            body.Append(CreateBoldParagraph("จุดเด่นของโครงการ :"));
             body.Append(CreateNormalParagraph(model.ProjectFocus ?? ""));
 
-            body.Append(CreateBoldParagraph("พื้นที่ดำเนินการ :(ระบุภาค/พื้นที่เป้าหมาย)"));
-                if (model.OperationArea != null && model.OperationArea.Any())
-                {
-                    body.Append(CreateNormalParagraph(string.Join(", ", model.OperationArea)));
-                }
-                else
-                {
-                    body.Append(CreateNormalParagraph(""));
-                }
+            body.Append(CreateBoldParagraph("พื้นที่ดำเนินการ :"));
+            body.Append(CreateNormalParagraph(string.Join(", ", model.OperationArea ?? new List<string>())));
 
-            body.Append(CreateBoldParagraph("สาขาเป้าหมาย :(ระบุสาขาเป้าหมาย เช่น ทุกสาขา สาขาท่องเที่ยว สาขาอาหารแปรรูป สาขายานยนต์และชิ้นส่วน สาขาอัญมณีและเครื่องประดับ เป็นต้น)"));
-                if (model.IndustrySector != null && model.IndustrySector.Any())
-                {
-                    body.Append(CreateNormalParagraph(string.Join(", ", model.IndustrySector)));
-                }
-                else
-                {
-                    body.Append(CreateNormalParagraph(""));
-                }
+            body.Append(CreateBoldParagraph("สาขาเป้าหมาย :"));
+            body.Append(CreateNormalParagraph(string.Join(", ", model.IndustrySector ?? new List<string>())));
 
-            body.Append(CreateBoldParagraph("การพัฒนา 11 อุตสาหกรรม Soft Power :(ระบุสาขาอุตสาหกรรม หากท่านเลือกกลยุทธ์ที่ 16)"));
-            //foreach (var power in model.SoftPowers)
-            //    body.Append(CreateNormalParagraph("□ " + power));
-                  body.Append(CreateIndentedParagraph("□ " + "power 1"));
-                  body.Append(CreateIndentedParagraph("□ " + "power 2"));
-                  body.Append(CreateIndentedParagraph("□ " + "power 3"));
+            body.Append(CreateBoldParagraph("การพัฒนา 11 อุตสาหกรรม Soft Power :"));
+            body.Append(CreateIndentedParagraph("□ power 1"));
+            body.Append(CreateIndentedParagraph("□ power 2"));
+            body.Append(CreateIndentedParagraph("□ power 3"));
 
             body.Append(CreateBoldParagraph("ระยะเวลาในการดำเนินโครงการ :"));
             body.Append(CreateNormalParagraph(model.Timeline ?? ""));
-            body.Append(CreateBoldParagraph("หน่วยงานที่ร่วมบูรณาการ รูปแบบ/วิธีร่วมดำเนินการร่วมกัน (รูปแบบการดำเนินงานแบบบูรณาการ การส่งต่อผู้ประกอบการ ฯลฯ โปรดระบุ) :"));
-            body.Append(CreateNormalParagraph(model.OrgPartner ?? "" + "ทำหน้าที่" + model.RoleDescription));
 
-            body.Append(CreateBoldParagraph("ตัวชี้วัดที่สำคัญ (โปรดระบุตัวชี้วัดระดับผลผลิต และผลลัพธ์ของโครงการ พร้อมหน่วยนับแลัเป้าหมายเชิงปริมาณ)"));
+            body.Append(CreateBoldParagraph("หน่วยงานที่ร่วมบูรณาการ..."));
+            body.Append(CreateNormalParagraph(model.OrgPartner + " ทำหน้าที่ " + model.RoleDescription));
+
+            body.Append(CreateBoldParagraph("ตัวชี้วัดที่สำคัญ..."));
             var mainMetricTable = new Table(new TableProperties(
                 new TableWidth { Type = TableWidthUnitValues.Pct, Width = "5000" },
                 new TableBorders(
-                new TopBorder { Val = BorderValues.Single },
-                new BottomBorder { Val = BorderValues.Single },
-                new LeftBorder { Val = BorderValues.Single },
-                new RightBorder { Val = BorderValues.Single },
-                new InsideHorizontalBorder { Val = BorderValues.Single },
-                new InsideVerticalBorder { Val = BorderValues.Single })));
+                    new TopBorder { Val = BorderValues.Single },
+                    new BottomBorder { Val = BorderValues.Single },
+                    new LeftBorder { Val = BorderValues.Single },
+                    new RightBorder { Val = BorderValues.Single },
+                    new InsideHorizontalBorder { Val = BorderValues.Single },
+                    new InsideVerticalBorder { Val = BorderValues.Single })));
             mainMetricTable.Append(CreateTableRowColor("ตัวชี้วัดผลผลิต", "จำนวนเป้าหมาย", "หน่วยนับ", "วิธีการวัดผล"));
             foreach (var item in model.OutputIndicators)
                 mainMetricTable.Append(CreateTableRow(item.Name, item.Target, item.Unit, item.Method));
-            //mainMetricTable.Append(CreateTableRow("item.Name", "item.Target", "item.Unit", "item.Method"));
-            //mainMetricTable.Append(CreateTableRow("item.Name", "item.Target", "item.Unit", "item.Method"));
-            //mainMetricTable.Append(CreateTableRow("item.Name", "item.Target", "item.Unit", "item.Method"));
             body.Append(mainMetricTable);
 
             body.Append(CreateEmptyLine());
             var outcomeMetricTable = new Table(new TableProperties(
-                new TableWidth { Type = TableWidthUnitValues.Pct, Width = "5000" }, 
+                new TableWidth { Type = TableWidthUnitValues.Pct, Width = "5000" },
                 new TableBorders(
-                new TopBorder { Val = BorderValues.Single },
-                new BottomBorder { Val = BorderValues.Single },
-                new LeftBorder { Val = BorderValues.Single },
-                new RightBorder { Val = BorderValues.Single },
-                new InsideHorizontalBorder { Val = BorderValues.Single },
-                new InsideVerticalBorder { Val = BorderValues.Single })));
+                    new TopBorder { Val = BorderValues.Single },
+                    new BottomBorder { Val = BorderValues.Single },
+                    new LeftBorder { Val = BorderValues.Single },
+                    new RightBorder { Val = BorderValues.Single },
+                    new InsideHorizontalBorder { Val = BorderValues.Single },
+                    new InsideVerticalBorder { Val = BorderValues.Single })));
             outcomeMetricTable.Append(CreateTableRowColor("ตัวชี้วัดผลลัพธ์", "จำนวนเป้าหมาย", "หน่วยนับ", "วิธีการวัดผล"));
-            foreach (var item in model.OutcomeIndicators)
-                outcomeMetricTable.Append(CreateTableRow(item.Name, item.Target, item.Unit, item.Method));
-            //outcomeMetricTable.Append(CreateTableRow("item.Name", "item.Target", "item.Unit", "item.Method"));
-            //outcomeMetricTable.Append(CreateTableRow("item.Name", "item.Target", "item.Unit", "item.Method"));
-            //outcomeMetricTable.Append(CreateTableRow("item.Name", "item.Target", "item.Unit", "item.Method"));
+            if (model.OutcomeIndicators != null)
+            {
+                foreach (var item in model.OutcomeIndicators)
+                {
+                    outcomeMetricTable.Append(CreateTableRow(item.Name, item.Target, item.Unit, item.Method));
+                }
+            }
             body.Append(outcomeMetricTable);
 
-            body.Append(CreateNormalParagraph("ข้อมูลอื่นๆ เพิ่มเติมที่จะช่วยสร้างความเข้าใจเกี่ยวกับการดำเนินงาน :"));
+            body.Append(CreateNormalParagraph("ข้อมูลอื่นๆ เพิ่มเติม..."));
             body.Append(CreateNormalParagraph(model.AdditionalNotes ?? ""));
 
             mainPart.Document.Save();
         }
-
         return stream.ToArray();
     }
-
     public byte[] GenerateSummaryWord(
     List<SMESummaryProjectModels> projects,
     List<SMEStrategyDetailModels> strategyList,
