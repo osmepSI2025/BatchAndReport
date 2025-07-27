@@ -9,9 +9,11 @@ using OfficeOpenXml.Style;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
-using FontSize = DocumentFormat.OpenXml.Wordprocessing.FontSize;
-using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
+using System.Xml;
+using System.Xml.Linq;
 using A = DocumentFormat.OpenXml.Drawing;
+using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
+using FontSize = DocumentFormat.OpenXml.Wordprocessing.FontSize;
 using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
 
 public class WordWFService : IWordWFService
@@ -30,21 +32,25 @@ public class WordWFService : IWordWFService
 
             body.Append(CreateHeading($"การทบทวนกระบวนการของ ของ ฝผน. ประจำปี {fiscalYear}", 20));
             body.Append(CreateNumberedParagraph("รายละเอียดประเด็นการทบทวน", detail.ReviewDetails));
-
+            body.Append(CreateEmptyLine());
+            body.Append(CreateHeadingLeft($"การทบทวนกระบวนการของ ของ ฝผน. ประจำปี {fiscalYear} ดังนี้", 20));
             body.Append(CreateThreeColumnTable(fiscalYearPrev, fiscalYear, detail.PrevProcesses, detail.CurrentProcesses, detail.ControlActivities));
 
             body.Append(CreateItalicNote("หมายเหตุ: *หมายหมาย JD/ **หมายหมาย คว.2/***หมายหมายการอ้างถึงงานปัจจุบัน"));
 
-            body.Append(CreateBoldParagraph("กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่", 24));
+            body.Append(CreateEmptyLine());
+
+            body.Append(CreateBoldParagraph("กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่", 20));
             foreach (var wf in detail.WorkflowProcesses)
                 body.Append(CreateNormalParagraph($"• {wf}"));
 
-            body.Append(CreateBoldParagraph("ความคิดเห็น", 24));
+            body.Append(CreateBoldParagraph("ความคิดเห็น", 20));
             body.Append(CreateCheckBoxOptions(new[] {
             "เห็นชอบการปรับปรุง",
             "มีความเห็นเพิ่มเติม"
         }));
-
+            body.Append(CreateEmptyLine());
+            body.Append(CreateEmptyLine());
             foreach (var r in detail.ApproveRemarks)
                 body.Append(CreateNormalParagraph(r));
 
@@ -52,7 +58,7 @@ public class WordWFService : IWordWFService
                 leftName: detail.Approver1Name ?? "(ชื่อผู้ลงนาม 1)", leftPosition: detail.Approver1Position ?? "ตำแหน่ง",
                 rightName: detail.Approver2Name ?? "(ชื่อผู้ลงนาม 2)", rightPosition: detail.Approver2Position ?? "ตำแหน่ง",
                 leftDate: detail.Approve1Date ?? "ไม่พบข้อมูล", rightDate: detail.Approve2Date ?? "ไม่พบข้อมูล"
-            ));
+            , TableRowAlignmentValues.Center));
 
             mainPart.Document.Save();
         }
@@ -223,7 +229,12 @@ public class WordWFService : IWordWFService
         {
             var mainPart = wordDoc.AddMainDocumentPart();
             mainPart.Document = new Document();
-            var body = mainPart.Document.AppendChild(new Body());
+            var body = new Body();
+            mainPart.Document.Append(body);
+            // Add Header First
+            await AddDocumentHeader(mainPart, detail);
+
+            body = mainPart.Document.AppendChild(new Body());
 
             var lastRevDate = detail.Revisions?.LastOrDefault()?.DateTime;
             var revDateText = lastRevDate.HasValue ? lastRevDate.Value.ToString("dd MMM yy", new CultureInfo("th-TH")) : "-";
@@ -242,15 +253,13 @@ public class WordWFService : IWordWFService
             body.Append(CreateEmptyLine());
 
             // Revisions Table
-
             var revTable = CreateFullWidthTable();
-
-            // แถวหัวข้อแนวนอน 1 ช่อง merge ทั้ง 3 คอลัมน์
-            var revHeaderRow = new TableRow();
-            revHeaderRow.Append(new TableCell(
+            revTable.Append(new TableRow(new[]
+            {
+            new TableCell(
                 new TableCellProperties(
                     new GridSpan { Val = 3 },
-                    new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "5000" }, // 100% width
+                    new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "5000" },
                     new Shading { Fill = "D9D9D9", Val = ShadingPatternValues.Clear, Color = "auto" },
                     new TableCellBorders(
                         new TopBorder { Val = BorderValues.Single },
@@ -260,95 +269,157 @@ public class WordWFService : IWordWFService
                     )
                 ),
                 new Paragraph(
-            new ParagraphProperties(new Justification { Val = JustificationValues.Center }),
-            new Run(new Text("ประวัติการแก้ไขเอกสาร")))
-            ));
-            revTable.Append(revHeaderRow);
+                    new ParagraphProperties(new Justification { Val = JustificationValues.Center }),
+                    new Run(new Text("ประวัติการแก้ไขเอกสาร"))
+                )
+            )
+        }));
 
-            // แถวหัวตาราง
             revTable.Append(new TableRow(new[]
-                        {
-                CreateCell("ครั้งที่แก้ไข", JustificationValues.Center),
-                CreateCell("วันที่แก้ไข", JustificationValues.Center),
-                CreateCell("รายละเอียด", JustificationValues.Center)
-            }));
+            {
+            CreateCell("ครั้งที่แก้ไข", JustificationValues.Center),
+            CreateCell("วันที่แก้ไข", JustificationValues.Center),
+            CreateCell("รายละเอียด", JustificationValues.Center)
+        }));
 
-                        if (detail.Revisions?.Count > 0)
-                        {
-                            int i = 1;
-                            foreach (var rev in detail.Revisions)
-                            {
-                                revTable.Append(new TableRow(new[]
-                                {
-                        CreateCell(i++.ToString(), JustificationValues.Center),
-                        CreateCell(rev.DateTime?.ToString("d MMM yy", new CultureInfo("th-TH")) ?? "-", JustificationValues.Center),
-                        CreateCell(rev.EditDetail ?? "-", JustificationValues.Left)
-                    }));
-                            }
-                        }
-                        else
-                        {
-                            revTable.Append(new TableRow(new[]
-                            {
-                    CreateCell("-", JustificationValues.Center),
-                    CreateCell("-", JustificationValues.Center),
-                    CreateCell("-", JustificationValues.Center)
+            if (detail.Revisions?.Count > 0)
+            {
+                int i = 1;
+                foreach (var rev in detail.Revisions)
+                {
+                    revTable.Append(new TableRow(new[]
+                    {
+                    CreateCell(i++.ToString(), JustificationValues.Center),
+                    CreateCell(rev.DateTime?.ToString("d MMM yy", new CultureInfo("th-TH")) ?? "-", JustificationValues.Center),
+                    CreateCell(rev.EditDetail ?? "-", JustificationValues.Left)
                 }));
-                        }
+                }
+            }
+            else
+            {
+                revTable.Append(new TableRow(new[]
+                {
+                CreateCell("-", JustificationValues.Center),
+                CreateCell("-", JustificationValues.Center),
+                CreateCell("-", JustificationValues.Center)
+            }));
+            }
 
             body.Append(revTable);
             body.Append(CreateEmptyLine());
 
-
             // Control Points
             var cpTable = CreateFullWidthTable();
-            cpTable.Append(new TableRow(new[] {
-                    CreateCell("จุดควบคุม", JustificationValues.Center),
-                    CreateCell("กิจกรรมควบคุม", JustificationValues.Center),
-                    CreateCell("รายละเอียด", JustificationValues.Center)
-                }));
+            cpTable.Append(new TableRow(new[]
+            {
+            CreateCell("จุดควบคุม", JustificationValues.Center),
+            CreateCell("กิจกรรมควบคุม", JustificationValues.Center),
+            CreateCell("รายละเอียด", JustificationValues.Center)
+        }));
 
             if (detail.ControlPoints?.Count > 0)
             {
                 foreach (var cp in detail.ControlPoints)
                 {
-                    cpTable.Append(new TableRow(new[] {
-                            CreateCell(cp.ProcessControlCode ?? "-", JustificationValues.Center),
-                            CreateCell(cp.ProcessControlActivity ?? "-", JustificationValues.Center),
-                            CreateCell(cp.ProcessControlDetail ?? "-", JustificationValues.Center)
-                        }));
+                    cpTable.Append(new TableRow(new[]
+                    {
+                    CreateCell(cp.ProcessControlCode ?? "-", JustificationValues.Center),
+                    CreateCell(cp.ProcessControlActivity ?? "-", JustificationValues.Center),
+                    CreateCell(cp.ProcessControlDetail ?? "-", JustificationValues.Center)
+                }));
                 }
             }
             else
             {
-                cpTable.Append(new TableRow(new[] {
-                        CreateCell("-", JustificationValues.Center),
-                        CreateCell("-", JustificationValues.Center),
-                        CreateCell("-", JustificationValues.Center)
-                    }));
+                cpTable.Append(new TableRow(new[]
+                {
+                CreateCell("-", JustificationValues.Center),
+                CreateCell("-", JustificationValues.Center),
+                CreateCell("-", JustificationValues.Center)
+            }));
             }
 
             body.Append(cpTable);
-            var root = Path.Combine("wwwroot", "uploads");
-            var safePath = detail.DiagramAttachFile?.Replace("/", "\\").TrimStart('\\', '/');
-            var fullPath = Path.Combine(root, safePath);
 
-            if (File.Exists(fullPath))
+            if (!string.IsNullOrEmpty(detail.Header?.DiagramAttachFile))
             {
-                byte[] imgBytes = await File.ReadAllBytesAsync(fullPath);
-                AddDiagramImagePage(body, imgBytes, mainPart);
-            }
-            else
-            {
-                Console.WriteLine("File not found: " + fullPath); // debug
+                var base64 = ExtractBase64FromXml(detail.Header.DiagramAttachFile);
+                if (!string.IsNullOrEmpty(base64))
+                {
+                    try
+                    {
+                        byte[] imageBytes = Convert.FromBase64String(base64);
+                        AddDiagramImagePage(body, imageBytes, mainPart);
+                    }
+                    catch (FormatException)
+                    {
+                        Console.WriteLine("Invalid base64 DiagramAttachFile.");
+                    }
+                }
             }
 
-            AddDocumentHeader(mainPart, detail);
+            if (!string.IsNullOrEmpty(detail.Header?.ProcessAttachFile))
+            {
+                var base64 = ExtractBase64FromXml(detail.Header.ProcessAttachFile);
+                if (!string.IsNullOrEmpty(base64))
+                {
+                    try
+                    {
+                        byte[] imageBytes = Convert.FromBase64String(base64);
+                        AddDiagramImagePage(body, imageBytes, mainPart);
+                    }
+                    catch (FormatException)
+                    {
+                        Console.WriteLine("Invalid base64 ProcessAttachFile.");
+                    }
+                }
+            }
+
+
             mainPart.Document.Save();
         }
 
         return stream.ToArray();
     }
+
+    public List<string> ExtractFilePathsFromXml(string? xml)
+    {
+        var filePaths = new List<string>();
+        if (string.IsNullOrWhiteSpace(xml)) return filePaths;
+
+        try
+        {
+            var xdoc = XDocument.Parse(xml);
+            var fields = xdoc.Descendants("field")
+                             .Where(f => (string?)f.Attribute("name") == "FilePath")
+                             .Select(f => f.Element("value")?.Value)
+                             .Where(v => !string.IsNullOrWhiteSpace(v));
+
+            filePaths.AddRange(fields!);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ XML parse error: " + ex.Message);
+        }
+
+        return filePaths;
+    }
+    private string? ExtractBase64FromXml(string xml)
+    {
+        try
+        {
+            var doc = new XmlDocument();
+            doc.LoadXml(xml);
+            var node = doc.SelectSingleNode("//content");
+            return node?.InnerText?.Trim();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+
     public byte[] GenWFProcessDetail(WFProcessDetailModels detail)
     {
         using var stream = new MemoryStream();
@@ -366,22 +437,22 @@ public class WordWFService : IWordWFService
             // === Core Process Table ===
             var coreTable = CreateFullWidthTable();
 
-            // Row 1: รหัสกระบวนการ
+            // Row 1: กลุ่มกระบวนการหลัก + รหัส
             var coreRow1 = new TableRow();
-            coreRow1.Append(CreateCell("กลุ่มกระบวนการหลัก\n(Core Process)", JustificationValues.Left, rowspan: 2, shading: "FFFFFF"));
+            coreRow1.Append(CreateCellFixed("กลุ่มกระบวนการหลัก\n(Core Process)", JustificationValues.Left, "10%", alignTop: true, rowspan: 2));
 
             foreach (var core in detail.CoreProcesses)
             {
-                coreRow1.Append(CreateCell(core.ProcessGroupCode, JustificationValues.Center, shading: "00C896")); // สีเขียว
+                coreRow1.Append(CreateCellFixed(core.ProcessGroupCode, JustificationValues.Center, "10%", alignTop: true, shading: "00C896"));
             }
             coreTable.Append(coreRow1);
 
             // Row 2: ชื่อกระบวนการ
             var coreRow2 = new TableRow();
-            coreRow2.Append(CreateMergedEmptyCell());
+            coreRow2.Append(CreateMergedEmptyCell()); // สำหรับ rowspan
             foreach (var core in detail.CoreProcesses)
             {
-                coreRow2.Append(CreateCell(core.ProcessGroupName, JustificationValues.Center, shading: "00C896"));
+                coreRow2.Append(CreateCellFixed(core.ProcessGroupName, JustificationValues.Center, "10%", alignTop: true, shading: "00C896"));
             }
             coreTable.Append(coreRow2);
             body.Append(coreTable);
@@ -396,26 +467,23 @@ public class WordWFService : IWordWFService
                 var support = detail.SupportProcesses[i];
                 var row = new TableRow();
 
-                // ✅ คอลัมน์ที่ 1: Vertical Merge ทุกแถว
+                // คอลัมน์ 1: Vertical Merge
                 if (i == 0)
                 {
-                    row.Append(CreateCell("กลุ่มกระบวนการสนับสนุน\n(Supporting Process)",
-                        JustificationValues.Left, verticalMerge: "restart"));
+                    row.Append(CreateCellFixed("กลุ่มกระบวนการสนับสนุน\n(Supporting Process)",
+                        JustificationValues.Left, "10%", alignTop: true, verticalMerge: "restart"));
                 }
                 else
                 {
-                    row.Append(CreateCell("", JustificationValues.Left, verticalMerge: "continue"));
+                    row.Append(CreateCellFixed("", JustificationValues.Left, "10%", alignTop: true, verticalMerge: "continue"));
                 }
 
-                // ✅ คอลัมน์ที่ 2: S1, S2, ...
-                row.Append(CreateCell(support.ProcessGroupCode, JustificationValues.Center, shading: "4CB1F0"));
-
-                // ✅ คอลัมน์ที่ 3: SUPPORT1, SUPPORT2, ...
-                row.Append(CreateCell(support.ProcessGroupName, JustificationValues.Left, shading: "4CB1F0"));
+                // คอลัมน์ 2-3
+                row.Append(CreateCellFixed(support.ProcessGroupCode, JustificationValues.Center, "10%", alignTop: true, shading: "4CB1F0"));
+                row.Append(CreateCellFixed(support.ProcessGroupName, JustificationValues.Left, "80%", alignTop: true, shading: "4CB1F0"));
 
                 supportTable.Append(row);
             }
-
 
             body.Append(supportTable);
             body.Append(CreateEmptyLine());
@@ -478,6 +546,53 @@ public class WordWFService : IWordWFService
         }
         return stream.ToArray();
     }
+    private TableCell CreateCellFixed(string text, JustificationValues align, string widthPercent, bool alignTop = false, string shading = null, int rowspan = 1, string verticalMerge = null)
+    {
+        var props = new TableCellProperties(
+            new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = widthPercent },
+            new TableCellMarginDefault(
+                new TopMargin { Width = "100", Type = TableWidthUnitValues.Dxa },
+                new BottomMargin { Width = "100", Type = TableWidthUnitValues.Dxa },
+                new LeftMargin { Width = "100", Type = TableWidthUnitValues.Dxa },
+                new RightMargin { Width = "100", Type = TableWidthUnitValues.Dxa }
+            )
+        );
+
+        if (alignTop)
+        {
+            props.Append(new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top });
+        }
+
+        if (!string.IsNullOrEmpty(shading))
+        {
+            props.Append(new Shading { Fill = shading, Val = ShadingPatternValues.Clear, Color = "auto" });
+        }
+
+        if (rowspan > 1)
+        {
+            props.Append(new VerticalMerge { Val = MergedCellValues.Restart });
+            props.Append(new GridSpan { Val = 1 });
+        }
+
+        if (!string.IsNullOrEmpty(verticalMerge))
+        {
+            props.Append(new VerticalMerge { Val = verticalMerge == "restart" ? MergedCellValues.Restart : MergedCellValues.Continue });
+        }
+
+        return new TableCell(
+            props,
+            new Paragraph(
+                new ParagraphProperties(new Justification { Val = align }),
+                new Run(
+                    new RunProperties(
+                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                        new FontSize { Val = "20" }
+                    ),
+                    new Text(text ?? "-") { Space = SpaceProcessingModeValues.Preserve }
+                )
+            )
+        );
+    }
     private static TableCell CreateCell(string text, JustificationValues align, int rowspan = 1, int colspan = 1, string? shading = null, string? verticalMerge = null)
     {
         // Ensure all code paths return a value
@@ -515,8 +630,6 @@ public class WordWFService : IWordWFService
 
         return new TableCell(cellProperties, paragraph);
     }
-
-
     private TableCell CreateMergedEmptyCell()
     {
         return new TableCell(
@@ -576,7 +689,7 @@ public class WordWFService : IWordWFService
         body.Append(new Paragraph(new Run(element)));
     }
 
-    private void AddDocumentHeader(MainDocumentPart mainPart, WFSubProcessDetailModels detail)
+    private async Task AddDocumentHeader(MainDocumentPart mainPart, WFSubProcessDetailModels detail)
     {
         var headerPart = mainPart.AddNewPart<HeaderPart>();
         string headerPartId = mainPart.GetIdOfPart(headerPart);
@@ -584,7 +697,7 @@ public class WordWFService : IWordWFService
         var header = new Header();
         var table = new Table();
 
-        // ตาราง Header แบบเต็มความกว้าง
+        // ➤ Table Properties (เต็มความกว้าง + เส้นกรอบ)
         table.AppendChild(new TableProperties(
             new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
             new TableBorders(
@@ -597,37 +710,64 @@ public class WordWFService : IWordWFService
             )
         ));
 
-        // แถวที่ 1: Merge คอลัมน์ 1-2 สำหรับโลโก้ + ชื่อเรื่อง / คอลัมน์ 3 สำหรับข้อมูลวันที่
+        // 🔹 โหลดโลโก้ (พร้อม bypass SSL validation)
+        byte[] logoBytes;
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+        using (var httpClient = new HttpClient(handler))
+        {
+            logoBytes = await httpClient.GetByteArrayAsync("https://test-si.sme.go.th:11200/images/logo_SME.png");
+        }
+
+        // ➤ Add image part
+        var imagePart = mainPart.AddImagePart(ImagePartType.Png);
+        using (var stream = new MemoryStream(logoBytes))
+            imagePart.FeedData(stream);
+        var imageId = mainPart.GetIdOfPart(imagePart);
+
+        // 🔹 Row 1: โลโก้ + ข้อความ + แก้ไขล่าสุด
         var row1 = new TableRow();
 
-        // cell ซ้าย (merge 2 คอลัมน์)
-        var leftCell = new TableCell(new Paragraph(
-            new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-            new Run(new Text("สสว.  ➤  ขั้นตอนการปฏิบัติงาน (Workflow)") { Space = SpaceProcessingModeValues.Preserve })
-        ));
-        leftCell.Append(new TableCellProperties(
-            new GridSpan { Val = 2 },
-            new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "66%" }
-        ));
+        // ✅ Left cell: logo + title
+        var leftCell = new TableCell(
+            new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "66%" }),
+            new Paragraph(new Run(CreateDrawingImage(imageId, 2500000, 600000))),
+            new Paragraph(
+                new ParagraphProperties(new Justification { Val = JustificationValues.Right }),
+                new Run(
+                    new RunProperties(
+                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                        new FontSize { Val = "20" }, new Bold()
+                    ),
+                    new Text("ขั้นตอนการปฏิบัติงาน (Workflow)")
+                )
+            )
+        );
 
-        // cell ขวา
-        var rightCell = new TableCell();
-        rightCell.Append(new Paragraph(new Run(new Text("ครั้งที่แก้ไข: " + (detail.Revisions?.Count ?? 0)))));
+        // ✅ Right cell: แสดงข้อมูลการแก้ไข
+        var rightCell = new TableCell(
+            new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "34%" })
+        );
+
         var lastRev = detail.Revisions?.LastOrDefault()?.DateTime;
         var revDateText = lastRev.HasValue ? lastRev.Value.ToString("d MMM yy", new CultureInfo("th-TH")) : "-";
-        rightCell.Append(new Paragraph(new Run(new Text("วันที่แก้ไข: " + revDateText))));
-        rightCell.Append(new Paragraph(new Run(new Text("หน้า: 1/5"))));
-        rightCell.Append(new TableCellProperties(
-            new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "34%" }
-        ));
 
-        row1.Append(leftCell);
-        row1.Append(rightCell);
+        rightCell.Append(
+            new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                new Run(new Text("ครั้งที่แก้ไข: " + (detail.Revisions?.Count ?? 0)))),
+            new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                new Run(new Text("วันที่แก้ไข: " + revDateText))),
+            new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                new Run(new Text("หน้า: 1/5")))
+        );
+
+        row1.Append(leftCell, rightCell);
         table.Append(row1);
 
-        // แถวที่ 2: Merge 3 คอลัมน์ แสดง ProcessCode + ProcessName
-        var row2 = new TableRow();
-        row2.Append(new TableCell(
+        // 🔹 Row 2: ProcessCode + ProcessName
+        table.Append(new TableRow(new TableCell(
             new TableCellProperties(
                 new GridSpan { Val = 3 },
                 new Shading { Fill = "DDEBF7", Val = ShadingPatternValues.Clear, Color = "auto" }
@@ -636,30 +776,67 @@ public class WordWFService : IWordWFService
                 new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
                 new Run(new Text($"{detail.Header?.ProcessCode ?? "-"} {detail.Header?.ProcessName ?? "-"}"))
             )
-        ));
-        table.Append(row2);
+        )));
 
-        // แถวที่ 3: Merge 3 คอลัมน์ แสดง OwnerBusinessUnitName
-        var row3 = new TableRow();
-        row3.Append(new TableCell(
+        // 🔹 Row 3: Owner Business Unit
+        table.Append(new TableRow(new TableCell(
             new TableCellProperties(new GridSpan { Val = 3 }),
             new Paragraph(
                 new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
                 new Run(new Text("หน่วยงาน: " + (detail.OwnerBusinessUnitName ?? "-")))
             )
-        ));
-        table.Append(row3);
+        )));
 
+        // Append table to header
         header.Append(table);
         headerPart.Header = header;
 
-        // SectionProperties เพื่อผูก header นี้กับหน้าเอกสาร
+        // Section Properties: Attach header
         var sectionProps = new SectionProperties();
         sectionProps.Append(new HeaderReference { Type = HeaderFooterValues.Default, Id = headerPartId });
 
-        mainPart.Document.Body.AppendChild(sectionProps);
+        // ❗สำคัญ: ต้องแน่ใจว่ามี Body แล้ว ก่อน Append
+        if (mainPart.Document.Body == null)
+            mainPart.Document.AppendChild(new Body());
+
+        mainPart.Document.Body.Append(sectionProps);
     }
 
+
+
+    private Drawing CreateDrawingImage(string imagePartId, long cx, long cy)
+    {
+        return new Drawing(
+            new DW.Inline(
+                new DW.Extent { Cx = cx, Cy = cy },
+                new DW.EffectExtent(),
+                new DW.DocProperties { Id = 1U, Name = "Logo" },
+                new DW.NonVisualGraphicFrameDrawingProperties(new A.GraphicFrameLocks { NoChangeAspect = true }),
+                new A.Graphic(
+                    new A.GraphicData(
+                        new PIC.Picture(
+                            new PIC.NonVisualPictureProperties(
+                                new PIC.NonVisualDrawingProperties { Id = 0U, Name = "logo" },
+                                new PIC.NonVisualPictureDrawingProperties()
+                            ),
+                            new PIC.BlipFill(
+                                new A.Blip { Embed = imagePartId },
+                                new A.Stretch(new A.FillRectangle())
+                            ),
+                            new PIC.ShapeProperties(
+                                new A.Transform2D(
+                                    new A.Offset { X = 0L, Y = 0L },
+                                    new A.Extents { Cx = cx, Cy = cy }
+                                ),
+                                new A.PresetGeometry(new A.AdjustValueList()) { Preset = A.ShapeTypeValues.Rectangle }
+                            )
+                        )
+                    )
+                    { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }
+                )
+            )
+        );
+    }
 
     private Table CreateApprovalsTable(List<SubProcessReviewApproval> approvals)
     {
@@ -748,7 +925,10 @@ public class WordWFService : IWordWFService
             ),
             new Paragraph(
                 new ParagraphProperties(new Justification { Val = align }),
-                new Run(new Text(text ?? "-") { Space = SpaceProcessingModeValues.Preserve })
+                new Run(new RunProperties(
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new FontSize { Val = "20" }
+                ), new Text(text ?? "-") { Space = SpaceProcessingModeValues.Preserve })
             )
         );
     }
@@ -788,9 +968,18 @@ public class WordWFService : IWordWFService
         int idx = 1;
         foreach (var item in items)
         {
-            yield return new Paragraph(new Run(new Text($"{idx++}) {item}")));
+            yield return new Paragraph(
+                new Run(
+                    new RunProperties(
+                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                        new FontSize { Val = "20" }
+                    ),
+                    new Text($"{idx++}) {item}")
+                )
+            );
         }
     }
+
     private Table CreateHeaderBoxTable(WorkflowPoint workflow)
     {
         var table = new Table(new TableProperties(
@@ -912,8 +1101,32 @@ public class WordWFService : IWordWFService
     private Paragraph CreateHeading(string text, int fontSize)
     {
         return new Paragraph(
+            new ParagraphProperties(
+                new Justification { Val = JustificationValues.Center }
+            ),
             new Run(
-                new RunProperties(new Bold(), new FontSize { Val = (fontSize * 2).ToString() }),
+                new RunProperties(
+                    new Bold(),
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new FontSize { Val = fontSize.ToString() }
+                ),
+                new Text(text)
+            )
+        );
+    }
+
+    private Paragraph CreateHeadingLeft(string text, int fontSize)
+    {
+        return new Paragraph(
+            new ParagraphProperties(
+                new Indentation { Left = "500" }
+            ),
+            new Run(
+                new RunProperties(
+                    new Bold(),
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new FontSize { Val = fontSize.ToString() }
+                ),
                 new Text(text)
             )
         );
@@ -921,10 +1134,30 @@ public class WordWFService : IWordWFService
 
     private Paragraph CreateNumberedParagraph(string title, string[] items)
     {
-        var para = new Paragraph(new Run(new Bold(), new Text(title)));
+        var para = new Paragraph(
+            new ParagraphProperties(
+                new Indentation { Left = "500" }
+            ),
+            new Run(
+                new RunProperties(
+                    new Bold(),
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new FontSize { Val = "20" }
+                ),
+                new Text(title)));
+
         foreach (var item in items.Select((text, i) => $"{i + 1}. {text}"))
         {
-            para.Append(new Run(new Break()), new Run(new Text(item)));
+            para.Append(
+                new Run(new Break()),
+                new Run(
+                    new RunProperties(
+                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                        new FontSize { Val = "20" }
+                    ),
+                    new Text(item)
+                )
+            );
         }
         return para;
     }
@@ -943,26 +1176,75 @@ public class WordWFService : IWordWFService
             )));
 
         // Header row
-        table.Append(CreateTableRow($"กระบวนการ ปี {fiscalYearPrev} (เดิม)", $"กระบวนการ ปี {fiscalYear} (ทบทวน)", "กิจกรรมควบคุม (Control Activity)"));
+        table.Append(CreateTableRowStyled(
+            new[] { $"กระบวนการ ปี {fiscalYearPrev} (เดิม)", $"กระบวนการ ปี {fiscalYear} (ทบทวน)", "กิจกรรมควบคุม (Control Activity)" },
+            "DDEBF7"
+        ));
+
 
         // Data rows
         int rowCount = Math.Max(Math.Max(prevProcesses.Count, currentProcesses.Count), controlActivities.Count);
         for (int i = 0; i < rowCount; i++)
         {
-            table.Append(CreateTableRow(
+            table.Append(CreateTableRowStyled(new[] {
                 i < prevProcesses.Count ? prevProcesses[i] : "",
                 i < currentProcesses.Count ? currentProcesses[i] : "",
-                i < controlActivities.Count ? controlActivities[i] : ""
+                i < controlActivities.Count ? controlActivities[i] : "" },
+                "FFFFFF"
             ));
         }
 
         return table;
     }
 
+    private TableRow CreateTableRowStyled(string[] texts, string? bgColorHex = null)
+    {
+        var row = new TableRow();
+        foreach (var text in texts)
+        {
+            var cellProps = new TableCellProperties();
+
+            if (!string.IsNullOrEmpty(bgColorHex))
+            {
+                cellProps.Append(new Shading
+                {
+                    Val = ShadingPatternValues.Clear,
+                    Color = "auto",
+                    Fill = bgColorHex.Replace("#", "") // remove # if provided
+                });
+            }
+
+            var cell = new TableCell(
+                cellProps,
+                new Paragraph(
+                    new Run(
+                        new RunProperties(
+                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                            new FontSize { Val = "20" } // 16pt
+                        ),
+                        new Text(text ?? "")
+                    )
+                )
+            );
+            row.Append(cell);
+        }
+        return row;
+    }
+
+
     private Paragraph CreateItalicNote(string text)
     {
-        return new Paragraph(
-            new Run(new RunProperties(new Italic()), new Text(text))
+        return new Paragraph(new ParagraphProperties(
+            new Indentation { Left = "500" }
+        ),
+            new Run(
+                new RunProperties(
+                    new Italic(),
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new FontSize { Val = "20" }
+                ),
+                new Text(text)
+            )
         );
     }
 
@@ -971,10 +1253,21 @@ public class WordWFService : IWordWFService
         var para = new Paragraph();
         foreach (var opt in options)
         {
-            para.Append(new Run(new Text("☐ " + opt)), new Run(new Break()));
+            para.Append(
+                new ParagraphProperties(new Indentation { Left = "720" }),
+                new Run(
+                    new RunProperties(
+                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                        new FontSize { Val = "20" }
+                    ),
+                    new Text("☐ " + opt)
+                ),
+                new Run(new Break())
+            );
         }
         return para;
     }
+
 
     private void AppendSignatureCell(Table table, string name, string position, string date)
     {
@@ -988,40 +1281,72 @@ public class WordWFService : IWordWFService
         table.Append(row);
     }
 
-    private Table CreateSignatureSection(string leftName, string leftPosition, string rightName, string rightPosition, string leftDate, string rightDate)
+    private Table CreateSignatureSection(
+        string leftName, string leftPosition,
+        string rightName, string rightPosition,
+        string leftDate, string rightDate,
+        TableRowAlignmentValues alignment
+    )
     {
-        var table = new Table(new TableProperties(
-            new TableWidth { Type = TableWidthUnitValues.Pct, Width = "5000" }
-        ));
+        var table = new Table(
+            new TableProperties(
+                new TableWidth { Type = TableWidthUnitValues.Pct, Width = "5000" }, // Adjusted width
+                new TableJustification { Val = alignment } // Use the passed alignment value
+            ),
+            new Run(
+                new RunProperties(
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new FontSize { Val = "20" }
+                )
+            )
+        );
 
         var row1 = new TableRow();
         row1.Append(
-            new TableCell(new Paragraph(new Run(new Text(leftName)))),
-            new TableCell(new Paragraph(new Run(new Text(rightName))))
+            CreateCell(leftName),
+            CreateCell(rightName)
         );
 
         var row2 = new TableRow();
         row2.Append(
-            new TableCell(new Paragraph(new Run(new Text(leftPosition)))),
-            new TableCell(new Paragraph(new Run(new Text(rightPosition))))
+            CreateCell(leftPosition),
+            CreateCell(rightPosition)
         );
 
         var row3 = new TableRow();
         row3.Append(
-            new TableCell(new Paragraph(new Run(new Text("วันที่ " + leftDate)))),
-            new TableCell(new Paragraph(new Run(new Text("วันที่ " + rightDate))))
+            CreateCell("วันที่ " + leftDate),
+            CreateCell("วันที่ " + rightDate)
         );
 
         table.Append(row1, row2, row3);
         return table;
     }
+
+    private TableCell CreateCell(string text)
+    {
+        return new TableCell(
+            new Paragraph(
+                new ParagraphProperties(
+                    new Justification { Val = JustificationValues.Center }
+                ),
+                new Run(
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new FontSize { Val = "20" },
+                    new Text(text ?? "")
+                )
+            )
+        );
+    }
+
     private Paragraph CreateBoldParagraph(string text, int fontSize)
     {
-        return new Paragraph(
+        return new Paragraph(new ParagraphProperties(new Indentation { Left = "500" }),
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new FontSize { Val = (fontSize * 2).ToString() } // fontSize = point (e.g. 20pt)
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new FontSize { Val = fontSize.ToString() }
                 ),
                 new Text(text)
             )
@@ -1029,8 +1354,17 @@ public class WordWFService : IWordWFService
     }
     private Paragraph CreateNormalParagraph(string text)
     {
-        return new Paragraph(new Run(new Text(text ?? "")));
+        return new Paragraph(new ParagraphProperties(
+            new Indentation { Left = "720" }
+        ), new Run(
+            new RunProperties(
+                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                new FontSize { Val = "20" }
+            ),
+            new Text(text ?? "")
+        ));
     }
+
 
 
 }

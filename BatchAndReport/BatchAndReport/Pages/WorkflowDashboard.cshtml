@@ -3,14 +3,6 @@
 @{
     Layout = "_Layout1";
     ViewData["Title"] = "Workflow Dashboard";
-
-    var processLabels = Model.DonutProcessChart.Select(x => x.Label).ToArray();
-    var processValues = Model.DonutProcessChart.Select(x => x.Value).ToArray();
-    var processColors = Model.DonutProcessChart.Select(x => x.Color).ToArray();
-
-    var improveLabels = Model.DonutImproveChart.Select(x => x.Label).ToArray();
-    var improveValues = Model.DonutImproveChart.Select(x => x.Value).ToArray();
-    var improveColors = Model.DonutImproveChart.Select(x => x.Color).ToArray();
 }
 
 <style>
@@ -115,13 +107,26 @@
         const donutImproveData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DonutImproveChart));
         const barChartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BarChartData));
 
+        function generateBlueGradientColors(values) {
+            const max = Math.max(...values);
+            const min = Math.min(...values);
+            const range = max - min || 1;
+
+            return values.map((v, i) => {
+                const ratio = (v - min) / range;
+                const offset = (i * 3) % 20; // เพิ่มความต่างแม้ตัวเลขจะเท่ากัน
+                const lightness = 85 - ratio * 45 - offset * 0.2;
+                return `hsl(210, 70%, ${Math.max(30, Math.min(85, lightness))}%)`;
+            });
+        }
+
         new Chart(document.getElementById('donutProcessChart'), {
             type: 'doughnut',
             data: {
                 labels: donutProcessData.map(x => x.Label),
                 datasets: [{
                     data: donutProcessData.map(x => x.Value),
-                    backgroundColor: donutProcessData.map(x => x.Color)
+                    backgroundColor: generateBlueGradientColors(donutProcessData.map(x => x.Value))
                 }]
             },
             options: {
@@ -136,7 +141,7 @@
                 labels: donutImproveData.map(x => x.Label),
                 datasets: [{
                     data: donutImproveData.map(x => x.Value),
-                    backgroundColor: donutImproveData.map(x => x.Color)
+                    backgroundColor: generateBlueGradientColors(donutImproveData.map(x => x.Value))
                 }]
             },
             options: {
@@ -145,7 +150,7 @@
             }
         });
 
-                new Chart(document.getElementById('barChart'), {
+        new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {
                 labels: barChartData.map(x => x.Description),
@@ -168,7 +173,6 @@
                     legend: { position: 'top' },
                     tooltip: {
                         callbacks: {
-                            // Custom tooltip for each bar
                             afterBody: function (tooltipItems) {
                                 const index = tooltipItems[0].dataIndex;
                                 const item = barChartData[index];
@@ -192,6 +196,5 @@
                 }
             }
         });
-
     </script>
 }
