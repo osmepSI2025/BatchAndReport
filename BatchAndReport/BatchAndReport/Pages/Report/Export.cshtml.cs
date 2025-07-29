@@ -618,6 +618,10 @@ namespace BatchAndReport.Pages.Report
         {
             var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
+
+            //var wordDAO = new WordToPDFDAO(); // Create an instance of WordDAO
+            //var Resultpdf = wordDAO.OnGetPdfWithInterop(); // Call the method on the instance
+            //return Resultpdf; // Return an empty result since the PDF is handled in WordDAO
         }
 
         # endregion 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
@@ -658,8 +662,7 @@ namespace BatchAndReport.Pages.Report
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือในการสนับสนุน SMEs.docx");
         }
         #endregion 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
-
-
+ 
         #region 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
         public async Task<IActionResult> OnGetWordContact_JOA(string ContractId="32")
         {
@@ -677,6 +680,6 @@ namespace BatchAndReport.Pages.Report
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.docx");
         }
 
-        #endregion 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
+        #endregion Test Header logo
     }
 }

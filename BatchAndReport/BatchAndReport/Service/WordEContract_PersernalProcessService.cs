@@ -295,35 +295,38 @@ public class WordEContract_PersernalProcessService
 
                 // --- 7. Add header/footer if needed ---
                 // Add image to header part with correct relationship type
-                var headerPart = mainPart.AddNewPart<HeaderPart>();
-                ImagePart headerImagePart = headerPart.AddImagePart(ImagePartType.Jpeg);
-                using (var imgStream = new FileStream(imageHeaderPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                {
-                    headerImagePart.FeedData(imgStream);
-                }
-                string headerLogoRelId = headerPart.GetIdOfPart(headerImagePart);
+                WordServiceSetting.AddHeaderWithPageNumber(mainPart, body);
+                #region Test Logo Header
+                //var headerPart = mainPart.AddNewPart<HeaderPart>();
+                //ImagePart headerImagePart = headerPart.AddImagePart(ImagePartType.Jpeg);
+                //using (var imgStream = new FileStream(imageHeaderPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                //{
+                //    headerImagePart.FeedData(imgStream);
+                //}
+                //string headerLogoRelId = headerPart.GetIdOfPart(headerImagePart);
 
-                // Create header content
-                var header = new Header();
-                var paragraph = new Paragraph(
-                    new ParagraphProperties(new Justification() { Val = JustificationValues.Center }),
-                    WordServiceSetting.CreateImage(headerLogoRelId, 240, 80)
-                );
-                header.Append(paragraph);
+                //// Create header content
+                //var header = new Header();
+                //var paragraph = new Paragraph(
+                //    new ParagraphProperties(new Justification() { Val = JustificationValues.Center }),
+                //    WordServiceSetting.CreateImage(headerLogoRelId, 240, 80)
+                //);
+                //header.Append(paragraph);
 
-                // Assign header to headerPart
-                headerPart.Header = header;
+                //// Assign header to headerPart
+                //headerPart.Header = header;
 
-                // Link header to the document
-                var sectionProps = body.Elements<SectionProperties>().FirstOrDefault();
-                if (sectionProps == null)
-                {
-                    sectionProps = new SectionProperties();
-                    body.Append(sectionProps);
-                }
-                sectionProps.RemoveAllChildren<HeaderReference>();
-                sectionProps.PrependChild(new HeaderReference() { Type = HeaderFooterValues.Default, Id = mainPart.GetIdOfPart(headerPart) });
-            }   
+                //// Link header to the document
+                //var sectionProps = body.Elements<SectionProperties>().FirstOrDefault();
+                //if (sectionProps == null)
+                //{
+                //    sectionProps = new SectionProperties();
+                //    body.Append(sectionProps);
+                //}
+                //sectionProps.RemoveAllChildren<HeaderReference>();
+                //sectionProps.PrependChild(new HeaderReference() { Type = HeaderFooterValues.Default, Id = mainPart.GetIdOfPart(headerPart) });
+                #endregion  Test Logo Header
+            }
             stream.Position = 0;
             return stream.ToArray();
         }

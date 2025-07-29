@@ -313,11 +313,8 @@ public class WordServiceSetting
 
         return paragraph;
     }
-
     public static Paragraph NormalParagraphWith_3Tabs(string text, JustificationValues? align = null, string fontZise = "28", bool bold = false)
     {
-       // text = RemoveSpecialCharactersKeepingSomePunctuation(text);
-
         if (fontZise == null)
         {
             fontZise = "28";
@@ -325,12 +322,8 @@ public class WordServiceSetting
 
         var paragraph = new Paragraph();
 
-        // Paragraph properties (alignment and tab stops)
-        var props = new ParagraphProperties();
-        if (align != null)
-        {
-            props.Append(new Justification { Val = align.Value });
-        }
+        // Paragraph properties: set justification to Both (full justify)
+        var props = new ParagraphProperties(new Justification { Val = JustificationValues.Both });
 
         // Add three explicit tab stops for 0.5, 1.0, and 1.5 inches
         var tabs = new Tabs(
@@ -360,6 +353,53 @@ public class WordServiceSetting
 
         return paragraph;
     }
+    //public static Paragraph NormalParagraphWith_3Tabs(string text, JustificationValues? align = null, string fontZise = "28", bool bold = false)
+    //{
+    //   // text = RemoveSpecialCharactersKeepingSomePunctuation(text);
+
+    //    if (fontZise == null)
+    //    {
+    //        fontZise = "28";
+    //    }
+
+    //    var paragraph = new Paragraph();
+
+    //    // Paragraph properties (alignment and tab stops)
+    //    var props = new ParagraphProperties();
+    //    if (align != null)
+    //    {
+    //        props.Append(new Justification { Val = align.Value });
+    //    }
+
+
+    //    // Add three explicit tab stops for 0.5, 1.0, and 1.5 inches
+    //    var tabs = new Tabs(
+    //        new TabStop { Val = TabStopValues.Left, Position = 720 },
+    //        new TabStop { Val = TabStopValues.Left, Position = 1440 },
+    //        new TabStop { Val = TabStopValues.Left, Position = 2160 }
+    //    );
+    //    props.Append(tabs);
+    //    paragraph.Append(props);
+
+    //    // Correctly apply bold if requested
+    //    var runProps = new RunProperties(
+    //        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
+    //        new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = fontZise }
+    //    );
+    //    if (bold)
+    //        runProps.Append(new Bold());
+
+    //    var run = new Run(
+    //        runProps,
+    //        new TabChar(),
+    //        new TabChar(),
+    //        new TabChar(),
+    //        new Text(text) { Space = SpaceProcessingModeValues.Preserve }
+    //    );
+    //    paragraph.Append(run);
+
+    //    return paragraph;
+    //}
 
     public static Paragraph NormalParagraphWith_2TabsColor(string text, JustificationValues? align = null, string hexColor = null)
     {
@@ -389,7 +429,7 @@ public class WordServiceSetting
             ),
             new TabChar(),
             new TabChar(),
-            new Text(text)
+       new Text(text) { Space = SpaceProcessingModeValues.Preserve }
         );
         paragraph.Append(run);
 
