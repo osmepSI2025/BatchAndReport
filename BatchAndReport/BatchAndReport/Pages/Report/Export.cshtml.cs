@@ -29,6 +29,7 @@ namespace BatchAndReport.Pages.Report
         private readonly WordEContract_ControlDataService _ControlDataService;
         private readonly WordEContract_DataPersonalService _DataPersonalService;
         private readonly WordEContract_ConsultantService _ConsultantService;
+        private readonly WordEContract_Test_HeaderLOGOService _Test_HeaderLOGOService;
         public ExportModel(SmeDAO smeDao, WordEContract_AllowanceService allowanceService
             , WordEContract_LoanPrinterService wordEContract_LoanPrinterService
             , WordEContract_ContactToDoThingService ContactToDoThingService
@@ -48,6 +49,7 @@ namespace BatchAndReport.Pages.Report
             , WordEContract_ControlDataService ControlDataService
             , WordEContract_DataPersonalService DataPersonalService
             , WordEContract_ConsultantService ConsultantService
+            , WordEContract_Test_HeaderLOGOService Test_HeaderLOGOService
 
             )
         {
@@ -70,6 +72,7 @@ namespace BatchAndReport.Pages.Report
             this._ControlDataService = ControlDataService;
             this._DataPersonalService = DataPersonalService;
             this._ConsultantService = ConsultantService;
+            this._Test_HeaderLOGOService = Test_HeaderLOGOService;
         }
         public IActionResult OnGetPdf()
         {
@@ -666,5 +669,14 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
 
 
+
+        #region Test Header logo
+        public async Task<IActionResult> OnGetWordContact_TestLogo(string PDPAid = "1")
+        {
+            var wordBytes = await _Test_HeaderLOGOService.OnGetWordContact_PersernalProcessService(PDPAid);
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.docx");
+        }
+
+        #endregion 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
     }
 }

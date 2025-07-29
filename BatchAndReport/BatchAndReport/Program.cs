@@ -64,6 +64,7 @@ builder.Services.AddScoped< WordEContract_AllowanceService>();
 builder.Services.AddScoped<WordEContract_ContactToDoThingService>();
 builder.Services.AddScoped<WordEContract_BorrowMoneyService>();
 builder.Services.AddScoped<WordEContract_HireEmployee>();
+builder.Services.AddScoped<WordEContract_Test_HeaderLOGOService>();
 builder.Services.AddSingleton<ScheduledJobService>();
 
 
