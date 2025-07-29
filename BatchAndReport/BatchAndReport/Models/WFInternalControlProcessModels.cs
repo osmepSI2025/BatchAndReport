@@ -7,5 +7,6 @@ namespace BatchAndReport.Models
         public string Objective { get; set; }
         public string ProcessCode { get; set; }
         public string ProcessName { get; set; }
+        public int SubProcessId { get; set; }
     }
 }

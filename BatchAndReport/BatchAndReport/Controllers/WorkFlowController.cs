@@ -35,9 +35,9 @@ namespace BatchAndReport.Controllers
         }
 
         [HttpGet("ExportAnnualWorkProcesses")]
-        public async Task<IActionResult> ExportAnnualWorkProcesses([FromQuery] int fiscalYear)
+        public async Task<IActionResult> ExportAnnualWorkProcesses([FromQuery] int annualProcessReviewId)
         {
-            var detail = await _workflowDao.GetProcessDetailAsync(fiscalYear);
+            var detail = await _workflowDao.GetProcessDetailAsync(annualProcessReviewId);
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
@@ -45,7 +45,7 @@ namespace BatchAndReport.Controllers
             var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
             return File(pdfBytes,
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                $"AnnualWorkProcesses_test.pdf");
+                $"AnnualWorkProcesses.pdf");
         }
 
         [HttpGet("ExportWorkSystem")]
@@ -78,9 +78,20 @@ namespace BatchAndReport.Controllers
         }
 
         [HttpGet("ExportInternalControl")]
-        public async Task<IActionResult> ExportInternalControl([FromQuery] int processID)
+        public async Task<IActionResult> ExportInternalControl(
+            [FromQuery] int? fiscalYear = null,
+            [FromQuery] string? businessUnitId = null,
+            [FromQuery] string? processTypeCode = null,
+            [FromQuery] string? processGroupCode = null,
+            [FromQuery] string? processCode = null,
+            [FromQuery] int? processCategory = null)
         {
-            var detail = await _workflowDao.GetInternalControlProcessesAsync(processID);
+            var detail = await _workflowDao.GetInternalControlProcessesAsync(fiscalYear,
+                businessUnitId,
+                processTypeCode,
+                processGroupCode,
+                processCode,
+                processCategory);
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
@@ -92,6 +103,32 @@ namespace BatchAndReport.Controllers
                 "InternalControl.xlsx");
         }
 
+        [HttpGet("ExportInternalControlDoc")]
+        public async Task<IActionResult> ExportInternalControlDoc(
+            [FromQuery] int? subProcessId = null,
+            [FromQuery] int? processId = null)
+        {
+            if (processId == null)
+                return BadRequest("ProcessId is required.");
+
+            var detail = await _workflowDao.GetInternalControlProcessesByProcessID(processId.Value);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+            if (subProcessId == null)
+                return BadRequest("SubProcessId is required.");
+
+            var detail2 = await _workflowDao.GetSubProcessDetailAsync(subProcessId.Value); // Use .Value to pass int instead of int?
+            if (detail2 == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+            var wordBytes = await _serviceWFWord.GenInternalControlSystemWord(detail, detail2);
+            var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
+            return File(wordBytes,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                $"Internal_WorkProcessPoint.docx");
+        }
+
         [HttpGet("ExportWorkProcessPoint")]
         public async Task<IActionResult> ExportWorkProcessPoint([FromQuery] int subProcessId)
         {
@@ -101,9 +138,12 @@ namespace BatchAndReport.Controllers
 
             var wordBytes = await _serviceWFWord.GenWorkProcessPoint(detail);
             var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
-            return File(pdfBytes,
+            return File(wordBytes,
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                $"WorkProcessPoint_test.pdf");
+                $"WorkProcessPoint.docx");
+            //return File(pdfBytes,
+            //    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            //    $"WorkProcessPoint.pdf");
         }
 
         [HttpGet("ExportWorkflowProcess")]
