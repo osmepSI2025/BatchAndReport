@@ -64,11 +64,15 @@ builder.Services.AddScoped< WordEContract_AllowanceService>();
 builder.Services.AddScoped<WordEContract_ContactToDoThingService>();
 builder.Services.AddScoped<WordEContract_BorrowMoneyService>();
 builder.Services.AddScoped<WordEContract_HireEmployee>();
+builder.Services.AddSingleton<ScheduledJobService>();
 
-builder.Services.AddSingleton<WordEContract_LoanPrinterService>();
+
+
+//service for Word EContract
+builder.Services.AddScoped<WordEContract_LoanPrinterService>();
 builder.Services.AddScoped<WordEContract_MaintenanceComputerService>(); 
 builder.Services.AddScoped<WordEContract_LoanComputerService>();
-builder.Services.AddSingleton<ScheduledJobService>();
+
 builder.Services.AddScoped<WordEContract_BuyAgreeProgram>();
 builder.Services.AddScoped<WordEContract_BuyOrSellComputerService>();
 builder.Services.AddScoped<WordEContract_BuyOrSellService>();
@@ -80,6 +84,23 @@ builder.Services.AddScoped<WordEContract_JointOperationService>();
 builder.Services.AddScoped<WordEContract_ControlDataService>();
 builder.Services.AddScoped<WordEContract_DataPersonalService>();
 builder.Services.AddScoped<WordEContract_ConsultantService>();
+builder.Services.AddScoped<WordEContract_ContactToDoThingService>();
+
+
+//Impoert EContract Report
+builder.Services.AddScoped<E_ContractReportDAO>();
+builder.Services.AddScoped<Econtract_Report_SPADAO>();
+builder.Services.AddScoped<Econtract_Report_CPADAO>();
+builder.Services.AddScoped<Econtract_Report_SLADAO>();
+builder.Services.AddScoped<Econtract_Report_SMCDAO>();
+
+builder.Services.AddScoped<Econtract_Report_CLADAO>();
+builder.Services.AddScoped<Econtract_Report_PMLDAO>();
+builder.Services.AddScoped<Econtract_Report_ECDAO>();
+builder.Services.AddScoped<Econtract_Report_CTRDAO>();
+builder.Services.AddScoped<Econtract_Report_PDSADAO>();
+builder.Services.AddScoped<Econtract_Report_CWADAO>();
+
 
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
 

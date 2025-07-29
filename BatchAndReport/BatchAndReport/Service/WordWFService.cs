@@ -410,12 +410,13 @@ public class WordWFService : IWordWFService
         {
             var mainPart = wordDoc.AddMainDocumentPart();
             mainPart.Document = new Document();
-            var body = new Body();
-            mainPart.Document.Append(body);
+            var body = mainPart.Document.AppendChild(new Body());
+
             // Add Header First
             await AddDocumentHeader(mainPart, detail);
 
-            body = mainPart.Document.AppendChild(new Body());
+            // Do NOT append a new Body here!
+            // body = mainPart.Document.AppendChild(new Body()); // <-- Remove this line
 
             var lastRevDate = detail.Revisions?.LastOrDefault()?.DateTime;
             var revDateText = lastRevDate.HasValue ? lastRevDate.Value.ToString("dd MMM yy", new CultureInfo("th-TH")) : "-";
@@ -556,7 +557,6 @@ public class WordWFService : IWordWFService
                 }
             }
 
-
             mainPart.Document.Save();
         }
 
@@ -671,59 +671,6 @@ public class WordWFService : IWordWFService
             mainPart.Document.Save();
         }
 
-        return stream.ToArray();
-    }
-
-    public byte[] GenWorkProcessPointPreview()
-    {
-        // Mock data
-        var workflow = new WorkflowPoint
-        {
-            WorkflowTitle = "C2.1 การจัดทำแผนการส่งเสริม SMEs",
-            Department = "ฝ่ายนโยบายและแผนการส่งเสริม SMEs (ฝผย.)",
-            Indicators = "จัดประชุม เพื่อจัดทำแผนการส่งเสริม SMEs||มีแผนการส่งเสริม SMEs ระยะ 5 ปี",
-            EditNumber = 2,
-            EditDate = new DateTime(2025, 11, 22),
-            PageNumber = "1/5",
-            Approvals = new List<WorkflowApproval>
-            {
-                new WorkflowApproval { FullName = "นายสุปรีย์ เถระพันธ์", Position = "หัวหน้าฝ่ายนโยบายและแผนการส่งเสริม SMEs", SignText = "ลงนาม", Level = 1 },
-                new WorkflowApproval { FullName = "นางสาวอัญชรินธร จิรโชติวิศาลพันธ์", Position = "รองผู้อำนวยการ ฝ่ายนโยบายและแผนการส่งเสริม SMEs", SignText = "ลงนาม", Level = 2 },
-                new WorkflowApproval { FullName = "นายธัชนะวัฒน์ โอภาสวัฒนา", Position = "ผู้อำนวยการ ฝ่ายนโยบายและแผนการส่งเสริม SMEs", SignText = "ลงนาม", Level = 3 }
-            },
-            HistoryEdits = new List<WorkflowHistory>
-            {
-                new WorkflowHistory { EditNumber = 1, EditDate = new DateTime(2024, 10, 3), Description = "ปรับปรุง Control Point และรายละเอียดขั้นตอน" },
-                new WorkflowHistory { EditNumber = 2, EditDate = new DateTime(2025, 11, 22), Description = "เพิ่มรายละเอียดความร่วมมือกับหน่วยงานภายนอก" }
-            }
-        };
-
-        using var stream = new MemoryStream();
-        using (var wordDoc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document, true))
-        {
-            var mainPart = wordDoc.AddMainDocumentPart();
-            mainPart.Document = new Document();
-            var body = mainPart.Document.AppendChild(new Body());
-
-            body.Append(CreateHeaderBoxTable(workflow));
-            body.Append(CreateBoldParagraph("ขั้นตอนการปฏิบัติงาน (Workflow)", 24));
-            body.Append(CreateEmptyLine());
-            body.Append(CreateNormalParagraph(workflow.WorkflowTitle));
-            body.Append(CreateNormalParagraph("หน่วยงาน: " + workflow.Department));
-            body.Append(CreateEmptyLine());
-            body.Append(CreateNumberedList(workflow.Indicators.Split("||")));
-            body.Append(CreateEmptyLine());
-            body.Append(CreateApprovalTable(workflow.Approvals.ToList()));
-            body.Append(CreateEmptyLine());
-            body.Append(CreateBoldParagraph("ประวัติการแก้ไขเอกสาร", 20));
-            body.Append(CreateHistoryTable(workflow.HistoryEdits.ToList()));
-            body.Append(CreateBoldParagraph("สรุปประเด็นเพิ่มเติม", 20));
-            body.Append(CreateNormalParagraph("มีการจัดทำ Workflow เพิ่มเติม ในขั้นตอนที่เกี่ยวข้องกับการจัดทำแผนการส่งเสริม SMEs ให้สอดคล้องกับบทบาทของหน่วยงาน"));
-            body.Append(CreateNormalParagraph("แผนดังกล่าวมีผลกระทบกับการจัดสรรงบประมาณและความร่วมมือกับหน่วยงานอื่น ๆ"));
-            body.Append(CreateNormalParagraph("ควรมีการปรับปรุง Control Point ให้มีความชัดเจนและเป็นรูปธรรม"));
-
-            mainPart.Document.Save();
-        }
         return stream.ToArray();
     }
 
@@ -930,138 +877,144 @@ public class WordWFService : IWordWFService
 
     private async Task AddDocumentHeader(MainDocumentPart mainPart, WFSubProcessDetailModels detail)
     {
-        var headerPart = mainPart.AddNewPart<HeaderPart>();
-        string headerPartId = mainPart.GetIdOfPart(headerPart);
-
-        var header = new Header();
-        var table = new Table();
-
-        // ➤ Table Properties (เต็มความกว้าง + เส้นกรอบ)
-        table.AppendChild(new TableProperties(
-            new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
-            new TableBorders(
-                new TopBorder { Val = BorderValues.Single },
-                new BottomBorder { Val = BorderValues.Single },
-                new LeftBorder { Val = BorderValues.Single },
-                new RightBorder { Val = BorderValues.Single },
-                new InsideHorizontalBorder { Val = BorderValues.Single },
-                new InsideVerticalBorder { Val = BorderValues.Single }
-            )
-        ));
-
-        // 🔹 โหลดโลโก้จาก local path (แทนที่ HttpClient)
-        byte[] logoBytes = null;
-        var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
-        //if (File.Exists(imagePath))
-        //{
-        //    logoBytes = await File.ReadAllBytesAsync(imagePath);
-        //}
-
-        //string imageId = null;
-        //if (logoBytes != null)
-        //{
-        //    var imagePart = mainPart.AddImagePart(ImagePartType.Png);
-        //    using (var stream = new MemoryStream(logoBytes))
-        //        imagePart.FeedData(stream);
-        //    imageId = mainPart.GetIdOfPart(imagePart);
-        //}
-        // Add image part and feed image data
-        var imagePart = mainPart.AddImagePart(ImagePartType.Jpeg, "rIdLogo");
-        using (var imgStream = File.OpenRead(imagePath))
+        try
         {
-            imagePart.FeedData(imgStream);
-        }
+            var headerPart = mainPart.AddNewPart<HeaderPart>();
+            string headerPartId = mainPart.GetIdOfPart(headerPart);
 
-        // 🔹 Row 1: โลโก้ + ข้อความ + แก้ไขล่าสุด
-        var row1 = new TableRow();
+            var header = new Header();
+            var table = new Table();
 
-        var leftCell = new TableCell(
-            new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "66%" })
-        );
+            // Table Properties (full width + borders)
+            table.AppendChild(new TableProperties(
+                new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
+                new TableBorders(
+                    new TopBorder { Val = BorderValues.Single },
+                    new BottomBorder { Val = BorderValues.Single },
+                    new LeftBorder { Val = BorderValues.Single },
+                    new RightBorder { Val = BorderValues.Single },
+                    new InsideHorizontalBorder { Val = BorderValues.Single },
+                    new InsideVerticalBorder { Val = BorderValues.Single }
+                )
+            ));
 
-        if (imagePart != null)
-        {
+            // Load logo from local path test_logo.png
+            var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "test_logo.png");
+            if (!File.Exists(imagePath))
+            {
+                throw new FileNotFoundException($"Logo file not found: {imagePath}");
+            }
+
+            byte[] logoBytes;
+            try
+            {
+                logoBytes = await File.ReadAllBytesAsync(imagePath);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to read logo image: " + ex.Message, ex);
+            }
+
+            var imagePartx = mainPart.AddImagePart(ImagePartType.Png);
+            using (var ms = new MemoryStream(logoBytes))
+            {
+                imagePartx.FeedData(ms);
+            }
+
+            // Row 1: Logo + Text + Revision Info
+            var row1 = new TableRow();
+
+            var leftCell = new TableCell(
+                new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "66%" })
+            );
+
+            // Insert image (larger size for visibility)
             leftCell.Append(
                 new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
                     new Run(WordServiceSetting.CreateImage(
-                     mainPart.GetIdOfPart(imagePart),
-                     240, 80))) // ✅ เรียกเหมือน OnGetWordContact_SupportSMEsService
-                    );
-        }
+                        mainPart.GetIdOfPart(imagePartx),
+                        600, 200))) // Increased size for better visibility
+            );
 
-        leftCell.Append(
-            new Paragraph(
-                new ParagraphProperties(new Justification { Val = JustificationValues.Right }),
-                new Run(
-                    new RunProperties(
-                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
-                        new FontSize { Val = "20" }, new Bold()
-                    ),
-                    new Text("ขั้นตอนการปฏิบัติงาน (Workflow)")
+            leftCell.Append(
+                new Paragraph(
+                    new ParagraphProperties(new Justification { Val = JustificationValues.Right }),
+                    new Run(
+                        new RunProperties(
+                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                            new FontSize { Val = "20" }, new Bold()
+                        ),
+                        new Text("ขั้นตอนการปฏิบัติงาน (Workflow)")
+                    )
                 )
-            )
-        );
-        // ➤ จัดข้อความแนวตั้งชิดบน
-        if (leftCell.TableCellProperties == null)
-            leftCell.TableCellProperties = new TableCellProperties();
+            );
 
-        leftCell.TableCellProperties.Append(
-            new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top }
-        );
+            // Vertical alignment top
+            if (leftCell.TableCellProperties == null)
+                leftCell.TableCellProperties = new TableCellProperties();
 
-        // ✅ Right cell: แสดงข้อมูลการแก้ไข
-        var rightCell = new TableCell(
-            new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "34%" })
-        );
+            leftCell.TableCellProperties.Append(
+                new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top }
+            );
 
-        var lastRev = detail.Revisions?.LastOrDefault()?.DateTime;
-        var revDateText = lastRev.HasValue ? lastRev.Value.ToString("d MMM yy", new CultureInfo("th-TH")) : "-";
+            // Right cell: Revision info
+            var rightCell = new TableCell(
+                new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "34%" })
+            );
 
-        rightCell.Append(
-            new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                new Run(new Text("ครั้งที่แก้ไข: " + (detail.Revisions?.Count ?? 0)))),
-            new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                new Run(new Text("วันที่แก้ไข: " + revDateText))),
-            new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                new Run(new Text("หน้า: 1/5")))
-        );
+            var lastRev = detail.Revisions?.LastOrDefault()?.DateTime;
+            var revDateText = lastRev.HasValue ? lastRev.Value.ToString("d MMM yy", new CultureInfo("th-TH")) : "-";
 
-        row1.Append(leftCell, rightCell);
-        table.Append(row1);
+            rightCell.Append(
+                new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                    new Run(new Text("ครั้งที่แก้ไข: " + (detail.Revisions?.Count ?? 0)))),
+                new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                    new Run(new Text("วันที่แก้ไข: " + revDateText))),
+                new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                    new Run(new Text("หน้า: 1/5")))
+            );
 
-        // 🔹 Row 2: ProcessCode + ProcessName
-        table.Append(new TableRow(new TableCell(
-            new TableCellProperties(
-                new GridSpan { Val = 3 },
-                new Shading { Fill = "DDEBF7", Val = ShadingPatternValues.Clear, Color = "auto" }
-            ),
-            new Paragraph(
-                new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                new Run(new Text($"{detail.Header?.ProcessCode ?? "-"} {detail.Header?.ProcessName ?? "-"}"))
-            )
-        )));
+            row1.Append(leftCell, rightCell);
+            table.Append(row1);
 
-        // 🔹 Row 3: Owner Business Unit
-        table.Append(new TableRow(new TableCell(
-            new TableCellProperties(new GridSpan { Val = 3 }),
-            new Paragraph(
-                new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                new Run(new Text("หน่วยงาน: " + (detail.OwnerBusinessUnitName ?? "-")))
-            )
-        )));
+            // Row 2: ProcessCode + ProcessName
+            table.Append(new TableRow(new TableCell(
+                new TableCellProperties(
+                    new GridSpan { Val = 3 },
+                    new Shading { Fill = "DDEBF7", Val = ShadingPatternValues.Clear, Color = "auto" }
+                ),
+                new Paragraph(
+                    new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                    new Run(new Text($"{detail.Header?.ProcessCode ?? "-"} {detail.Header?.ProcessName ?? "-"}"))
+                )
+            )));
 
-        // Append table to header
-        header.Append(table);
-        headerPart.Header = header;
+            // Row 3: Owner Business Unit
+            table.Append(new TableRow(new TableCell(
+                new TableCellProperties(new GridSpan { Val = 3 }),
+                new Paragraph(
+                    new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                    new Run(new Text("หน่วยงาน: " + (detail.OwnerBusinessUnitName ?? "-")))
+                )
+            )));
 
-        // Section Properties: Attach header
-        var sectionProps = new SectionProperties();
-        sectionProps.Append(new HeaderReference { Type = HeaderFooterValues.Default, Id = headerPartId });
+            // Append table to header
+            header.Append(table);
+            headerPart.Header = header;
 
-        if (mainPart.Document.Body == null)
-            mainPart.Document.AppendChild(new Body());
+            // Section Properties: Attach header
+            var sectionProps = new SectionProperties();
+            sectionProps.Append(new HeaderReference { Type = HeaderFooterValues.Default, Id = headerPartId });
 
-        mainPart.Document.Body.Append(sectionProps);
+            if (mainPart.Document.Body == null)
+                mainPart.Document.AppendChild(new Body());
+
+            mainPart.Document.Body.Append(sectionProps);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error creating document header: " + ex.Message, ex);
+        }
     }
     private Table CreateApprovalsTable(List<SubProcessReviewApproval> approvals)
     {
@@ -1570,6 +1523,31 @@ public class WordWFService : IWordWFService
         if (italic) runProps.Append(new Italic());
         return runProps;
     }
-
+    public static Drawing CreateImage(string relationshipId, long width, long height)
+    {
+        return new Drawing(
+            new DW.Inline(
+                new DW.Extent { Cx = width * 9525, Cy = height * 9525 },
+                new DW.EffectExtent { LeftEdge = 0L, TopEdge = 0L, RightEdge = 0L, BottomEdge = 0L },
+                new DW.DocProperties { Id = (UInt32Value)1U, Name = "Logo" },
+                new DW.NonVisualGraphicFrameDrawingProperties(new A.GraphicFrameLocks { NoChangeAspect = true }),
+                new A.Graphic(new A.GraphicData(
+                    new PIC.Picture(
+                        new PIC.NonVisualPictureProperties(
+                            new PIC.NonVisualDrawingProperties { Id = (UInt32Value)0U, Name = "Logo" },
+                            new PIC.NonVisualPictureDrawingProperties()),
+                        new PIC.BlipFill(
+                            new A.Blip { Embed = relationshipId },
+                            new A.Stretch(new A.FillRectangle())),
+                        new PIC.ShapeProperties(
+                            new A.Transform2D(
+                                new A.Offset { X = 0L, Y = 0L },
+                                new A.Extents { Cx = width * 9525, Cy = height * 9525 }),
+                            new A.PresetGeometry(new A.AdjustValueList()) { Preset = A.ShapeTypeValues.Rectangle }))
+                )
+                { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" })
+            )
+        );
+    }
 
 }

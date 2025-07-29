@@ -5,6 +5,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OfficeOpenXml;
+using System.Threading.Tasks;
 namespace BatchAndReport.Pages.Report
 {
     public class ExportModel : PageModel
@@ -519,149 +520,151 @@ namespace BatchAndReport.Pages.Report
         }
         #endregion สสว. สัญญาเงินกู้ยืม โครงการพลิกฟื้นวิสาห 
 
-        #region  4.1.3.3. สัญญาจ้างลูกจ้าง
-        public IActionResult OnGetWordContactHireEmployee()
+        #region  4.1.3.3. สัญญาจ้างลูกจ้าง EC
+        public async Task<IActionResult> OnGetWordContact_EC(string id="3")
         {
-            var wordBytes = _HireEmployee.OnGetWordContact_HireEmployee();
+            var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างลูกจ้าง.docx");
 
         }
         #endregion 4.1.3.3. สัญญาจ้างลูกจ้าง
 
-        #region 4.1.1.2.15.สัญญาจ้างทำของ
-        public IActionResult OnGetWordContactToDoThing()
+        #region 4.1.1.2.15.สัญญาจ้างทำของ CWA
+        public async Task<IActionResult> OnGetWordContact_CWA(string id="1")
         {
-            var wordBytes = _ContactToDoThingService.OnGetWordContact_ToDoThing();
+            var wordBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างทำของ.docx");
 
 
         }
-        #endregion 4.1.1.2.15.สัญญาจ้างทำของ
+        #endregion 4.1.1.2.15.สัญญาจ้างทำของ CWA
 
-        #region 4.1.1.2.14.สัญญาจ้างที่ปรึกษา
-        public IActionResult OnGetWordContact_ConsultantService()
+        #region 4.1.1.2.14.สัญญาจ้างผู้เชี่ยวชาญรายบุคคลหรือจ้างบริษัทที่ปรึกษา ร.317-60 CTR31760
+        public async Task<IActionResult> OnGetWordContact_CTR31760(string id ="1")
         {
-            var wordBytes = _ConsultantService.OnGetWordContact_ConsultantService();
+            var wordBytes =await _ConsultantService.OnGetWordContact_ConsultantService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างที่ปรึกษา.docx");
         }
 
-        #endregion
+        #endregion 4.1.1.2.14.สัญญาจ้างที่ปรึกษา CTR31760
 
-        #region 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60
+        #region 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60 PML31460
 
-        public IActionResult OnGetWordContact_LoanPrinter()
+        public async Task<IActionResult> OnGetWordContact_PML31460(string id ="1")
         {
-            var wordBytes = _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter();
+            var wordBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60.docx");
         }
 
-        #endregion 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60
+        #endregion 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60 PML31460
 
-        #region 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60
-        public IActionResult OnGetWordContact_MaintenanceComputer()
+        #region 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60 SMC31060
+        public async Task<IActionResult> OnGetWordContact_SMC31060(string id ="1")
         {
-            var wordBytes = _maintenanceComputerService.OnGetWordContact_MaintenanceComputer();
+            var wordBytes = await _maintenanceComputerService.OnGetWordContact_MaintenanceComputer(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60.docx");
         }
-        #endregion
+        #endregion 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60 SMC31060
 
-        #region 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60
-        public IActionResult OnGetWordContact_LoanComputer()
+        #region 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
+        public async Task<IActionResult> OnGetWordContact_CLA30960(string id)
         {
-            var wordBytes = _LoanComputerService.OnGetWordContact_LoanComputer();
+            var wordBytes =await _LoanComputerService.OnGetWordContact_LoanComputer(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาเช่าคอมพิวเตอร์ ร.309-60.docx");
         }
-        #endregion 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60
+        #endregion 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
 
-        #region 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60
-        public IActionResult OnGetWordContact_BuyAgreeProgram()
+        #region 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60 SLA30860
+        public async Task<IActionResult> OnGetWordContact_SLA30860(string id ="1")
         {
-            var wordBytes = _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram();
+            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์.docx");
         }
-        #endregion 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60
+        #endregion 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60 SLA30860
 
-        #region 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์
-        public IActionResult OnGetWordContact_BuyOrSellComputer()
+        #region 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์ CPA
+        public async Task<IActionResult> OnGetWordContact_CPA(string id ="1")
         {
-            var wordBytes = _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService();
+            var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายคอมพิวเตอร์.docx");
         }
 
-        #endregion 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์
+        #endregion 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์ CPA
 
-        #region 4.1.1.2.8.สัญญาซื้อขาย ร.305-60
+        #region 4.1.1.2.8.สัญญาซื้อขาย ร.305-60 SPA30560
 
-        public IActionResult OnGetWordContact_BuyOrSell()
+        public async Task<IActionResult> OnGetWordContact_SPA30560(string id = "1")
         {
-            var wordBytes = _BuyOrSellService.OnGetWordContact_BuyOrSellService();
+            var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขาย.docx");
         }
 
-        #endregion 4.1.1.2.8.สัญญาซื้อขาย ร.305-60
+        #endregion 4.1.1.2.8.สัญญาซื้อขาย ร.305-60 SPA30560
 
-        #region 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ
-        public IActionResult OnGetWordContact_DataSecretService()
+        #region 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
+        public async Task<IActionResult> OnGetWordContact_NDA(string id ="1")
         {
-            var wordBytes = _DataSecretService.OnGetWordContact_DataSecretService();
+            var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาการรักษาข้อมูลที่เป็นความลับ.docx");
         }
 
-        #endregion
+        #endregion 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
 
-        #region 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล
-        public IActionResult OnGetWordContact_DataPersonalService()
+        #region 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
+        public async Task<IActionResult> OnGetWordContact_PDSA(string id ="3")
         {
-            var wordBytes = _DataPersonalService.OnGetWordContact_DataPersonalService();
+            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
         }
 
-        #endregion
+        # endregion 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
 
-        #region 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ
+        #region 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA
 
-        public IActionResult OnGetWordContact_ControlDataService()
+        public async Task<IActionResult> OnGetWordContact_JDCA(string id="1")
         {
-            var wordBytes = _ControlDataService.OnGetWordContact_ControlDataService();
+            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.docx");
 
         }
-        #endregion 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ
-        #region 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล
-        public IActionResult OnGetWordContact_PersernalProcess()
+        #endregion 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA
+
+
+        #region 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
+        public async Task<IActionResult> OnGetWordContact_PDPA(string PDPAid = "1")
         {
-            var wordBytes = _PersernalProcessService.OnGetWordContact_PersernalProcessService();
+            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService(PDPAid);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.docx");
         }
 
-        #endregion
+        #endregion 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
 
-        #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ
-        public IActionResult OnGetWordContact_Memorandum()
+        #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
+        public async Task<IActionResult> OnGetWordContact_MOU(string MOUId ="2")
         {
-            var wordBytes = _MemorandumService.OnGetWordContact_MemorandumService();
+            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(MOUId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือ.docx");
         }
 
-        #endregion
+        #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 
-        #region 4.1.1.2.2.สัญญารับเงินอุดหนุน
-        public IActionResult OnGetWordContact_SupportSMEs()
+        #region 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
+        public IActionResult OnGetWordContact_GA()
         {
             var wordBytes = _SupportSMEsService.OnGetWordContact_SupportSMEsService();
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือในการสนับสนุน SMEs.docx");
         }
-        #endregion 4.1.1.2.2.สัญญารับเงินอุดหนุน
+        #endregion 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
 
 
-        #region 4.1.1.2.1.สัญญาร่วมดำเนินการ
-        public IActionResult OnGetWordContact_JointOperation(string param)
+        #region 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
+        public async Task<IActionResult> OnGetWordContact_JOA(string ContractId="32")
         {
-            var wordBytes = _JointOperationService.OnGetWordContact_JointOperationService();
+            var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
         }
-        #endregion
+        #endregion 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
 
-   
+
     }
 }

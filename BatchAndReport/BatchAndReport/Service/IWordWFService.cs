@@ -12,7 +12,7 @@ namespace BatchAndReport.Services
         byte[] GenInternalControlSystem(List<WFInternalControlProcessModels> model);
         Task<byte[]> GenInternalControlSystemWord(List<WFInternalControlProcessModels> model, WFSubProcessDetailModels detail2);
         Task<byte[]> GenWorkProcessPoint(WFSubProcessDetailModels model);
-        byte[] GenWorkProcessPointPreview();
+      //  byte[] GenWorkProcessPointPreview();
         byte[] GenWFProcessDetail(WFProcessDetailModels model);
     }
 }

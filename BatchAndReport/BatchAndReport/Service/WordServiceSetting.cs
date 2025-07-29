@@ -5,6 +5,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
 
 public class WordServiceSetting 
 {
@@ -273,7 +274,7 @@ public class WordServiceSetting
     }
     public static Paragraph NormalParagraphWith_2Tabs(string text, JustificationValues? align = null, string fontZise = "28", bool bold = false)
     {
-        //text = text.Replace(" ", "\u00A0");
+      //  text = RemoveSpecialCharactersKeepingSomePunctuation(text);
         if (fontZise == null)
         {
             fontZise = "28";
@@ -312,9 +313,11 @@ public class WordServiceSetting
 
         return paragraph;
     }
+
     public static Paragraph NormalParagraphWith_3Tabs(string text, JustificationValues? align = null, string fontZise = "28", bool bold = false)
     {
-       
+       // text = RemoveSpecialCharactersKeepingSomePunctuation(text);
+
         if (fontZise == null)
         {
             fontZise = "28";
@@ -360,7 +363,8 @@ public class WordServiceSetting
 
     public static Paragraph NormalParagraphWith_2TabsColor(string text, JustificationValues? align = null, string hexColor = null)
     {
-        text = text.Replace(" ", "\u00A0");
+        text = RemoveSpecialCharacters(text);
+       // text = text.Replace(" ", "\u00A0");
         var paragraph = new Paragraph();
 
         // Paragraph properties (alignment and tab stops)
@@ -471,5 +475,65 @@ public class WordServiceSetting
         body.AppendChild(sectionProps);
     }
 
+    public static void AddHeaderWithLogoAndPageNumber(MainDocumentPart mainPart, Body body, string headerLogoRelId)
+    {
+        var headerPart = mainPart.AddNewPart<HeaderPart>();
+        var header = new Header();
 
+        // Add logo image to header
+        var logoParagraph = new Paragraph(
+            new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+            CreateImage(headerLogoRelId, 120, 40)
+        );
+        header.Append(logoParagraph);
+
+        // Add "hello" text to header (centered)
+        var helloParagraph = CenteredBoldParagraph("hello", "32");
+        header.Append(helloParagraph);
+
+        // Add page number to header (right side)
+        var pageNumParagraph = new Paragraph(
+            new ParagraphProperties(new Justification { Val = JustificationValues.Right }),
+            new Run(
+                new FieldChar { FieldCharType = FieldCharValues.Begin },
+                new FieldCode(" PAGE "),
+                new FieldChar { FieldCharType = FieldCharValues.Separate },
+                new Text("1"),
+                new FieldChar { FieldCharType = FieldCharValues.End }
+            )
+        );
+        header.Append(pageNumParagraph);
+
+        headerPart.Header = header;
+
+        // Reference header in section properties
+        var sectionProps = body.Elements<SectionProperties>().FirstOrDefault();
+        if (sectionProps == null)
+        {
+            sectionProps = new SectionProperties();
+            body.Append(sectionProps);
+        }
+        sectionProps.RemoveAllChildren<HeaderReference>();
+        sectionProps.PrependChild(new HeaderReference { Type = HeaderFooterValues.Default, Id = mainPart.GetIdOfPart(headerPart) });
+    }
+
+    public static string RemoveSpecialCharacters(string text)
+    {
+        // This regular expression matches any character that is NOT:
+        // - an English letter (a-z, A-Z)
+        // - a number (0-9)
+        // - a whitespace character (\s)
+        // - a Thai character (represented by the Unicode range \p{IsThai})
+        // The '+' means match one or more occurrences.
+        string cleanedText = Regex.Replace(text, @"[^a-zA-Z0-9\s\p{IsThai}]+", "");
+        return cleanedText;
+    }
+
+    public static string RemoveSpecialCharactersKeepingSomePunctuation(string text)
+    {
+        // This version keeps English letters, numbers, spaces, Thai characters,
+        // as well as periods (.), commas (,), and hyphens (-)
+        string cleanedText = Regex.Replace(text, @"[^a-zA-Z0-9\s\p{IsThai}.,-]+", "");
+        return cleanedText;
+    }
 }
