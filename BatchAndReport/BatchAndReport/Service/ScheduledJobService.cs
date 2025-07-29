@@ -74,6 +74,7 @@ public class ScheduledJobService : BackgroundService
             // Wait until the next minute
             var delay = 60000 - (DateTime.Now.Second * 1000 + DateTime.Now.Millisecond);
             await Task.Delay(delay > 0 ? delay : 1000, stoppingToken);
+        
         }
     }
 

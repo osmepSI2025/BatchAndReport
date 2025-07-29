@@ -618,10 +618,6 @@ namespace BatchAndReport.Pages.Report
         {
             var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
-
-            //var wordDAO = new WordToPDFDAO(); // Create an instance of WordDAO
-            //var Resultpdf = wordDAO.OnGetPdfWithInterop(); // Call the method on the instance
-            //return Resultpdf; // Return an empty result since the PDF is handled in WordDAO
         }
 
         # endregion 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
@@ -656,9 +652,9 @@ namespace BatchAndReport.Pages.Report
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 
         #region 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
-        public IActionResult OnGetWordContact_GA()
+        public async Task<IActionResult> OnGetWordContact_GA(string id="1")
         {
-            var wordBytes = _SupportSMEsService.OnGetWordContact_SupportSMEsService();
+            var wordBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือในการสนับสนุน SMEs.docx");
         }
         #endregion 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
@@ -681,5 +677,19 @@ namespace BatchAndReport.Pages.Report
         }
 
         #endregion Test Header logo
+
+
+        #region Word to PDF using Interop
+        public async Task<IActionResult> OnGetWordtoPDF(string id = "3")
+        {
+            // var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(id);
+            //return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
+
+            var wordDAO = new WordToPDFDAO(); // Create an instance of WordDAO
+            var Resultpdf = wordDAO.OnGetPdfWithInterop(); // Call the method on the instance
+            return Resultpdf; // Return an empty result since the PDF is handled in WordDAO
+        }
+
+        #endregion Word to PDF using Interop
     }
 }

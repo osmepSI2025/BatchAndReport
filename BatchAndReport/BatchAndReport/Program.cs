@@ -101,7 +101,7 @@ builder.Services.AddScoped<Econtract_Report_ECDAO>();
 builder.Services.AddScoped<Econtract_Report_CTRDAO>();
 builder.Services.AddScoped<Econtract_Report_PDSADAO>();
 builder.Services.AddScoped<Econtract_Report_CWADAO>();
-
+builder.Services.AddScoped<Econtract_Report_GADAO>();
 
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
 
