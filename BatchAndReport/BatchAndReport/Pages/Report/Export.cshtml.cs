@@ -648,7 +648,11 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(MOUId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือ.docx");
         }
-
+        public async Task<IActionResult> OnGetWordContact_MOU_PDF(string MOUId = "2")
+        {
+            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(MOUId);
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือ.docx");
+        }
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 
         #region 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
@@ -657,13 +661,27 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือในการสนับสนุน SMEs.docx");
         }
+        public async Task<IActionResult> OnGetWordContact_GA_PDF(string id = "1")
+        {
+            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(id);
+            return File(pdfBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
+        }
+
+
         #endregion 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
- 
+
         #region 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
         public async Task<IActionResult> OnGetWordContact_JOA(string ContractId="32")
         {
             var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
+        }
+
+        public async Task<IActionResult> OnGetWordContact_JOA_PDF(string ContractId = "32")
+        {
+            var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
+          //  return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
+            return File(wordBytes, "application/pdf", "สัญญาร่วมดำเนินการ.pdf");
         }
         #endregion 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
 
@@ -680,14 +698,10 @@ namespace BatchAndReport.Pages.Report
 
 
         #region Word to PDF using Interop
-        public async Task<IActionResult> OnGetWordtoPDF(string id = "3")
+        public async Task<IActionResult> OnGetWordtoPDF(string id = "1")
         {
-            // var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(id);
-            //return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
-
-            var wordDAO = new WordToPDFDAO(); // Create an instance of WordDAO
-            var Resultpdf = wordDAO.OnGetPdfWithInterop(); // Call the method on the instance
-            return Resultpdf; // Return an empty result since the PDF is handled in WordDAO
+            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(id);
+            return File(pdfBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
 
         #endregion Word to PDF using Interop

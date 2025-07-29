@@ -196,5 +196,129 @@ public class WordEContract_MemorandumService
         }
 
     }
-    #endregion 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ
+
+    public async Task<byte[]> OnGetWordContact_MemorandumService_HtmlToPDF(string id)
+    {
+        var result = await _eContractReportDAO.GetMOUAsync(id);
+
+        if (result == null)
+        {
+            throw new Exception("ไม่พบข้อมูลบันทึกข้อตกลงความร่วมมือ");
+        }
+
+        // Logo
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+        string logoBase64 = "";
+        if (System.IO.File.Exists(logoPath))
+        {
+            var bytes = System.IO.File.ReadAllBytes(logoPath);
+            logoBase64 = Convert.ToBase64String(bytes);
+        }
+
+        // Font
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+
+        // Purpose list
+        var purposeList = await _eContractReportDAO.GetMOUPoposeAsync(id);
+
+        var html = $@"
+<html>
+<head>
+    <meta charset='utf-8'>
+    <style>
+        @font-face {{
+            font-family: 'THSarabunNew';
+            src: url('file:///{fontPath}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }}
+        body {{
+            font-family: 'THSarabunNew', 'TH SarabunPSK', 'Sarabun', sans-serif;
+            font-size: 32pt;
+        }}
+        .logo {{ text-align: left; margin-top: 40px; }}
+        .title {{ text-align: center; font-size: 44pt; font-weight: bold; margin-top: 40px; }}
+        .subtitle {{ text-align: center; font-size: 44pt; font-weight: bold; margin-top: 20px; }}
+        .contract {{ margin-top: 20px; font-size: 28pt; text-indent: 2em; }}
+        .signature-table {{ width: 100%; margin-top: 60px; font-size: 28pt; }}
+        .signature-table td {{ text-align: center; vertical-align: top; padding: 20px; }}
+    </style>
+</head>
+<body>
+    <table style='width:100%; border-collapse:collapse; margin-top:40px;'>
+        <tr>
+            <td style='width:60%; text-align:left; vertical-align:top;'>
+                <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+            </td>
+            <td style='width:40%; text-align:center; vertical-align:top;'>
+                <div style='display:inline-block; border:2px solid #333; padding:20px; font-size:32pt;'>
+                    โลโก้<br/>หน่วยงาน
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div class='title'>บันทึกข้อตกลงความร่วมมือ</div>
+    <div class='title'>โครงการ {result.ProjectTitle}</div>
+    <div class='subtitle'>ระหว่าง</div>
+    <div class='subtitle'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
+    <div class='subtitle'>กับ</div>
+    <div class='subtitle'>{result.OrgCommonName ?? ""}</div>
+    <div class='contract'>
+        (บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ... )
+    </div>
+    <div class='contract'>
+        สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย {result.OrgCommonName} ...
+    </div>
+    <div class='contract'>
+        “ชื่อเต็มของหน่วยงาน” โดย {result.Requestor} ตำแหน่ง {result.RequestorPosition} ...
+    </div>
+    <div class='contract'>วัตถุประสงค์ของความร่วมมือ</div>
+    <div class='contract'>
+        ทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ ...
+    </div>
+    {(purposeList != null && purposeList.Count != 0 ? $"<ul>{string.Join("", purposeList.Select((p, i) => $"<li>{i + 1}• {p.Detail}</li>"))}</ul>" : "")}
+    <table class='signature-table'>
+        <tr>
+            <td>(ลงชื่อ)....................................................<br/>({result.OSMEP_Signer ?? ""})<br/>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</td>
+            <td>(ลงชื่อ)....................................................<br/>({result.OSMEP_Witness ?? ""})<br/>ชื่อเต็มหน่วยงาน</td>
+        </tr>
+        <tr>
+            <td>(ลงชื่อ)....................................................พยาน<br/>({result.Contract_Signer ?? ""})</td>
+            <td>(ลงชื่อ)....................................................พยาน<br/>({result.Contract_Witness ?? ""})</td>
+        </tr>
+    </table>
+</body>
+</html>
+";
+
+    // You need to inject IConverter _pdfConverter in the constructor for PDF generation
+    var doc = new DinkToPdf.HtmlToPdfDocument()
+    {
+        GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+        Objects = {
+            new DinkToPdf.ObjectSettings() {
+                HtmlContent = html,
+                FooterSettings = new DinkToPdf.FooterSettings
+                {
+                    FontName = "THSarabunNew",
+                    FontSize = 6,
+                    Line = false,
+                    Center = "[page] / [toPage]"
+                }
+            }
+        }
+    };
+
+    var pdfBytes = _w._pdfConverter.Convert(doc);
+    return pdfBytes;
 }

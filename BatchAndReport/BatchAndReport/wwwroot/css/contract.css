@@ -1,0 +1,32 @@
+@font-face {
+    font-family: 'THSarabunNew';
+    src: url('/font/THSarabunNew.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+body {
+    font-family: 'THSarabunNew', 'TH SarabunPSK', 'Sarabun', sans-serif;
+    font-size: 22pt;
+}
+.logo { text-align: center; margin-top: 40px; }
+.title { text-align: center; font-size: 44pt; font-weight: bold; margin-top: 40px; }
+.subtitle { text-align: center; font-size: 44pt; font-weight: bold; margin-top: 20px; }
+.subtitle2 { text-align: center; font-size: 44pt; font-weight: bold; margin-top: 20px; }
+.right { text-align: right; font-size: 28pt; margin-top: 10px; }
+.section { margin-top: 30px; font-size: 28pt; }
+.contract { margin-top: 20px; font-size: 28pt; text-indent: 2em; }
+.signature-table { width: 100%; margin-top: 60px; font-size: 28pt; }
+.signature-table td { text-align: center; vertical-align: top; padding: 20px; }
+.watermark {
+    position: fixed;
+    top: 40%;
+    left: 20%;
+    width: 60%;
+    color: #cccccc;
+    font-size: 80px;
+    opacity: 0.2;
+    z-index: 9999;
+    text-align: center;
+    transform: rotate(-20deg);
+    pointer-events: none;
+}

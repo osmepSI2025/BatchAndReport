@@ -2,6 +2,8 @@
 using BatchAndReport.Entities;
 using BatchAndReport.Repository;
 using BatchAndReport.Services;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
 
@@ -102,7 +104,8 @@ builder.Services.AddScoped<Econtract_Report_CTRDAO>();
 builder.Services.AddScoped<Econtract_Report_PDSADAO>();
 builder.Services.AddScoped<Econtract_Report_CWADAO>();
 builder.Services.AddScoped<Econtract_Report_GADAO>();
-
+builder.Services.AddSingleton<IConverter, SynchronizedConverter>(provider =>
+    new SynchronizedConverter(new PdfTools()));
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
 
 var app = builder.Build();
