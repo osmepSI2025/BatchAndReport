@@ -6,7 +6,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Data;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 public class WorkflowProcessModel : PageModel
@@ -48,40 +47,26 @@ public class WorkflowProcessModel : PageModel
 
         var detail = new WFProcessDetailModels
         {
-            FiscalYear = fiscalYear,
-
+            FiscalYear = fiscalYear, // Assign the parsed integer value
             CoreProcesses = all
-        .Where(p => p.ProcessTypeCode == "CORE")
-        .OrderBy(p => Regex.Match(p.ProcessGroupCode, @"^[A-Za-z]+").Value) // ตัวอักษรนำหน้า
-        .ThenBy(p =>
-        {
-            var match = Regex.Match(p.ProcessGroupCode, @"\d+");
-            return match.Success ? int.Parse(match.Value) : int.MaxValue;
-        }) // ตัวเลขต่อท้าย
-        .Select(p => new ProcessGroupItem
-        {
-            ProcessGroupCode = p.ProcessGroupCode,
-            ProcessGroupName = p.ProcessGroupName
-        })
-        .ToList(),
+                .Where(p => p.ProcessTypeCode == "CORE")
+                .OrderBy(p => p.ProcessGroupCode)
+                .Select(p => new ProcessGroupItem
+                {
+                    ProcessGroupCode = p.ProcessGroupCode,
+                    ProcessGroupName = p.ProcessGroupName
+                }).ToList(),
 
             SupportProcesses = all
-        .Where(p => p.ProcessTypeCode == "SUPPORT")
-        .OrderBy(p => Regex.Match(p.ProcessGroupCode, @"^[A-Za-z]+").Value)
-        .ThenBy(p =>
-        {
-            var match = Regex.Match(p.ProcessGroupCode, @"\d+");
-            return match.Success ? int.Parse(match.Value) : int.MaxValue;
-        })
-        .Select(p => new ProcessGroupItem
-        {
-            ProcessGroupCode = p.ProcessGroupCode,
-            ProcessGroupName = p.ProcessGroupName
-        })
-        .ToList()
+                .Where(p => p.ProcessTypeCode == "SUPPORT")
+                .OrderBy(p => p.ProcessGroupCode)
+                .Select(p => new ProcessGroupItem
+                {
+                    ProcessGroupCode = p.ProcessGroupCode,
+                    ProcessGroupName = p.ProcessGroupName
+                }).ToList()
         };
 
-        Detail = detail; // ✅ ต้องมีบรรทัดนี้
         return Page();
     }
 }

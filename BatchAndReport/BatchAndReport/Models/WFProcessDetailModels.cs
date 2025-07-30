@@ -19,6 +19,7 @@
         public string? Approve2Date { get; set; }
         public string? Approver1Position { get; set; }
         public string? Approver2Position { get; set; }
+        public string? BusinessUnitOwner { get; set; }
     }
 
     public class ProcessGroupItem
