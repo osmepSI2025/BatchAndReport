@@ -630,6 +630,11 @@ namespace BatchAndReport.Pages.Report
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.docx");
 
         }
+        public async Task<IActionResult> OnGetWordContact_JDCA_PDF(string id = "1")
+        {
+            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(id);
+            return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.pdf");
+        }
         #endregion 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA
 
 
@@ -639,7 +644,11 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService(PDPAid);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.docx");
         }
-
+        public async Task<IActionResult> OnGetWordContact_PDPA_PDF(string PDPAid = "1")
+        {
+            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(PDPAid);
+            return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.pdf");
+        }
         #endregion 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
@@ -650,8 +659,8 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_MOU_PDF(string MOUId = "2")
         {
-            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(MOUId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือ.docx");
+            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(MOUId);
+            return File(wordBytes, "application/pdf", "บันทึกข้อตกลงความร่วมมือ.pdf");
         }
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 

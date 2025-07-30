@@ -1,4 +1,6 @@
 ﻿using BatchAndReport.DAO;
+using BatchAndReport.Models;
+using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Threading.Tasks;
@@ -7,12 +9,15 @@ public class WordEContract_ControlDataService
 {
     private readonly WordServiceSetting _w;
     private readonly E_ContractReportDAO _eContractReportDAO;
+    private readonly IConverter _pdfConverter;
     public WordEContract_ControlDataService(WordServiceSetting ws
           , E_ContractReportDAO eContractReportDAO
+         , IConverter pdfConverter
         )
     {
         _w = ws;
         _eContractReportDAO = eContractReportDAO;
+        _pdfConverter = pdfConverter;
     }
     #region 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ
     public async Task<byte[]> OnGetWordContact_ControlDataService(string id)
@@ -378,5 +383,139 @@ public class WordEContract_ControlDataService
         }
        
     }
+    public async Task<byte[]> OnGetWordContact_ControlDataServiceHtmlToPdf(string id)
+    {
+        var result = await _eContractReportDAO.GetJDCAAsync(id);
+        if (result == null)
+        {
+            throw new Exception("ไม่พบข้อมูลสัญญา");
+        }
+
+        var purplist = await _eContractReportDAO.GetJDCA_JointPurpAsync(id);
+        var dtActivitySME = await _eContractReportDAO.GetJDCA_SubProcessActivitiesAsync(id);
+
+        var activityListOSMEP = dtActivitySME?.Where(x => x.Owner == "OSMEP").ToList() ?? new List<E_ConReport_JDCA_SubProcessActivitiesModels>();
+        var activityListCP = dtActivitySME?.Where(x => x.Owner == "CP").ToList() ?? new List<E_ConReport_JDCA_SubProcessActivitiesModels>();
+
+        var html = $@"
+<html>
+<head>
+    <meta charset='utf-8'>
+    <style>
+        body {{ font-family: 'THSarabunNew', 'Sarabun', sans-serif; font-size: 32pt; }}
+        .title {{ text-align: center; font-size: 44pt; font-weight: bold; margin-top: 40px; }}
+        .subtitle {{ text-align: center; font-size: 36pt; font-weight: bold; margin-top: 20px; }}
+        .section {{ margin-top: 30px; font-size: 32pt; font-weight: bold; }}
+        .contract {{ margin-top: 20px; font-size: 28pt; text-indent: 2em; }}
+        .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
+        .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
+        .signature-table {{ width: 100%; margin-top: 60px; font-size: 28pt; }}
+        .signature-table td {{ text-align: center; vertical-align: top; padding: 20px; }}
+    </style>
+</head>
+<body>
+    <div class='title'>ข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม</div>
+    <div class='subtitle'>(Joint Controller Agreement)</div>
+    <div class='contract'>ระหว่าง</div>
+    <div class='contract'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.)</div>
+    <div class='contract'>กับ {result.Contract_Party_Name ?? ""}</div>
+    <div class='contract'>ข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม (“ข้อตกลง”) ฉบับนี้ ทำขึ้นเมื่อวันที่ {result.Master_Contract_Sign_Date?.ToString("dd/MM/yyyy") ?? ""} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
+    <div class='contract'>โดยที่ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สสว.” ฝ่ายหนึ่ง ได้ตกลงใน {result.MOU_Name ?? ""} ฉบับลงวันที่ {result.Master_Contract_Sign_Date?.ToString("dd/MM/yyyy") ?? ""} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สัญญาหลัก” กับ  {result.Contract_Party_Name ?? ""}  ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “(ชื่อเรียกคู่สัญญา)” อีกฝ่ายหนึ่ง รวมทั้งสองฝ่ายว่า “คู่สัญญา”</div>
+    <div class='contract'>เพื่อให้บรรลุตามวัตถุประสงค์ที่คู่สัญญาได้ตกลงกันภายใต้สัญญาหลัก คู่สัญญามีความจำเป็นต้องร่วมกันเก็บ รวบรวม ใช้ หรือเปิดเผย (รวมเรียกว่า “ประมวลผล”) ข้อมูลส่วนบุคคลตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 โดยที่คู่สัญญามีอำนาจตัดสินใจ กำหนดรูปแบบ รวมถึงวัตถุประสงค์ในการประมวลผลข้อมูลส่วนบุคคลนั้นร่วมกัน ในลักษณะของผู้ควบคุมข้อมูลส่วนบุคคลร่วม</div>
+    <div class='contract'>คู่สัญญาจึงตกลงจัดทำข้อตกลงฉบับนี้ และให้ถือเป็นส่วนหนึ่งของสัญญาหลัก เพื่อกำหนดขอบเขตอำนาจหน้าที่และความรับผิดชอบของคู่สัญญาในการร่วมกันประมวลผลข้อมูลส่วนบุคคล โดยข้อตกลงนี้ใช้บังคับกับกิจกรรมการประมวลผลข้อมูลส่วนบุคคลทั้งสิ้นที่ดำเนินการโดยคู่สัญญา รวมถึงผู้ประมวลผลข้อมูลส่วนบุคคลซึ่งถูกหรืออาจถูกมอบหมายให้ประมวลผลข้อมูลส่วนบุคคลโดยคู่สัญญา ทั้งนี้ เพื่อดำเนินการให้เป็นไปตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 รวมถึงกฎหมายอื่น ๆ ที่ออกตามความของพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “กฎหมายคุ้มครองข้อมูลส่วนบุคคล” ทั้งที่มีผลใช้บังคับอยู่ ณ วันที่ทำข้อตกลงฉบับนี้ และที่อาจมีเพิ่มเติมหรือแก้ไขเปลี่ยนแปลงในภายหลัง โดยมีรายละเอียดดังต่อไปนี้</div>
+    <div class='section'>ข้อ 1 วัตถุประสงค์และวิธีการประมวลผล</div>
+    <div class='contract'>คู่สัญญาร่วมกันกำหนดวัตถุประสงค์และวิธีการในการประมวลผลข้อมูลดังรายการกิจกรรมการประมวลผลข้อมูลส่วนบุคคล (“กิจกรรมการประมวลผลข้อมูลส่วนบุคคลหลัก”) ดังต่อไปนี้ (ระบุวัตถุประสงค์ตามสัญญาหลักที่คู่สัญญาจะต้องดำเนินการร่วมกัน)</div>
+    <ul>
+        {string.Join("", purplist.Select(x => $"<li>{x.Objective_Description}</li>"))}
+    </ul>
+    <div class='contract'>ซึ่งจากรายการกิจกรรมการประมวลผลหลักที่คู่สัญญาร่วมกันกำหนดวัตถุประสงค์ข้างต้น คู่สัญญาแต่ละฝ่ายมีการประมวลผลข้อมูลส่วนบุคคล (“กิจกรรมการประมวลผลข้อมูลส่วนบุคคลย่อย”) ดังรายละเอียดต่อไปนี้</div>
+    <div class='section'>(1) กิจกรรมการประมวลผลข้อมูลส่วนบุคคลย่อยที่ดำเนินการโดย สสว.</div>
+    <table class='table'>
+        <tr>
+            <th>รายการกิจกรรมการประมวลผล</th>
+            <th>ฐานกฎหมายที่ใช้ในการประมวลผล</th>
+            <th>รายการข้อมูลส่วนบุคคลที่ใช้ประมวลผล</th>
+        </tr>
+        {string.Join("", activityListOSMEP.Select(x => $@"
+        <tr>
+            <td>{x.Activity}</td>
+            <td>{x.LegalBasis}</td>
+            <td>{x.PersonalData}</td>
+        </tr>"))}
+    </table>
+    <div class='section'>(2) กิจกรรมการประมวลผลข้อมูลส่วนบุคคลย่อยซึ่งดำเนินการโดย ({result.Contract_Party_Name ?? ""})</div>
+    <table class='table'>
+        <tr>
+            <th>รายการกิจกรรมการประมวลผล</th>
+            <th>ฐานกฎหมายที่ใช้ในการประมวลผล</th>
+            <th>รายการข้อมูลส่วนบุคคลที่ใช้ประมวลผล</th>
+        </tr>
+        {string.Join("", activityListCP.Select(x => $@"
+        <tr>
+            <td>{x.Activity}</td>
+            <td>{x.LegalBasis}</td>
+            <td>{x.PersonalData}</td>
+        </tr>"))}
+    </table>
+    <!-- Add more sections as needed, following your Word structure -->
+    <div class='section'>ข้อ 2 หน้าที่และความรับผิดชอบของคู่สัญญา</div>
+    <!-- ... (add all paragraphs as in your Word logic) ... -->
+    <div class='section'>5 ผู้แทนของคู่สัญญาแต่ละฝ่าย</div>
+    <div class='contract'>(1) สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.)</div>
+    <div class='contract'>ผู้แทน : {result.OSMEP_ContRep ?? ""}</div>
+    <div class='contract'>ติดต่อได้ที่ : {result.OSMEP_ContRep_Contact ?? ""}</div>
+    <div class='contract'>เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล : {result.OSMEP_DPO ?? ""}</div>
+    <div class='contract'>ติดต่อได้ที่ : {result.OSMEP_DPO_Contact ?? ""}</div>
+    <div class='contract'>(2) {result.Contract_Party_Name ?? ""}</div>
+    <div class='contract'>ผู้แทน : {result.CP_ContRep ?? ""}</div>
+    <div class='contract'>ติดต่อได้ที่ : {result.CP_ContRep_Contact ?? ""}</div>
+    <div class='contract'>เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล (ถ้ามี) : {result.CP_DPO ?? ""}</div>
+    <div class='contract'>ติดต่อได้ที่ : {result.CP_DPO_Contact ?? ""}</div>
+    <table class='signature-table'>
+        <tr>
+            <td>ลงชื่อ.................................................................ผู้ให้ข้อมูล<br/>(สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม)</td>
+            <td>ลงชื่อ.................................................................ผู้รับข้อมูล<br/>({result.Contract_Party_Name ?? ""})</td>
+        </tr>
+        <tr>
+            <td>ลงชื่อ.................................................................พยาน<br/>(สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม)</td>
+            <td>ลงชื่อ.................................................................พยาน<br/>({result.Contract_Party_Name ?? ""})</td>
+        </tr>
+    </table>
+</body>
+</html>
+";
+
+        // You must inject IConverter _pdfConverter in the constructor
+        var doc = new DinkToPdf.HtmlToPdfDocument()
+        {
+            GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+            Objects = {
+            new DinkToPdf.ObjectSettings() {
+                HtmlContent = html,
+                FooterSettings = new DinkToPdf.FooterSettings
+                {
+                    FontName = "THSarabunNew",
+                    FontSize = 6,
+                    Line = false,
+                    Center = "[page] / [toPage]"
+                }
+            }
+        }
+        };
+
+        var pdfBytes = _pdfConverter.Convert(doc);
+        return pdfBytes;
+    }
+
     #endregion 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ
 }

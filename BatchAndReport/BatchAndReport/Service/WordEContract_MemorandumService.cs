@@ -1,4 +1,5 @@
 ﻿using BatchAndReport.DAO;
+using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Threading.Tasks;
@@ -7,13 +8,15 @@ public class WordEContract_MemorandumService
 {
     private readonly WordServiceSetting _w;
     private readonly E_ContractReportDAO _eContractReportDAO;
+    private readonly IConverter _pdfConverter; 
     public WordEContract_MemorandumService(WordServiceSetting ws
             , E_ContractReportDAO eContractReportDAO
-
+        , IConverter pdfConverter
         )
     {
         _w = ws;
         _eContractReportDAO = eContractReportDAO;
+        _pdfConverter = pdfConverter;
     }
     #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ
     public async Task<byte[]> OnGetWordContact_MemorandumService(string id)
@@ -109,12 +112,12 @@ public class WordEContract_MemorandumService
 
 
                 // --- 3. Main contract body ---
-                var strDateTH = CommonDAO.ToThaiDateString(result.Sign_Date ?? DateTime.Now);
+                var strDateTH = CommonDAO.ToThaiDateStringCovert(result.Sign_Date ?? DateTime.Now);
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("(บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม" +
-                        "เมื่อวันที่ " + strDateTH[0] + " เดือน " + strDateTH[1] + "พ.ศ." + strDateTH[2] + " ระหว่าง", null, "32"));
+                        "เมื่อ"+ strDateTH + " ระหว่าง", null, "32"));
 
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย "+result.OrgCommonName+" สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.”ฝ่ายหนึ่ง กับ", null, "32"));
-                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("“ชื่อเต็มของหน่วยงาน” โดย "+result.Requestor+" ตำแหน่ง."+result.RequestorPosition+ ".ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่..\" + strDateTH[0] + \" เดือน \" + strDateTH[1] + \"พ.ศ.\" + strDateTH[2] + \".สำนักงานตั้งอยู่เลขที่ ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “  ” อีกฝ่ายหนึ่ง", null, "32"));
+                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("“ชื่อเต็มของหน่วยงาน” โดย "+result.Requestor+" ตำแหน่ง."+result.RequestorPosition+ ".ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลง"+ strDateTH + "สำนักงานตั้งอยู่เลขที่ ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “  ” อีกฝ่ายหนึ่ง", null, "32"));
                 body.AppendChild(WordServiceSetting.JustifiedParagraph("วัตถุประสงค์ของความร่วมมือ", "32", true));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ (ชื่อโครงการที่ระบุไว้ข้างต้น) ซึ่งในบันทึกข้อตกลงฉบับนี้ต่อไปจะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการแผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของบันทึกข้อตกลงฉบับนี้ มีระยะเวลา" +
                          "ตั้งแต่วันที่ " + CommonDAO.ToThaiDateStringCovert(result.Start_Date ?? DateTime.Now) +
@@ -229,72 +232,123 @@ public class WordEContract_MemorandumService
         @font-face {{
             font-family: 'THSarabunNew';
             src: url('file:///{fontPath}') format('truetype');
-            font-weight: normal;
-            font-style: normal;
         }}
         body {{
-            font-family: 'THSarabunNew', 'TH SarabunPSK', 'Sarabun', sans-serif;
-            font-size: 32pt;
+            font-family: 'THSarabunNew', 'Tahoma', Arial, sans-serif;
+            font-size: 22pt;
+            line-height: 1.6;
+            color: #222;
         }}
-        .logo {{ text-align: left; margin-top: 40px; }}
-        .title {{ text-align: center; font-size: 44pt; font-weight: bold; margin-top: 40px; }}
-        .subtitle {{ text-align: center; font-size: 44pt; font-weight: bold; margin-top: 20px; }}
-        .contract {{ margin-top: 20px; font-size: 28pt; text-indent: 2em; }}
-        .signature-table {{ width: 100%; margin-top: 60px; font-size: 28pt; }}
-        .signature-table td {{ text-align: center; vertical-align: top; padding: 20px; }}
+        .center {{
+            text-align: center;
+        }}
+        .bold {{
+            font-weight: bold;
+        }}
+        .title {{
+            font-size: 44pt;
+            margin: 10px 0;
+        }}
+        .subtitle {{
+            font-size: 36pt;
+            margin: 10px 0;
+        }}
+        .section-title {{
+            font-size: 32pt;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+        }}
+        .contract-table {{
+            width: 100%;
+            border: none;
+            margin-bottom: 20px;
+        }}
+        .contract-table td {{
+            vertical-align: middle;
+            border: none;
+        }}
+        .logo-cell {{
+            width: 60%;
+            text-align: left;
+        }}
+        .code-cell {{
+            width: 40%;
+            text-align: center;
+        }}
+        .indent {{
+            text-indent: 2em;
+        }}
+        .signature {{
+            margin-top: 40px;
+            margin-bottom: 10px;
+        }}
     </style>
 </head>
 <body>
-    <table style='width:100%; border-collapse:collapse; margin-top:40px;'>
+    <table class='contract-table'>
         <tr>
-            <td style='width:60%; text-align:left; vertical-align:top;'>
-                <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+            <td class='logo-cell'>
+                <img src='data:image/jpeg;base64,{logoBase64}' alt='Logo' style='height:80px;' />
             </td>
-            <td style='width:40%; text-align:center; vertical-align:top;'>
-                <div style='display:inline-block; border:2px solid #333; padding:20px; font-size:32pt;'>
-                    โลโก้<br/>หน่วยงาน
-                </div>
+            <td class='code-cell'>
+                <!-- Contract code box, add code if needed -->
             </td>
         </tr>
     </table>
-    <div class='title'>บันทึกข้อตกลงความร่วมมือ</div>
-    <div class='title'>โครงการ {result.ProjectTitle}</div>
-    <div class='subtitle'>ระหว่าง</div>
-    <div class='subtitle'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
-    <div class='subtitle'>กับ</div>
-    <div class='subtitle'>{result.OrgCommonName ?? ""}</div>
-    <div class='contract'>
-        (บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ... )
-    </div>
-    <div class='contract'>
-        สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย {result.OrgCommonName} ...
-    </div>
-    <div class='contract'>
-        “ชื่อเต็มของหน่วยงาน” โดย {result.Requestor} ตำแหน่ง {result.RequestorPosition} ...
-    </div>
-    <div class='contract'>วัตถุประสงค์ของความร่วมมือ</div>
-    <div class='contract'>
-        ทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ ...
-    </div>
-    {(purposeList != null && purposeList.Count != 0 ? $"<ul>{string.Join("", purposeList.Select((p, i) => $"<li>{i + 1}• {p.Detail}</li>"))}</ul>" : "")}
-    <table class='signature-table'>
-        <tr>
-            <td>(ลงชื่อ)....................................................<br/>({result.OSMEP_Signer ?? ""})<br/>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</td>
-            <td>(ลงชื่อ)....................................................<br/>({result.OSMEP_Witness ?? ""})<br/>ชื่อเต็มหน่วยงาน</td>
-        </tr>
-        <tr>
-            <td>(ลงชื่อ)....................................................พยาน<br/>({result.Contract_Signer ?? ""})</td>
-            <td>(ลงชื่อ)....................................................พยาน<br/>({result.Contract_Witness ?? ""})</td>
-        </tr>
-    </table>
+    <div class='center title bold'>บันทึกข้อตกลงความร่วมมือ</div>
+    <div class='center title bold'>โครงการ {result.ProjectTitle}</div>
+    <div class='center section-title'>ระหว่าง</div>
+    <div class='center section-title'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
+    <div class='center subtitle'>กับ</div>
+    <div class='center subtitle'>{result.OrgCommonName ?? ""}</div>
+    <br/>
+    <div class='indent'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เมื่อ {CommonDAO.ToThaiDateStringCovert(result.Sign_Date ?? DateTime.Now)} ระหว่าง</div>
+    <div class='indent'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย {result.OrgCommonName} สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า “สสว.” ฝ่ายหนึ่ง กับ</div>
+    <div class='indent'>“ชื่อเต็มของหน่วยงาน” โดย {result.Requestor} ตำแหน่ง {result.RequestorPosition} ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลง {CommonDAO.ToThaiDateStringCovert(result.Sign_Date ?? DateTime.Now)} สำนักงานตั้งอยู่เลขที่ ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “  ” อีกฝ่ายหนึ่ง</div>
+    <div class='section-title'>วัตถุประสงค์ของความร่วมมือ</div>
+    <div class='indent'>ทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ (ชื่อโครงการที่ระบุไว้ข้างต้น) ซึ่งในบันทึกข้อตกลงฉบับนี้ต่อไปจะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการแผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของบันทึกข้อตกลงฉบับนี้ มีระยะเวลา ตั้งแต่วันที่ {CommonDAO.ToThaiDateStringCovert(result.Start_Date ?? DateTime.Now)} จนถึงวันที่ {CommonDAO.ToThaiDateStringCovert(result.End_Date ?? DateTime.Now)} โดยมีวัตถุประสงค์ในการดำเนินโครงการ ดังนี้</div>
+    <ul>
+        {string.Join("", purposeList.Select((p, i) => $"<li class='indent'>{i + 1}• {p.Detail}</li>"))}
+    </ul>
+    <div class='section-title'>ข้อ 1 ขอบเขตความร่วมมือของ “สสว.”</div>
+    <div class='indent'>1.1 ตกลงร่วมดำเนินการโครงการโดยสนับสนุนงบประมาณ จำนวน {result.Contract_Value} บาท ( {CommonDAO.NumberToThaiText(result.Contract_Value ?? 0)} ) ซึ่งได้รวมภาษีมูลค่าเพิ่ม ตลอดจนค่าภาษีอากรอื่น ๆ แล้วให้กับ “ชื่อหน่วยร่วม” และการใช้จ่ายเงินให้เป็นไปตามแผนการจ่ายเงินตามเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้</div>
+    <div class='indent'>1.2 ประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์</div>
+    <div class='indent'>1.3 กำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ</div>
+    <div class='section-title'>ข้อ 2 ขอบเขตความร่วมมือของ “ชื่อหน่วยร่วม”</div>
+    <div class='indent'>2.1 ตกลงที่จะร่วมดำเนินการโครงการตามวัตถุประสงค์ของการโครงการและขอบเขตการดำเนินการตามรายละเอียดโครงการ แผนการดำเนินการ และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ที่แนบท้ายบันทึกข้อตกลงฉบับนี้</div>
+    <div class='indent'>2.2 ต้องดำเนินโครงการ ปฏิบัติตามแผนการดำเนินงาน แผนการใช้จ่ายเงิน (หรืออาจมีคู่มือการดำเนินโครงการก็ได้) อย่างเคร่งครัดและให้แล้วเสร็จภายในระยะเวลาโครงการ</div>
+    <div class='indent'>2.3 ต้องประสานการดำเนินโครงการ เพื่อให้โครงการบรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์</div>
+    <div class='indent'>2.4 ต้องให้ความร่วมมือกับ สสว. ในการกำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ</div>
+    <div class='section-title'>ข้อ 3 อื่น ๆ</div>
+    <div class='indent'>3.1 หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอแก้ไข เปลี่ยนแปลง ขยายระยะเวลาของโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษร และต้องได้รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และต้องทำบันทึกข้อตกลงแก้ไข เปลี่ยนแปลง ขยายระยะเวลา เพื่อลงนามยินยอมทั้งสองฝ่าย</div>
+    <div class='indent'>3.2 หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอบอกเลิกบันทึกข้อตกลงความร่วมมือก่อนครบกำหนดระยะเวลาดำเนินโครงการจะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษรไม่น้อยกว่า 30 วัน และต้องได้รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และ “ชื่อหน่วยร่วม” จะต้องคืนเงินในส่วนที่ยังไม่ได้ใช้จ่ายหรือส่วนที่เหลือทั้งหมดพร้อมดอกผล (ถ้ามี) ให้แก่ สสว. ภายใน 15 วัน นับจากวันที่ได้รับหนังสือของฝ่ายที่ยินยอมให้บอกเลิก</div>
+    <div class='indent'>3.3 สสว. อาจบอกเลิกบันทึกข้อตกลงความร่วมมือได้ทันที หากตรวจสอบ หรือปรากฏข้อเท็จจริงว่า การใช้จ่ายเงินของ “ชื่อหน่วยร่วม” ไม่เป็นไปตามวัตถุประสงค์ของโครงการ แผนการดำเนินงาน และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ทั้งมีสิทธิเรียกเงินคงเหลือพร้อมดอกผล (ถ้ามี) คืนทั้งหมดได้ทันที</div>
+    <div class='indent'>3.4 ทรัพย์สินใด ๆ และ/หรือ สิทธิใด ๆ ที่ได้มาจากเงินสนับสนุนตามบันทึกข้อตกลงฉบับนี้ เมื่อสิ้นสุดโครงการให้ตกได้แก่ สสว. ทั้งสิ้น เว้นแต่ สสว. จะกำหนดให้เป็นอย่างอื่น</div>
+    <div class='indent'>3.5 “ชื่อหน่วยร่วม” ต้องไม่ดำเนินการในลักษณะการจ้างเหมา กับหน่วยงาน องค์กร หรือบุคคลอื่น ๆ ยกเว้นกรณีการจัดหา จัดจ้าง เป็นกิจกรรมหรือเป็นเรื่อง ๆ</div>
+    <div class='indent'>3.6 ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับข้อมูลส่วนบุคคลและการคุ้มครองทรัพย์สินทางปัญญา “ชื่อหน่วยร่วม” จะต้องปฏิบัติตามกฎหมายว่าด้วยการคุ้มครองข้อมูลส่วนบุคคลและการคุ้มครองทรัพย์สินทางปัญญาอย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้องร้องใด ๆ “ชื่อหน่วยร่วม” จะต้องเป็นผู้รับผิดชอบต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าวแต่เพียงฝ่ายเดียวโดยสิ้นเชิง</div>
+    <div class='indent'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน ทั้งสองฝ่ายได้อ่านและเข้าใจข้อความโดยละเอียดแล้ว จึงได้ลงลายมือชื่อพร้อมประทับตรา (ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยานและยึดถือไว้ฝ่ายละฉบับ</div>
+    <br/>
+    <div class='center signature'>(ลงชื่อ)....................................................</div>
+    <div class='center signature'>({result.OSMEP_Signer ?? ""})</div>
+    <div class='center signature'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
+    <br/>
+    <div class='center signature'>(ลงชื่อ)....................................................</div>
+    <div class='center signature'>({result.OSMEP_Witness ?? ""})</div>
+    <div class='center signature'>ชื่อเต็มหน่วยงาน</div>
+    <br/>
+    <div class='center signature'>(ลงชื่อ)....................................................พยาน</div>
+    <div class='center signature'>({result.Contract_Signer ?? ""})</div>
+    <br/>
+    <div class='center signature'>(ลงชื่อ)....................................................พยาน</div>
+    <div class='center signature'>({result.Contract_Witness ?? ""})</div>
 </body>
 </html>
 ";
 
-    // You need to inject IConverter _pdfConverter in the constructor for PDF generation
-    var doc = new DinkToPdf.HtmlToPdfDocument()
-    {
-        GlobalSettings = {
+        // You need to inject IConverter _pdfConverter in the constructor for PDF generation
+        var doc = new DinkToPdf.HtmlToPdfDocument()
+        {
+            GlobalSettings = {
             PaperSize = DinkToPdf.PaperKind.A4,
             Orientation = DinkToPdf.Orientation.Portrait,
             Margins = new DinkToPdf.MarginSettings
@@ -305,7 +359,7 @@ public class WordEContract_MemorandumService
                 Right = 20
             }
         },
-        Objects = {
+            Objects = {
             new DinkToPdf.ObjectSettings() {
                 HtmlContent = html,
                 FooterSettings = new DinkToPdf.FooterSettings
@@ -317,8 +371,10 @@ public class WordEContract_MemorandumService
                 }
             }
         }
-    };
+        };
 
-    var pdfBytes = _w._pdfConverter.Convert(doc);
-    return pdfBytes;
+        var pdfBytes = _pdfConverter.Convert(doc);
+        return pdfBytes;
+    }
+    #endregion
 }
