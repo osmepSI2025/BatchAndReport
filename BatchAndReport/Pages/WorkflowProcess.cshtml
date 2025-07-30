@@ -12,10 +12,10 @@
 
 <!-- ตารางกระบวนการหลัก -->
 <div class="table-responsive mb-4">
-    <table class="table table-bordered text-center align-middle" style="table-layout: fixed; width: 100%;">
+    <table class="table table-bordered text-center align-middle">
         <thead style="background-color: #00c896; color: white;">
             <tr>
-                <th rowspan="2" class="align-middle bg-white text-start text-dark" style="width: 250px;">
+                <th rowspan="2" class="align-middle bg-white text-start text-dark" style="min-width: 200px;">
                     กลุ่มกระบวนการหลัก<br>(Core Process)
                 </th>
                 @foreach (var core in detail.CoreProcesses)
@@ -35,7 +35,7 @@
 
 <!-- ตารางกลุ่มกระบวนการสนับสนุน -->
 <div class="table-responsive">
-    <table class="table table-bordered text-start align-middle" style="table-layout: fixed; width: 100%;">
+    <table class="table table-bordered text-start align-middle">
         <tbody>
             @for (int i = 0; i < supportCount; i++)
             {
@@ -43,12 +43,12 @@
                 <tr>
                     @if (i == 0)
                     {
-                        <td rowspan="@supportCount" class="align-top fw-bold" style="width: 250px;">
+                        <td rowspan="@supportCount" class="align-top fw-bold" style="min-width: 200px;">
                             กลุ่มกระบวนการสนับสนุน<br />(Supporting Process)
                         </td>
                     }
-                    <td class="text-center fw-bold" style="width: 80px; background-color: #4CB1F0;">S@(i + 1)</td>
-                    <td style="background-color: #4CB1F0;">@item.ProcessGroupName</td>
+                    <td class="text-center fw-bold" style="width: 80px;background-color: #4CB1F0;">S@(i + 1)</td>
+                    <td style="min-width: 400px;background-color: #4CB1F0;">@item.ProcessGroupName</td>
                 </tr>
             }
         </tbody>

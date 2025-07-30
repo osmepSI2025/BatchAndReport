@@ -10,6 +10,7 @@ using QuestPDF.Infrastructure;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace BatchAndReport.DAO
@@ -26,13 +27,12 @@ namespace BatchAndReport.DAO
             _k2context_workflow = k2context_workflow;
             _dbContext = dbContext; // Initialize the missing field  
         }
-        public async Task<WFProcessDetailModels> GetProcessDetailAsync(int annualProcessReviewId)
+        public async Task<WFProcessDetailModels?> GetProcessDetailAsync(int annualProcessReviewId)
         {
-            // LEFT JOIN AnnualProcessReviews กับ ProjectFiscalYears
+            // 1. JOIN AnnualProcessReview กับ ProjectFiscalYear (ใช้ _k2context_workflow เท่านั้น)
             var reviewJoin = await (
                 from a in _k2context_workflow.AnnualProcessReviews
-                join f in _k2context_workflow.ProjectFiscalYears
-                    on a.FiscalYearId equals f.FiscalYearId into fiscalGroup
+                join f in _k2context_workflow.ProjectFiscalYears on a.FiscalYearId equals f.FiscalYearId into fiscalGroup
                 from f in fiscalGroup.DefaultIfEmpty()
                 where a.AnnualProcessReviewId == annualProcessReviewId
                 select new
@@ -48,24 +48,42 @@ namespace BatchAndReport.DAO
             var fiscalYearDesc = reviewJoin.ProjectFiscalYear?.FiscalYearDesc;
             int fiscalYear = int.TryParse(fiscalYearDesc, out var parsedYear) ? parsedYear : 0;
 
-            // Load Review Details
+            // 🔹 Query BusinessUnitOwner (ใช้ _dbContext แยกต่างหาก)
+            string? businessUnitOwner = await _dbContext.BusinessUnits
+                .Where(b => b.BusinessUnitId == review.OwnerBusinessUnitId)
+                .Select(b => b.NameTh)
+                .FirstOrDefaultAsync();
+
+            // 🔹 รายการ Review Detail
             var details = await _k2context_workflow.AnnualProcessReviewDetails
                 .Where(d => d.AnnualProcessReviewId == annualProcessReviewId)
                 .ToListAsync();
 
-            // Load Approval History
+            // 🔹 ชื่อกระบวนการเก่า
+            var prevDetailIds = details
+                .Where(d => d.PrevAnnualProcessReviewDetailId != null)
+                .Select(d => d.PrevAnnualProcessReviewDetailId!.Value)
+                .Distinct()
+                .ToList();
+
+            var prevProcessNames = await _k2context_workflow.AnnualProcessReviewDetails
+                .Where(p => prevDetailIds.Contains(p.AnnualProcessReviewDetailId))
+                .Select(p => p.ProcessName)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Distinct()
+                .ToListAsync();
+
+            // 🔹 ประวัติอนุมัติ
             var history = await _k2context_workflow.AnnualProcessReviewHistories
                 .Where(h => h.AnnualProcessReviewId == annualProcessReviewId)
                 .ToListAsync();
 
-            // Collect Approver IDs
             var approverIds = history
                 .Where(h => h.StatusCode == "APRH01" || h.StatusCode == "APRH03")
                 .Select(h => h.EmployeeId)
                 .Distinct()
                 .ToList();
 
-            // Load Approver Info
             var approverInfo = await _dbContext.Employees
                 .Where(e => approverIds.Contains(e.EmployeeId))
                 .Include(e => e.Position)
@@ -77,45 +95,31 @@ namespace BatchAndReport.DAO
                 })
                 .ToDictionaryAsync(e => e.EmployeeId);
 
-            // หา ApproverId อย่างปลอดภัย
             var approver1Id = history.FirstOrDefault(h => h.StatusCode == "APRH01")?.EmployeeId;
             var approver2Id = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.EmployeeId;
 
-            // Build Result Model
-            var model = new WFProcessDetailModels
+            return new WFProcessDetailModels
             {
                 FiscalYear = fiscalYear,
                 FiscalYearPrevious = (fiscalYear - 1).ToString(),
+                BusinessUnitOwner = businessUnitOwner,
                 ReviewDetails = review.ProcessReviewDetail?.Split('\n') ?? [],
-                PrevProcesses = details.Select(d => d.PrevProcessName).Where(name => !string.IsNullOrWhiteSpace(name)).ToList(),
+                ApproveRemarks = review.ApproveRemark?.Split('\n') ?? [],
+                PrevProcesses = prevProcessNames,
                 CurrentProcesses = details.Where(d => d.ProcessReviewTypeId != null).Select(d => d.ProcessName).ToList(),
                 ControlActivities = details.Where(d => d.IsCgdControlProcess == true).Select(d => d.ProcessName).ToList(),
                 WorkflowProcesses = details.Where(d => d.IsWorkflow == true).Select(d => d.ProcessName).ToList(),
-                ApproveRemarks = review.ApproveRemark?.Split('\n') ?? [],
 
-                Approver1Name = !string.IsNullOrEmpty(approver1Id) && approverInfo.ContainsKey(approver1Id)
-                ? approverInfo[approver1Id].Name
-                : null,
-
-                            Approver1Position = !string.IsNullOrEmpty(approver1Id) && approverInfo.ContainsKey(approver1Id)
-                ? approverInfo[approver1Id].Position
-                : null,
-
-                            Approver2Name = !string.IsNullOrEmpty(approver2Id) && approverInfo.ContainsKey(approver2Id)
-                ? approverInfo[approver2Id].Name
-                : null,
-
-                            Approver2Position = !string.IsNullOrEmpty(approver2Id) && approverInfo.ContainsKey(approver2Id)
-                ? approverInfo[approver2Id].Position
-                : null,
-
-
+                Approver1Name = approver1Id != null && approverInfo.ContainsKey(approver1Id) ? approverInfo[approver1Id].Name : null,
+                Approver1Position = approver1Id != null && approverInfo.ContainsKey(approver1Id) ? approverInfo[approver1Id].Position : null,
+                Approver2Name = approver2Id != null && approverInfo.ContainsKey(approver2Id) ? approverInfo[approver2Id].Name : null,
+                Approver2Position = approver2Id != null && approverInfo.ContainsKey(approver2Id) ? approverInfo[approver2Id].Position : null,
                 Approve1Date = history.FirstOrDefault(h => h.StatusCode == "APRH01")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
                 Approve2Date = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
             };
-
-            return model;
         }
+
+
 
         public async Task<List<WFInternalControlProcessModels>> GetInternalControlProcessesAsync(
         int? fiscalYearId,
@@ -324,45 +328,53 @@ namespace BatchAndReport.DAO
             if (all == null || !all.Any())
                 return null;
 
-            // Fetch the first FiscalYearId from the retrieved list
             var fiscalYearId = all.First().FiscalYearId;
 
-            // JOIN to fetch the FiscalYearDesc
             var fiscalYearDesc = await _k2context_workflow.ProjectFiscalYears
                 .Where(f => f.FiscalYearId == fiscalYearId)
                 .Select(f => f.FiscalYearDesc)
                 .FirstOrDefaultAsync();
 
-            // Fix: Parse the FiscalYearDesc string to an integer
             if (!int.TryParse(fiscalYearDesc, out var fiscalYear))
-            {
-                // Handle the case where parsing fails (e.g., log an error or return null)
                 return null;
+
+            // ใช้ Regex แยก Prefix + Number เพื่อจัดเรียงเหมือน SQL
+            static (string prefix, int number) SplitCode(string code)
+            {
+                var match = Regex.Match(code ?? "", @"^([A-Z]+)(\d+)$", RegexOptions.IgnoreCase);
+                return match.Success
+                    ? (match.Groups[1].Value, int.TryParse(match.Groups[2].Value, out var num) ? num : 0)
+                    : (code ?? "", 0);
             }
 
-            var detail = new WFProcessDetailModels
+            var coreProcesses = all
+                .Where(p => p.ProcessTypeCode == "CORE")
+                .OrderBy(p => SplitCode(p.ProcessGroupCode).prefix)
+                .ThenBy(p => SplitCode(p.ProcessGroupCode).number)
+                .Select(p => new ProcessGroupItem
+                {
+                    ProcessGroupCode = p.ProcessGroupCode,
+                    ProcessGroupName = p.ProcessGroupName
+                })
+                .ToList();
+
+            var supportProcesses = all
+                .Where(p => p.ProcessTypeCode == "SUPPORT")
+                .OrderBy(p => SplitCode(p.ProcessGroupCode).prefix)
+                .ThenBy(p => SplitCode(p.ProcessGroupCode).number)
+                .Select(p => new ProcessGroupItem
+                {
+                    ProcessGroupCode = p.ProcessGroupCode,
+                    ProcessGroupName = p.ProcessGroupName
+                })
+                .ToList();
+
+            return new WFProcessDetailModels
             {
-                FiscalYear = fiscalYear, // Assign the parsed integer value
-                CoreProcesses = all
-                    .Where(p => p.ProcessTypeCode == "CORE")
-                    .OrderBy(p => p.ProcessGroupCode)
-                    .Select(p => new ProcessGroupItem
-                    {
-                        ProcessGroupCode = p.ProcessGroupCode,
-                        ProcessGroupName = p.ProcessGroupName
-                    }).ToList(),
-
-                SupportProcesses = all
-                    .Where(p => p.ProcessTypeCode == "SUPPORT")
-                    .OrderBy(p => p.ProcessGroupCode)
-                    .Select(p => new ProcessGroupItem
-                    {
-                        ProcessGroupCode = p.ProcessGroupCode,
-                        ProcessGroupName = p.ProcessGroupName
-                    }).ToList()
+                FiscalYear = fiscalYear,
+                CoreProcesses = coreProcesses,
+                SupportProcesses = supportProcesses
             };
-
-            return detail;
         }
         public async Task<List<WFInternalControlProcessModels>> GetInternalControlProcessesByProcessID(int processId)
         {

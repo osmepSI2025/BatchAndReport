@@ -30,10 +30,10 @@ public class WordWFService : IWordWFService
             var fiscalYear = detail.FiscalYear.ToString();
             var fiscalYearPrev = detail.FiscalYearPrevious;
 
-            body.Append(CreateHeading($"การทบทวนกระบวนการของ ของ ฝผน. ประจำปี {fiscalYear}", 20));
+            body.Append(CreateHeading($"การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {fiscalYear}", 20));
             body.Append(CreateNumberedParagraph("รายละเอียดประเด็นการทบทวน", detail.ReviewDetails));
             body.Append(CreateEmptyLine());
-            body.Append(CreateHeadingLeft($"การทบทวนกระบวนการของ ของ ฝผน. ประจำปี {fiscalYear} ดังนี้", 20));
+            body.Append(CreateHeadingLeft($"การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {fiscalYear} ดังนี้", 20));
             body.Append(CreateThreeColumnTable(fiscalYearPrev, fiscalYear, detail.PrevProcesses, detail.CurrentProcesses, detail.ControlActivities));
 
             body.Append(CreateItalicNote("หมายเหตุ: *หมายหมาย JD/ **หมายหมาย คว.2/***หมายหมายการอ้างถึงงานปัจจุบัน"));
@@ -563,6 +563,102 @@ public class WordWFService : IWordWFService
         return stream.ToArray();
     }
 
+    private Table CreateProcessTables(WFProcessDetailModels detail)
+    {
+        var table = new Table();
+
+        // 📌 Table properties: Fixed layout, full width, with borders
+        table.AppendChild(new TableProperties(
+            new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
+            new TableLayout { Type = TableLayoutValues.Fixed },
+            new TableBorders(
+                new TopBorder { Val = BorderValues.Single },
+                new BottomBorder { Val = BorderValues.Single },
+                new LeftBorder { Val = BorderValues.Single },
+                new RightBorder { Val = BorderValues.Single },
+                new InsideHorizontalBorder { Val = BorderValues.Single },
+                new InsideVerticalBorder { Val = BorderValues.Single }
+            )
+        ));
+
+        // ✅ กำหนดความกว้างคอลัมน์เท่ากัน
+        string column1Width = "2500"; // หน่วย Dxa (twips) ≈ 1.75 นิ้ว
+
+        // 🟩 Row 1: Core Process Header
+        var coreHeaderRow = new TableRow();
+        coreHeaderRow.Append(
+            CreateCell("กลุ่มกระบวนการหลัก\n(Core Process)", JustificationValues.Left, false, true, column1Width)
+        );
+
+        foreach (var core in detail.CoreProcesses)
+        {
+            coreHeaderRow.Append(CreateCell(core.ProcessGroupCode, JustificationValues.Center));
+        }
+
+        table.Append(coreHeaderRow);
+
+        // 🟩 Row 2: Core Process Names
+        var coreNameRow = new TableRow();
+        coreNameRow.Append(CreateEmptyCell(column1Width)); // ช่องว่างใต้หัวคอลัมน์แรก
+
+        foreach (var core in detail.CoreProcesses)
+        {
+            coreNameRow.Append(CreateCell(core.ProcessGroupName, JustificationValues.Left));
+        }
+
+        table.Append(coreNameRow);
+
+        // 🟦 Support Process Rows
+        for (int i = 0; i < detail.SupportProcesses.Count; i++)
+        {
+            var support = detail.SupportProcesses[i];
+            var row = new TableRow();
+
+            if (i == 0)
+            {
+                // Merge row คอลัมน์แรก
+                row.Append(new TableCell(
+                    new TableCellProperties(
+                        new TableCellWidth { Width = column1Width, Type = TableWidthUnitValues.Dxa },
+                        new VerticalMerge { Val = MergedCellValues.Restart }
+                    ),
+                    new Paragraph(new Run(new Text("กลุ่มกระบวนการสนับสนุน\n(Supporting Process)")))
+                ));
+            }
+            else
+            {
+                // Merge ด้านล่าง
+                row.Append(new TableCell(
+                    new TableCellProperties(
+                        new TableCellWidth { Width = column1Width, Type = TableWidthUnitValues.Dxa },
+                        new VerticalMerge() // continue merge
+                    ),
+                    new Paragraph()
+                ));
+            }
+
+            // Column 2: S1, S2, ...
+            row.Append(CreateCell($"S{i + 1}", JustificationValues.Center, false, false, null, "4CB1F0"));
+
+            // Column 3: ProcessGroupName
+            row.Append(CreateCell(support.ProcessGroupName, JustificationValues.Left, false, false, null, "4CB1F0"));
+
+
+            table.Append(row);
+        }
+
+        return table;
+    }
+    private TableCell CreateEmptyCell(string width)
+    {
+        return new TableCell(
+            new TableCellProperties(
+                new TableCellWidth { Width = width, Type = TableWidthUnitValues.Dxa }
+            ),
+            new Paragraph()
+        );
+    }
+
     public List<string> ExtractFilePathsFromXml(string? xml)
     {
         var filePaths = new List<string>();
@@ -686,9 +782,31 @@ public class WordWFService : IWordWFService
         table.Append(headerRow);
         return table;
     }
-    private TableCell CreateCell(string text, JustificationValues alignment, bool bold = false, bool wrap = false)
+    private TableCell CreateCell(
+    string text,
+    JustificationValues alignment,
+    bool bold = false,
+    bool wrap = false,
+    string? width = null,
+    string? shading = null)
     {
         var cellProps = new TableCellProperties();
+
+        if (!string.IsNullOrEmpty(width))
+        {
+            cellProps.Append(new TableCellWidth { Width = width, Type = TableWidthUnitValues.Dxa });
+        }
+
+        if (!string.IsNullOrEmpty(shading))
+        {
+            cellProps.Append(new Shading
+            {
+                Val = ShadingPatternValues.Clear,
+                Color = "auto",
+                Fill = shading
+            });
+        }
+
         if (wrap)
         {
             cellProps.Append(new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top });
@@ -700,8 +818,8 @@ public class WordWFService : IWordWFService
                 new RunProperties
                 {
                     Bold = bold ? new Bold() : null,
-                    FontSize = new FontSize { Val = "20" }, // ~20pt
-                    RunFonts = new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" }
+                    FontSize = new FontSize { Val = "20" }, // ~10pt
+                    RunFonts = new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" }
                 },
                 new Text(text) { Space = SpaceProcessingModeValues.Preserve }
             )
@@ -709,7 +827,6 @@ public class WordWFService : IWordWFService
 
         return new TableCell(cellProps, para);
     }
-
     private TableCell CreateMergedCell(string text, int colspan, string bgColorHex, bool bold = false)
     {
         return new TableCell(
@@ -725,7 +842,7 @@ public class WordWFService : IWordWFService
                     {
                         Bold = bold ? new Bold() : null,
                         FontSize = new FontSize { Val = "20" },
-                        RunFonts = new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" }
+                        RunFonts = new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" }
                     },
                     new Text(text)
                 )
@@ -771,7 +888,7 @@ public class WordWFService : IWordWFService
                 new ParagraphProperties(new Justification { Val = align }),
                 new Run(
                     new RunProperties(
-                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                        new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                         new FontSize { Val = "20" }
                     ),
                     new Text(text ?? "-") { Space = SpaceProcessingModeValues.Preserve }
@@ -941,7 +1058,7 @@ public class WordWFService : IWordWFService
                     new ParagraphProperties(new Justification { Val = JustificationValues.Right }),
                     new Run(
                         new RunProperties(
-                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                            new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                             new FontSize { Val = "20" }, new Bold()
                         ),
                         new Text("ขั้นตอนการปฏิบัติงาน (Workflow)")
@@ -1104,7 +1221,7 @@ public class WordWFService : IWordWFService
             new Paragraph(
                 new ParagraphProperties(new Justification { Val = align }),
                 new Run(new RunProperties(
-                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                     new FontSize { Val = "20" }
                 ), new Text(text ?? "-") { Space = SpaceProcessingModeValues.Preserve })
             )
@@ -1148,7 +1265,7 @@ public class WordWFService : IWordWFService
             yield return new Paragraph(
                 new Run(
                     new RunProperties(
-                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                        new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                         new FontSize { Val = "20" }
                     ),
                     new Text($"{idx++}) {item}")
@@ -1274,7 +1391,7 @@ public class WordWFService : IWordWFService
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                     new FontSize { Val = fontSize.ToString() }
                 ),
                 new Text(text)
@@ -1290,7 +1407,7 @@ public class WordWFService : IWordWFService
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                     new FontSize { Val = fontSize.ToString() }
                 ),
                 new Text(text)
@@ -1307,7 +1424,7 @@ public class WordWFService : IWordWFService
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                     new FontSize { Val = "20" }
                 ),
                 new Text(title)));
@@ -1318,7 +1435,7 @@ public class WordWFService : IWordWFService
                 new Run(new Break()),
                 new Run(
                     new RunProperties(
-                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                        new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                         new FontSize { Val = "20" }
                     ),
                     new Text(item)
@@ -1383,7 +1500,7 @@ public class WordWFService : IWordWFService
                 new Paragraph(
                     new Run(
                         new RunProperties(
-                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                            new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                             new FontSize { Val = "20" } // 16pt
                         ),
                         new Text(text ?? "")
@@ -1441,7 +1558,7 @@ public class WordWFService : IWordWFService
             ),
             new Run(
                 new RunProperties(
-                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                     new FontSize { Val = "20" }
                 )
             )
@@ -1477,7 +1594,7 @@ public class WordWFService : IWordWFService
                     new Justification { Val = JustificationValues.Center }
                 ),
                 new Run(
-                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                     new FontSize { Val = "20" },
                     new Text(text ?? "")
                 )
@@ -1490,7 +1607,7 @@ public class WordWFService : IWordWFService
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                     new FontSize { Val = fontSize.ToString() }
                 ),
                 new Text(text)
@@ -1503,7 +1620,7 @@ public class WordWFService : IWordWFService
             new Indentation { Left = "720" }
         ), new Run(
             new RunProperties(
-                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
                 new FontSize { Val = "20" }
             ),
             new Text(text ?? "")
@@ -1516,7 +1633,7 @@ public class WordWFService : IWordWFService
     private RunProperties CreateDefaultRunProperties(bool bold = false, bool italic = false)
     {
         var runProps = new RunProperties(
-            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+            new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
             new FontSize { Val = "20" }
         );
         if (bold) runProps.Append(new Bold());

@@ -1,0 +1,200 @@
+@page
+@model WorkflowDashboardModel
+@{
+    Layout = "_Layout1";
+    ViewData["Title"] = "Workflow Dashboard";
+}
+
+<style>
+    .dashboard-card {
+        background-color: #F8FBFE;
+        border: 1px solid #E0E6ED;
+        border-radius: 1rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+        .dashboard-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #B3D4EF;
+        }
+
+        .dashboard-card h5 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #003F88;
+        }
+
+    .table thead th {
+        background-color: #F0F7FB;
+        color: #003F88;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .table td, .table th {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5><i class="fas fa-chart-pie"></i> กระบวนการทำงานตามแผนงาน</h5>
+                <canvas id="donutProcessChart" height="250"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5><i class="fas fa-chart-pie"></i> ประเภทการปรับปรุงกระบวนการทำงาน</h5>
+                <canvas id="donutImproveChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5><i class="fas fa-chart-bar"></i> Top 10 การเปลี่ยนแปลงระยะเวลาในการดำเนินงาน</h5>
+                <canvas id="barChart" height="250"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h5><i class="fas fa-table"></i> รายการระยะเวลาการทำงานของแต่ละกระบวนการ</h5>
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>ลำดับ</th>
+                            <th>รหัส</th>
+                            <th>ชื่อกระบวนการทำงาน</th>
+                            <th>ปีก่อนหน้า (วัน)</th>
+                            <th>ปีปัจจุบัน (วัน)</th>
+                            <th>ส่วนต่าง (วัน)</th>
+                            <th>ส่วนต่าง (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.WorkflowGrid)
+                        {
+                            <tr>
+                                <td>@row.No</td>
+                                <td>@row.Code</td>
+                                <td>@row.WorkflowName</td>
+                                <td>@row.PreviousYearDays</td>
+                                <td>@row.CurrentYearDays</td>
+                                <td>@row.DayDifference</td>
+                                <td>@row.PercentDifference</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        const donutProcessData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DonutProcessChart));
+        const donutImproveData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DonutImproveChart));
+        const barChartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BarChartData));
+
+        function generateBlueGradientColors(values) {
+            const max = Math.max(...values);
+            const min = Math.min(...values);
+            const range = max - min || 1;
+
+            return values.map((v, i) => {
+                const ratio = (v - min) / range;
+                const offset = (i * 3) % 20; // เพิ่มความต่างแม้ตัวเลขจะเท่ากัน
+                const lightness = 85 - ratio * 45 - offset * 0.2;
+                return `hsl(210, 70%, ${Math.max(30, Math.min(85, lightness))}%)`;
+            });
+        }
+
+        new Chart(document.getElementById('donutProcessChart'), {
+            type: 'doughnut',
+            data: {
+                labels: donutProcessData.map(x => x.Label),
+                datasets: [{
+                    data: donutProcessData.map(x => x.Value),
+                    backgroundColor: generateBlueGradientColors(donutProcessData.map(x => x.Value))
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+
+        new Chart(document.getElementById('donutImproveChart'), {
+            type: 'doughnut',
+            data: {
+                labels: donutImproveData.map(x => x.Label),
+                datasets: [{
+                    data: donutImproveData.map(x => x.Value),
+                    backgroundColor: generateBlueGradientColors(donutImproveData.map(x => x.Value))
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: barChartData.map(x => x.Description),
+                datasets: [
+                    {
+                        label: 'ปีก่อนหน้า',
+                        data: barChartData.map(x => x.PreviousYear),
+                        backgroundColor: '#D4ECFD'
+                    },
+                    {
+                        label: 'ปีปัจจุบัน',
+                        data: barChartData.map(x => x.CurrentYear),
+                        backgroundColor: '#247CB3'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            afterBody: function (tooltipItems) {
+                                const index = tooltipItems[0].dataIndex;
+                                const item = barChartData[index];
+                                return [
+                                    `รหัส: ${item.Code}`,
+                                    `ชื่อกระบวนการ: ${item.Description}`,
+                                    `ปีก่อนหน้า: ${item.PreviousYear} วัน`,
+                                    `ปีปัจจุบัน: ${item.CurrentYear} วัน`,
+                                    `ส่วนต่าง: ${item.CurrentYear - item.PreviousYear} วัน`,
+                                    `ส่วนต่าง (%): ${item.PercentChange}%`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+    </script>
+}
