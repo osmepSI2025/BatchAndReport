@@ -13,6 +13,10 @@ namespace BatchAndReport.Models
         public List<SubProcessControlDetail> ControlPoints { get; set; } = new();
         public string? OwnerBusinessUnitName { get; set; }
         public string? DiagramAttachFile { get; set; }
+
+        public List<relate_LawsModels> Listrelate_Laws { get; set; } = new();
+
+        public List<SubProcessReviewApprovalModels> ApprovalsDetail { get; set; } = new();
     }
 
 }

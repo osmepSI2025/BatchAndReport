@@ -130,7 +130,12 @@ public partial class K2DBContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.PositionId)
                 .HasPrincipalKey(p => p.PositionId);
-        });
+
+    entity.Property(e => e.E_Signature)
+                .HasColumnName("E_Signature")
+                .HasMaxLength(200)
+                .UseCollation("Thai_CI_AS");
+});
         modelBuilder.Entity<EmployeeMovement>(entity =>
         {
             entity.ToTable("EmployeeMovements");
