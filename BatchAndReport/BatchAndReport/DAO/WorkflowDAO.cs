@@ -156,13 +156,13 @@ namespace BatchAndReport.DAO
                                     on detail.AnnualProcessReviewId equals review.AnnualProcessReviewId
                                 join plan_cat_detail in _k2context_workflow.PlanCategoriesDetails
                                     on review.OwnerBusinessUnitId equals plan_cat_detail.BusinessUnitId
-                                join plan_cat_detail1 in _k2context_workflow.PlanCategoriesDetails
-                                    on plan_cat_detail.PlanCategoriesId equals plan_cat_detail1.PlanCategoriesId
                                 join plan_cat in _k2context_workflow.PlanCategories
                                     on plan_cat_detail.PlanCategoriesId equals plan_cat.PlanCategoriesId
                                 join pm in _k2context_workflow.ProcessMasterDetails
                                     on new { detail.ProcessGroupCode, FiscalYearId = review.FiscalYearId }
                                     equals new { pm.ProcessGroupCode, pm.FiscalYearId }
+                                join fcy in _k2context_workflow.ProjectFiscalYears
+                                    on review.FiscalYearId equals fcy.FiscalYearId
                                 where plan_cat_detail.IsActive == true
                                       && plan_cat_detail.IsDeleted == false
                                       && detail.IsCgdControlProcess == true
@@ -175,8 +175,8 @@ namespace BatchAndReport.DAO
                                 select new WFInternalControlProcessModels
                                 {
                                     PlanCategoryName = plan_cat.PlanCategoriesName ?? string.Empty,
-                                    BusinessUnitId = plan_cat_detail1.BusinessUnitId ?? string.Empty,
-                                    Objective = plan_cat_detail1.Objective ?? string.Empty,
+                                    BusinessUnitId = plan_cat_detail.BusinessUnitId ?? string.Empty,
+                                    Objective = plan_cat_detail.Objective ?? string.Empty,
                                     ProcessCode = detail.ProcessCode ?? string.Empty,
                                     ProcessName = detail.ProcessName ?? string.Empty
                                 }).GroupBy(x => new { x.PlanCategoryName, x.BusinessUnitId, x.Objective, x.ProcessCode, x.ProcessName })
@@ -196,8 +196,17 @@ namespace BatchAndReport.DAO
                             ProcessName = wf.ProcessName
                         };
 
+            var ordered = query
+            .AsEnumerable()
+            .OrderBy(x => Regex.Match(x.ProcessCode ?? "", @"^\D+").Value) // prefix
+            .ThenBy(x =>
+            {
+                var match = Regex.Match(x.ProcessCode ?? "", @"\d+");
+                return match.Success ? int.Parse(match.Value) : 0;
+            });
+
             return await Task.FromResult(
-                query
+                ordered
                     .ToList()
             );
         }
