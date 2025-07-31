@@ -221,7 +221,52 @@ public class WordWFService : IWordWFService
 
         return package.GetAsByteArray();
     }
+    public byte[] GenProcessResultByIndicator(List<WFProcessResultByIndicatorModels> model)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var ws = package.Workbook.Worksheets.Add("ProcessResultByIndicator");
 
+        // ===== Row 1 =====
+        ws.Cells["A1:H1"].Merge = true;
+        ws.Cells["A1"].Value = "รายงานแสดงผลการดำเนินงานตามตัวชี้วัดของกระบวนการปี" + " " + model.First().FiscalYearDesc;
+        ws.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+        ws.Cells["A1"].Style.Font.Bold = true;
+
+        // ===== Row 2 =====
+        ws.Cells["A2"].Value = "ลำดับ";
+        ws.Cells["B2"].Value = "ประเภทกลุ่มกระบวนการ";
+        ws.Cells["C2"].Value = "รหัสกลุ่มกระบวนการ";
+        ws.Cells["D2"].Value = "รหัสกระบวนการทำงาน";
+        ws.Cells["E2"].Value = "ชื่อกระบวนการทำงาน";
+        ws.Cells["F2"].Value = "ตัวชี้วัด";
+        ws.Cells["G2"].Value = "ผลการดำเนินงาน";
+        ws.Cells["A2:G2"].Style.Font.Bold = true;
+
+
+
+
+        // ✅ เพิ่มตรงนี้
+        int startRow = 3;
+        int no = 1;
+        foreach (var item in model)
+        {
+            ws.Cells[startRow, 1].Value = no;
+            ws.Cells[startRow, 2].Value = item.BUNameTh;
+            ws.Cells[startRow, 3].Value = item.ProcessType;
+            ws.Cells[startRow, 4].Value = item.ProcessGroupCode;
+            ws.Cells[startRow, 5].Value = item.ProcessCode;
+            ws.Cells[startRow, 6].Value = item.ProcessName;
+            ws.Cells[startRow, 7].Value = item.EvaluationDesc;
+            ws.Cells[startRow, 7].Value = item.PerformanceResult;
+            startRow++;
+            no++;
+        }
+
+        ws.Cells.AutoFitColumns();
+
+        return package.GetAsByteArray();
+    }
     public byte[] GenInternalControlSystem(List<WFInternalControlProcessModels> detail)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;

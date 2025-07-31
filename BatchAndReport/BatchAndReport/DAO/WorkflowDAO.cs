@@ -778,6 +778,100 @@ namespace BatchAndReport.DAO
             }
             return null;
         }
+
+        public async Task<List<WFProcessResultByIndicatorModels>> GetProcessResultByIndicatorAsync(
+            int? fiscalYearId,
+            string? businessUnitId,
+            string? processTypeCode,
+            string? processCode,
+            bool? isEvaluationTrue,
+            bool? isEvaluationFalse,
+            int? subMasterProcessId
+            )
+        {
+            var result = new WFProcessResultByIndicatorModels();
+            var filter = new List<WFProcessResultByIndicatorModels>();
+
+            var query = @"
+                SELECT bu.NameTh AS BUNameTh, 
+	                lookup.LookupValue AS Process_Type_Name,
+	                A.PROCESS_GROUP_CODE AS Process_Group_Code, 
+	                A.PROCESS_CODE AS Process_Code,
+	                A.PROCESS_NAME AS Process_name, 
+	                eva.EVALUATION_DESC,
+	                eva.PERFORMANCE_RESULT,
+                    fiscal.FISCAL_YEAR_DESC
+	            FROM SUB_PROCESS_MASTER A
+	            left join workflow.dbo.WF_Lookup lookup on A.PROCESS_TYPE_CODE = lookup.LookupCode and lookup.LookupType = 'ProcessType' and lookup.FlagDelete='N'
+	            left join workflow.dbo.WF_Lookup lookup1 on A.EVALUATION_STATUS = lookup1.LookupCode and lookup1.LookupType = 'EVALUATION_STATUS' and lookup1.FlagDelete='N'
+                left join dbo.PROJECT_FISCAL_YEAR fiscal on fiscal.FISCAL_YEAR_ID = a.FISCAL_YEAR_ID
+
+	              left join (SELECT  a.[ANNUAL_PROCESS_REVIEW_DETAIL_ID]
+                  ,a.[ANNUAL_PROCESS_REVIEW_ID]
+                  ,a.[PROCESS_GROUP_CODE]
+                  ,a.[PROCESS_CODE]
+                  ,b.OWNER_BusinessUnitId
+	              ,b.FISCAL_YEAR_ID
+                  FROM [Workflow].[dbo].[ANNUAL_PROCESS_REVIEW_DETAIL] a
+                  left join  [Workflow].[dbo].[ANNUAL_PROCESS_REVIEW] b on a.ANNUAL_PROCESS_REVIEW_ID = b.ANNUAL_PROCESS_REVIEW_ID) process_review on A.PROCESS_CODE = process_review.PROCESS_CODE and A.PROCESS_GROUP_CODE = process_review.PROCESS_GROUP_CODE and A.FISCAL_YEAR_ID = process_review.FISCAL_YEAR_ID and A.[OWNER_BusinessUnitId] = process_review.[OWNER_BusinessUnitId]
+	            left join hr.dbo.BusinessUnits bu on process_review.OWNER_BusinessUnitId = bu.BusinessUnitId
+	             left join [Workflow].[dbo].[WF_WFTaskList] task on task.Request_ID = A.SUB_PROCESS_MASTER_ID and task.WF_TYPE = '01'
+	             left join  [Workflow].[dbo].[EVALUATION] eva on eva.SUB_PROCESS_MASTER_ID = A.SUB_PROCESS_MASTER_ID and eva.IS_DELETED != 1
+	            WHERE (@pFISCAL_YEAR_ID IS NULL OR A.FISCAL_YEAR_ID = @pFISCAL_YEAR_ID) 
+	            AND (@pProcessTypeCode IS NULL OR A.PROCESS_TYPE_CODE = @pProcessTypeCode) 
+	            and (@pBusinessUnitId IS NULL OR A.OWNER_BusinessUnitId = @pBusinessUnitId) 
+	            AND (@pProcessCode IS NULL OR A.[PROCESS_CODE] = @pProcessCode) 
+	            AND (@pSubMasterProcessId IS NULL OR A.SUB_PROCESS_MASTER_ID = @pSubMasterProcessId) 
+	            and  (
+		            (ISNULL(@pIsEvaluationTrue, 0) = 0 AND ISNULL(@pIsEvaluationFalse, 0) = 0)
+                    OR
+                    (A.EVALUATION_STATUS = 'ES01' AND @pIsEvaluationTrue = 1)
+                    OR
+                    (A.EVALUATION_STATUS = 'ES02' AND @pIsEvaluationFalse = 1)
+                )
+	            and task.STATUS = 'ST0104';";
+
+            var connStr = _k2context_workflow.Database.GetDbConnection().ConnectionString;
+
+            using (var conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@pFISCAL_YEAR_ID", (object?)fiscalYearId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pBusinessUnitId", (object?)businessUnitId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pProcessTypeCode", (object?)processTypeCode ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pProcessCode", (object?)processCode ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pSubMasterProcessId", (object?)subMasterProcessId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pIsEvaluationTrue", (object?)isEvaluationTrue ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pIsEvaluationFalse", (object?)isEvaluationFalse ?? DBNull.Value);
+
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        var dto = new WFProcessResultByIndicatorModels
+                        {
+                            BUNameTh = reader["BUNameTh"]?.ToString(),
+                            ProcessType = reader["Process_Type_Name"]?.ToString(),
+                            ProcessGroupCode = reader["Process_Group_Code"]?.ToString(),
+                            ProcessCode = reader["Process_Code"]?.ToString(),
+                            ProcessName = reader["Process_name"]?.ToString(),
+                            EvaluationDesc = reader["EVALUATION_DESC"]?.ToString(),
+                            PerformanceResult = reader["PERFORMANCE_RESULT"]?.ToString(),
+                            FiscalYearDesc = fiscalYearId == null ? null : reader["FISCAL_YEAR_DESC"]?.ToString(),
+                        };
+
+                        filter.Add(dto);
+                    }
+                }
+            }
+
+            result.ProcessResultByIndicators = filter;
+
+
+            return result.ProcessResultByIndicators;
+        }
     }
 
 }

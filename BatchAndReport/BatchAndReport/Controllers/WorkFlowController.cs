@@ -175,7 +175,6 @@ namespace BatchAndReport.Controllers
             [FromQuery] bool? isST0104 = null,
             [FromQuery] bool? isST0105 = null
         )
-        // Changed type from int? to string?
         {
             var detail = await _workflowDao.GetCreateProcessStatusAsync(
                 fiscalYearId,
@@ -201,6 +200,39 @@ namespace BatchAndReport.Controllers
             return File(excelBytes,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "CreateWFStatus.xlsx");
+        }
+        [HttpGet("ExportProcessResultByIndicator")]
+        public async Task<IActionResult> ExportProcessResultByIndicator(
+            [FromQuery] int? fiscalYearId = null,
+            [FromQuery] string? businessUnitId = null,
+            [FromQuery] string? processTypeCode = null,
+            [FromQuery] string? processCode = null,
+            [FromQuery] bool? isEvaluationTrue = null,
+            [FromQuery] bool? isEvaluationFalse = null,
+            [FromQuery] int? subMasterProcessId = null
+
+        )
+        // Changed type from int? to string?
+        {
+            var detail = await _workflowDao.GetProcessResultByIndicatorAsync(
+                fiscalYearId,
+                businessUnitId,
+                processTypeCode,
+                processCode,
+                isEvaluationTrue,
+                isEvaluationFalse,
+                subMasterProcessId
+            );
+
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูล");
+
+            var generator = _serviceWFWord.GenProcessResultByIndicator(detail);
+            var excelBytes = generator;
+
+            return File(excelBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "ProcessResultByIndicator.xlsx");
         }
 
     }
