@@ -168,6 +168,60 @@ public class WordWFService : IWordWFService
         return package.GetAsByteArray();
     }
 
+    public byte[] GenCreateWFStatus(List<WFCreateProcessStatusModels> model)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var ws = package.Workbook.Worksheets.Add("CreateWFStatus");
+
+        // ===== Row 1 =====
+        ws.Cells["A1:H1"].Merge = true;
+        ws.Cells["A1"].Value = "รายการแสดงสถานะการสร้างกระบวนการทำงานปี" + " " + model.First().FiscalYearDesc;
+        ws.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+        ws.Cells["A1"].Style.Font.Bold = true;
+
+        // ===== Row 2 =====
+        ws.Cells["A2"].Value = "ลำดับ";
+        ws.Cells["B2"].Value = "หน่วยงาน";
+        ws.Cells["C2"].Value = "รหัสกลุ่มกระบวนการ";
+        ws.Cells["D2"].Value = "ชื่อกลุ่มกระบวนการ";
+        ws.Cells["E2"].Value = "รหัสกระบวนการ";
+        ws.Cells["F2"].Value = "ชื่อกระบวนการ";
+        ws.Cells["G2"].Value = "สถานะ";
+        ws.Cells["A2:G2"].Style.Font.Bold = true;
+
+        ws.Column(6).Style.WrapText = true; // F
+
+       
+
+        // ✅ เพิ่มตรงนี้
+        int startRow = 3;
+        int no = 1;
+        foreach (var item in model)
+        {
+            ws.Cells[startRow, 1].Value = no;
+            ws.Cells[startRow, 2].Value = item.BUNameTh;
+            ws.Cells[startRow, 3].Value = item.ProcessGroupCode;
+            ws.Cells[startRow, 4].Value = item.ProcessGroupName;
+            ws.Cells[startRow, 5].Value = item.ProcessCode;
+            ws.Cells[startRow, 6].Value = item.ProcessName;
+            ws.Cells[startRow, 7].Value = item.Status;
+            startRow++;
+            no++;
+        }
+
+        ws.Column(1).AutoFit(); // A
+        ws.Column(2).Width = 40; // B
+        ws.Column(3).AutoFit(); // C
+        ws.Column(4).Width = 40; // D
+        ws.Column(5).AutoFit(); // E
+        ws.Column(6).Width = 40; // F
+        ws.Column(7).AutoFit(); // G
+        ws.Column(8).AutoFit(); // H
+
+        return package.GetAsByteArray();
+    }
+
     public byte[] GenInternalControlSystem(List<WFInternalControlProcessModels> detail)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -179,9 +233,9 @@ public class WordWFService : IWordWFService
         ws.Cells["A1"].Value = "กระบวนการทำงานที่สำคัญตามรายงานการจัดวางระบบการควบคุมภายใน";
         StyleHeader(ws.Cells["A1"], bold: true);
 
-        ws.Cells["A2"].Value = "ภารกิจตามกฎหมายที่จัดตั้งหน่วยงานของรัฐหรือตามแผนการดำเนินงานหรืองานอื่นๆ ที่สำคัญ";
+        ws.Cells["A2"].Value = "ภารกิจตามกฎหมายที่จัดตั้งหน่วยงานของรัฐหรือตามแผนการดำเนินงานหรืองานอื่นๆ ที่สำคัญของหน่วยงานของรัฐ/วัตถุประสงค์";
         ws.Cells["B2"].Value = "ลำดับ";
-        ws.Cells["C2"].Value = "ของหน่วยงานของรัฐ/วัตถุประสงค์";
+        ws.Cells["C2"].Value = "กระบวนการทำงานที่สำคัญ";
         StyleHeader(ws.Cells["A2"], bold: true);
         StyleHeader(ws.Cells["B2"], bold: true);
         StyleHeader(ws.Cells["C2"], bold: true);
@@ -196,9 +250,10 @@ public class WordWFService : IWordWFService
         // ===== Fill Data =====
         int startRow = 4;
         int index = 1;
+        int aRow = 1;
 
         var groupedDetails = detail
-        .GroupBy(item => $"{item.PlanCategoryName}\n\nวัตถุประสงค์: {item.Objective}");
+        .GroupBy(item => $"{item.BusinessUnitId}\n\nวัตถุประสงค์: {item.Objective}");
 
         foreach (var group in groupedDetails)
         {
@@ -209,7 +264,7 @@ public class WordWFService : IWordWFService
             string mergedValue = group.Key;
             string mergeRange = $"A{groupStartRow}:A{groupStartRow + groupSize - 1}";
             ws.Cells[mergeRange].Merge = true;
-            ws.Cells[mergeRange].Value = mergedValue;
+            ws.Cells[mergeRange].Value = aRow + ". " + mergedValue;
             ws.Cells[mergeRange].Style.WrapText = true;
             ws.Cells[mergeRange].Style.VerticalAlignment = ExcelVerticalAlignment.Top;
             for (int i = groupStartRow; i < groupStartRow + groupSize; i++)
@@ -226,6 +281,7 @@ public class WordWFService : IWordWFService
                 ws.Cells[$"C{startRow}"].Value = item.ProcessCode + " " + item.ProcessName;
                 startRow++;
             }
+            aRow++;
         }
 
 

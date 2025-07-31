@@ -27,6 +27,7 @@ namespace BatchAndReport.Entities
         public virtual DbSet<SubProcessMasterHistory> SubProcessMasterHistories { get; set; }
         public virtual DbSet<SubProcessMaster> SubProcessMasters { get; set; }
         public virtual DbSet<SubProcessControlDetail> SubProcessControlDetails { get; set; }
+        public virtual DbSet<WfLookup> WFLookup { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -387,6 +388,24 @@ namespace BatchAndReport.Entities
 
                 entity.Property(e => e.IsDeleted)
                     .HasColumnName("IS_DELETED");
+            });
+
+            modelBuilder.Entity<WfLookup>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK_Workflow_Lookup");
+
+                entity.ToTable("WF_Lookup");
+
+                entity.Property(e => e.CreateBy).HasMaxLength(50);
+                entity.Property(e => e.CreateDate).HasColumnType("datetime");
+                entity.Property(e => e.FlagDelete)
+                    .HasMaxLength(10)
+                    .IsFixedLength();
+                entity.Property(e => e.LookupCode).HasMaxLength(50);
+                entity.Property(e => e.LookupType).HasMaxLength(50);
+                entity.Property(e => e.LookupValue).HasMaxLength(50);
+                entity.Property(e => e.UpdateBy).HasMaxLength(50);
+                entity.Property(e => e.UpdateDate).HasColumnType("datetime");
             });
 
             OnModelCreatingPartial(modelBuilder);

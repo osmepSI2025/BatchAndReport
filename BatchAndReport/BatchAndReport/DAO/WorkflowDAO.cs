@@ -1,5 +1,6 @@
 ﻿using BatchAndReport.Entities;
 using BatchAndReport.Models;
+using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Wordprocessing;
 using iText.Kernel.Pdf.Canvas.Wmf;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using QuestPDF.Infrastructure;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -186,6 +188,9 @@ namespace BatchAndReport.DAO
             var query = from wf in workflowData
                         join bu in _dbContext.BusinessUnits.ToList()
                             on wf.BusinessUnitId equals bu.BusinessUnitId
+                        where wf.BusinessUnitId.Contains(bu.BusinessUnitId)
+                        && bu.BusinessUnitLevel == 3
+
                         select new WFInternalControlProcessModels
                         {
                             PlanCategoryName = wf.PlanCategoryName,
@@ -452,6 +457,130 @@ namespace BatchAndReport.DAO
                 .Select(g => g.First())
                 .ToListAsync();
         }
+        public async Task<List<WFCreateProcessStatusModels>> GetCreateProcessStatusAsync(
+            int? fiscalYearId,
+            string? businessUnitId,
+            string? processTypeCode,
+            string? processGroupCode,
+            string? processCode,
+            bool? isST01,
+            bool? isST0101,
+            bool? isST0102,
+            bool? isST0103,
+            bool? isST0104,
+            bool? isST0105
+            )
+        {
+            var result = new WFCreateProcessStatusModels();
+            var filter = new List<WFCreateProcessStatusModels>();
+
+            var query = @"
+        SELECT 
+	        sub_process.SUB_PROCESS_MASTER_ID,
+	        fiscal.FISCAL_YEAR_DESC,
+	        bu.NameTh, 
+	        lookup.LookupValue as PROCESS_TYPE_NAME,
+	        sub_process.PROCESS_GROUP_CODE, 
+	        pm.PROCESS_GROUP_NAME, 
+	        sub_process.PROCESS_CODE,
+	        sub_process.PROCESS_NAME,
+	        process_review.FISCAL_YEAR_ID,
+	        pm.PROCESS_TYPE_CODE,
+	        lookup1.LookupValue as STATUS
+	
+	
+        FROM [Workflow].[dbo].[SUB_PROCESS_MASTER] sub_process
+        left join (SELECT  a.[ANNUAL_PROCESS_REVIEW_DETAIL_ID]
+            ,a.[ANNUAL_PROCESS_REVIEW_ID]
+            ,a.[PROCESS_GROUP_CODE]
+            ,a.[PROCESS_CODE]
+            ,b.OWNER_BusinessUnitId
+	        ,b.FISCAL_YEAR_ID
+        FROM [Workflow].[dbo].[ANNUAL_PROCESS_REVIEW_DETAIL] a
+        left join  [Workflow].[dbo].[ANNUAL_PROCESS_REVIEW] b on a.ANNUAL_PROCESS_REVIEW_ID = b.ANNUAL_PROCESS_REVIEW_ID) process_review 
+        on sub_process.PROCESS_CODE = process_review.PROCESS_CODE and sub_process.PROCESS_GROUP_CODE = process_review.PROCESS_GROUP_CODE 
+        and sub_process.FISCAL_YEAR_ID = process_review.FISCAL_YEAR_ID and sub_process.[OWNER_BusinessUnitId] = process_review.[OWNER_BusinessUnitId]
+        left join [Workflow].[dbo].[PROJECT_FISCAL_YEAR] fiscal on sub_process.FISCAL_YEAR_ID = fiscal.FISCAL_YEAR_ID
+        left join hr.dbo.BusinessUnits bu on process_review.OWNER_BusinessUnitId = bu.BusinessUnitId
+        left join [Workflow].[dbo].[PROCESS_MASTER_DETAIL] pm on pm.PROCESS_GROUP_CODE = sub_process.PROCESS_GROUP_CODE 
+        and process_review.FISCAL_YEAR_ID = pm.FISCAL_YEAR_ID
+        left join [Workflow].[dbo].[WF_Lookup] lookup on pm.PROCESS_TYPE_CODE = lookup.LookupCode and lookup.LookupType='ProcessType'  
+        left join [Workflow].[dbo].[WF_WFTaskList] task on task.Request_ID = sub_process.SUB_PROCESS_MASTER_ID and task.WF_TYPE = '01'
+        left join [Workflow].[dbo].[WF_Lookup] lookup1 on task.STATUS = lookup1.LookupCode and lookup1.LookupType = 'WORKFLOW_STATUS' and lookup1.FlagDelete = 'N'
+        WHERE (@pFISCAL_YEAR_ID IS NULL OR process_review.FISCAL_YEAR_ID = @pFISCAL_YEAR_ID) 
+        and (@pBusinessUnitId IS NULL OR sub_process.OWNER_BusinessUnitId = @pBusinessUnitId) 
+        and (@pProcessTypeCode IS NULL OR pm.PROCESS_TYPE_CODE = @pProcessTypeCode) 
+        and (@pProcessGroupCode IS NULL OR sub_process.[PROCESS_GROUP_CODE] = @pProcessGroupCode) 
+        and (@pProcessCode IS NULL OR sub_process.[PROCESS_CODE] = @pProcessCode) 
+        and sub_process.IS_DELETED !=1 and task.STATUS != 'ST0106'
+	    and  (
+		    (ISNULL(@is_ST01, 0) = 0 AND ISNULL(@is_ST0101, 0) = 0 AND ISNULL(@is_ST0102, 0) = 0 
+			    AND ISNULL(@is_ST0103, 0) = 0 AND ISNULL(@is_ST0104, 0) = 0 AND ISNULL(@is_ST0105, 0) = 0) -- ไม่กรองเลย
+            OR
+            (task.STATUS = 'ST01' AND @is_ST01 = 1)
+            OR
+            (task.STATUS = 'ST0101' AND @is_ST0101 = 1)
+		        OR
+            (task.STATUS = 'ST0102' AND @is_ST0102 = 1)
+		        OR
+            (task.STATUS = 'ST0103' AND @is_ST0103 = 1)
+		        OR
+            (task.STATUS = 'ST0104' AND @is_ST0104 = 1)
+		        OR
+            (task.STATUS = 'ST0105' AND @is_ST0105 = 1)
+        )
+        ORDER BY sub_process.SUB_PROCESS_MASTER_ID asc;";
+
+            var connStr = _k2context_workflow.Database.GetDbConnection().ConnectionString;
+
+            using (var conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@pFISCAL_YEAR_ID", (object?)fiscalYearId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pBusinessUnitId", (object?)businessUnitId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pProcessTypeCode", (object?)processTypeCode ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pProcessGroupCode", (object?)processGroupCode ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pProcessCode", (object?)processCode ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@is_ST01", (object?)isST01 ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@is_ST0101", (object?)isST0101 ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@is_ST0102", (object?)isST0102 ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@is_ST0103", (object?)isST0103 ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@is_ST0104", (object?)isST0104 ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@is_ST0105", (object?)isST0105 ?? DBNull.Value);
+
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        var dto = new WFCreateProcessStatusModels
+                        {
+                            subProcessMasterId = (int)reader["SUB_PROCESS_MASTER_ID"],
+                            FiscalYearDesc = fiscalYearId == null ? null : reader["FISCAL_YEAR_DESC"]?.ToString(),
+                            BUNameTh = reader["NameTh"]?.ToString(),
+                            ProcessType = reader["PROCESS_TYPE_NAME"]?.ToString(),
+                            ProcessGroupCode = reader["PROCESS_GROUP_CODE"]?.ToString(),
+                            ProcessGroupName = reader["PROCESS_GROUP_NAME"]?.ToString(),
+                            ProcessCode = reader["PROCESS_CODE"]?.ToString(),
+                            ProcessName = reader["PROCESS_NAME"]?.ToString(),
+                            FiscalYearId = (int?)reader["FISCAL_YEAR_ID"],
+                            ProcessTypeCode = reader["PROCESS_TYPE_CODE"]?.ToString(),
+                            Status = reader["STATUS"]?.ToString()
+                        };
+
+                        filter.Add(dto);
+                    }
+                }
+            }
+
+            result.CreateProcessStatusModels = filter;
+
+            Console.WriteLine($"ProcessDetails count: {result.CreateProcessStatusModels.Count}");
+
+            return result.CreateProcessStatusModels;
+        }
 
     }
+
 }

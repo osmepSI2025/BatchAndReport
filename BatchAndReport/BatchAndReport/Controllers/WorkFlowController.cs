@@ -164,6 +164,48 @@ namespace BatchAndReport.Controllers
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 $"WFProcessDetail.pdf");
         }
+        [HttpGet("ExportCreateWFStatus")]
+        public async Task<IActionResult> ExportCreateWFStatus(
+            [FromQuery] int? fiscalYearId = null,
+            [FromQuery] string? businessUnitId = null,
+            [FromQuery] string? processTypeCode = null,
+            [FromQuery] string? processGroupCode = null,
+            [FromQuery] string? processCode = null,
+            [FromQuery] int? processCategory = null,
+            [FromQuery] bool? isST01 = null,
+            [FromQuery] bool? isST0101 = null,
+            [FromQuery] bool? isST0102 = null,
+            [FromQuery] bool? isST0103 = null,
+            [FromQuery] bool? isST0104 = null,
+            [FromQuery] bool? isST0105 = null
+        )
+        // Changed type from int? to string?
+        {
+            var detail = await _workflowDao.GetCreateProcessStatusAsync(
+                fiscalYearId,
+                businessUnitId,
+                processTypeCode,
+                processGroupCode,
+                processCode,
+                isST01,
+                isST0101,
+                isST0102,
+                isST0103,
+                isST0104,
+                isST0105
+
+            );
+
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูล");
+
+            var generator = _serviceWFWord.GenCreateWFStatus(detail);
+            var excelBytes = generator; // Assuming `GenWorkSystem()` already returns a byte array.
+
+            return File(excelBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "CreateWFStatus.xlsx");
+        }
 
     }
 }
