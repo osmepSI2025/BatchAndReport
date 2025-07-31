@@ -89,6 +89,9 @@ builder.Services.AddScoped<WordEContract_DataPersonalService>();
 builder.Services.AddScoped<WordEContract_ConsultantService>();
 builder.Services.AddScoped<WordEContract_ContactToDoThingService>();
 
+// add work flow
+
+builder.Services.AddScoped<WordWorkFlow_annualProcessReviewService>();
 
 //Impoert EContract Report
 builder.Services.AddScoped<E_ContractReportDAO>();

@@ -48,7 +48,7 @@ public class WorkflowProcessModel : PageModel
 
         var detail = new WFProcessDetailModels
         {
-            USER_PROCESS_REVIEW_NAME = all.ToList()[0].USER_PROCESS_REVIEW_NAME?? string.Empty,
+            UserProcessReviewName = all.ToList()[0].USER_PROCESS_REVIEW_NAME?? string.Empty,
             FiscalYear = fiscalYear,
 
             CoreProcesses = all

@@ -20,19 +20,21 @@ namespace BatchAndReport.Controllers
         private readonly ICallAPIService _serviceApi;
         private readonly IPdfService _servicePdf;
         private readonly IWordWFService _serviceWFWord;
-
+        private readonly WordWorkFlow_annualProcessReviewService _wordWorkFlow_AnnualProcessReviewService;
         public WorkflowController(
             WorkflowDAO workflowDao,
             IApiInformationRepository repositoryApi,
             ICallAPIService serviceApi,
             IPdfService servicePdf,
-            IWordWFService serviceWFWord)
+            IWordWFService serviceWFWord,
+            WordWorkFlow_annualProcessReviewService wordWorkFlow_AnnualProcessReviewService)
         {
             _workflowDao = workflowDao;
             _repositoryApi = repositoryApi;
             _serviceApi = serviceApi;
             _servicePdf = servicePdf;
             _serviceWFWord = serviceWFWord;
+            this._wordWorkFlow_AnnualProcessReviewService = wordWorkFlow_AnnualProcessReviewService;
         }
 
         [HttpGet("ExportAnnualWorkProcesses")]
@@ -42,11 +44,14 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var wordBytes = _serviceWFWord.GenAnnualWorkProcesses(detail);
-            var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
-            return File(pdfBytes,
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                $"AnnualWorkProcesses.pdf");
+            //var wordBytes = _serviceWFWord.GenAnnualWorkProcesses(detail);
+            //var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
+            //return File(pdfBytes,
+            //    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            //    $"AnnualWorkProcesses.pdf");
+
+            var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_HtmlToPDF(detail);
+            return File(pdfBytes, "application/pdf", "สัญญาร่วมดำเนินการ.pdf");
         }
 
         [HttpGet("ExportWorkSystem")]

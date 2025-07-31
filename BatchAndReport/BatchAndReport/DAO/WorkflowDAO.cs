@@ -101,6 +101,8 @@ namespace BatchAndReport.DAO
             var approver1Id = history.FirstOrDefault(h => h.StatusCode == "APRH01")?.EmployeeId;
             var approver2Id = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.EmployeeId;
 
+          var AnnuProcessReview = await GetAnnualProcessReview(annualProcessReviewId);
+
             return new WFProcessDetailModels
             {
                 FiscalYear = fiscalYear,
@@ -140,6 +142,7 @@ namespace BatchAndReport.DAO
                 Approver2Position = approver2Id != null && approverInfo.ContainsKey(approver2Id) ? approverInfo[approver2Id].Position : null,
                 Approve1Date = history.FirstOrDefault(h => h.StatusCode == "APRH01")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
                 Approve2Date = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
+                PROCESS_REVIEW_DETAIL = AnnuProcessReview?.ProcessReviewDetail,
             };
         }
 
@@ -411,61 +414,73 @@ namespace BatchAndReport.DAO
 
         public async Task<WFProcessDetailModels?> GetWFProcessDetailAsync(int idParam)
         {
-            // Fetch related ProcessMasterDetails for idParam
-            var all = await _k2context_workflow.ProcessMasterDetails
-                .Where(p => p.ProcessMasterId == idParam)
-                .ToListAsync();
+            try {
+                // Fetch related ProcessMasterDetails for idParam
+                var all = await _k2context_workflow.ProcessMasterDetails
+                    .Where(p => p.ProcessMasterId == idParam && p.IsDeleted == false)
+                    .ToListAsync();
 
-            if (all == null || !all.Any())
-                return null;
+                if (all == null || !all.Any())
+                    return null;
+              
 
-            var fiscalYearId = all.First().FiscalYearId;
+                var fiscalYearId = all.First().FiscalYearId;
 
-            var fiscalYearDesc = await _k2context_workflow.ProjectFiscalYears
-                .Where(f => f.FiscalYearId == fiscalYearId)
-                .Select(f => f.FiscalYearDesc)
-                .FirstOrDefaultAsync();
+                var fiscalYearDesc = await _k2context_workflow.ProjectFiscalYears
+                    .Where(f => f.FiscalYearId == fiscalYearId)
+                    .Select(f => f.FiscalYearDesc)
+                    .FirstOrDefaultAsync();
 
-            if (!int.TryParse(fiscalYearDesc, out var fiscalYear))
-                return null;
+                if (!int.TryParse(fiscalYearDesc, out var fiscalYear))
+                    return null;
 
-            // ใช้ Regex แยก Prefix + Number เพื่อจัดเรียงเหมือน SQL
-            static (string prefix, int number) SplitCode(string code)
+                // ใช้ Regex แยก Prefix + Number เพื่อจัดเรียงเหมือน SQL
+                static (string prefix, int number) SplitCode(string code)
+                {
+                    var match = Regex.Match(code ?? "", @"^([A-Z]+)(\d+)$", RegexOptions.IgnoreCase);
+                    return match.Success
+                        ? (match.Groups[1].Value, int.TryParse(match.Groups[2].Value, out var num) ? num : 0)
+                        : (code ?? "", 0);
+                }
+
+                var ProcessMaster = GetProcessMaster(fiscalYearId);
+
+                var coreProcesses = all
+                    .Where(p => p.ProcessTypeCode == "CORE")
+                    .OrderBy(p => SplitCode(p.ProcessGroupCode).prefix)
+                    .ThenBy(p => SplitCode(p.ProcessGroupCode).number)
+                    .Select(p => new ProcessGroupItem
+                    {
+                        ProcessGroupCode = p.ProcessGroupCode,
+                        ProcessGroupName = p.ProcessGroupName
+                    })
+                    .ToList();
+
+                var supportProcesses = all
+                    .Where(p => p.ProcessTypeCode == "SUPPORT")
+                    .OrderBy(p => SplitCode(p.ProcessGroupCode).prefix)
+                    .ThenBy(p => SplitCode(p.ProcessGroupCode).number)
+                    .Select(p => new ProcessGroupItem
+                    {
+                        ProcessGroupCode = p.ProcessGroupCode,
+                        ProcessGroupName = p.ProcessGroupName
+                    })
+                    .ToList();
+
+                return new WFProcessDetailModels
+                {
+                    FiscalYear = fiscalYear,
+                    CoreProcesses = coreProcesses,
+                    SupportProcesses = supportProcesses
+                    ,UserProcessReviewName = ProcessMaster.Result?.USER_PROCESS_REVIEW_NAME ?? string.Empty
+                };
+            } 
+            catch (Exception ex) 
             {
-                var match = Regex.Match(code ?? "", @"^([A-Z]+)(\d+)$", RegexOptions.IgnoreCase);
-                return match.Success
-                    ? (match.Groups[1].Value, int.TryParse(match.Groups[2].Value, out var num) ? num : 0)
-                    : (code ?? "", 0);
+               return null; // Handle the exception as needed, e.g., log it
+
             }
-
-            var coreProcesses = all
-                .Where(p => p.ProcessTypeCode == "CORE")
-                .OrderBy(p => SplitCode(p.ProcessGroupCode).prefix)
-                .ThenBy(p => SplitCode(p.ProcessGroupCode).number)
-                .Select(p => new ProcessGroupItem
-                {
-                    ProcessGroupCode = p.ProcessGroupCode,
-                    ProcessGroupName = p.ProcessGroupName
-                })
-                .ToList();
-
-            var supportProcesses = all
-                .Where(p => p.ProcessTypeCode == "SUPPORT")
-                .OrderBy(p => SplitCode(p.ProcessGroupCode).prefix)
-                .ThenBy(p => SplitCode(p.ProcessGroupCode).number)
-                .Select(p => new ProcessGroupItem
-                {
-                    ProcessGroupCode = p.ProcessGroupCode,
-                    ProcessGroupName = p.ProcessGroupName
-                })
-                .ToList();
-
-            return new WFProcessDetailModels
-            {
-                FiscalYear = fiscalYear,
-                CoreProcesses = coreProcesses,
-                SupportProcesses = supportProcesses
-            };
+    
         }
         public async Task<List<WFInternalControlProcessModels>> GetInternalControlProcessesByProcessID(int processId)
         {
@@ -664,6 +679,104 @@ namespace BatchAndReport.DAO
             Console.WriteLine($"ProcessDetails count: {result.CreateProcessStatusModels.Count}");
 
             return result.CreateProcessStatusModels;
+        }
+
+        public async Task<ProcessMasterModels?> GetProcessMaster(int? id = 0)
+        {
+            try
+            {
+                await using var connection = _connectionDAO.GetConnectionWorkflow();
+                await using var command = new SqlCommand(@"
+            SELECT 
+                PROCESS_MASTER_ID,
+                USER_PROCESS_REVIEW_NAME,
+                VISION_NAME,
+                CREATED_DATETIME,
+                UPDATED_DATETIME,
+                CREATED_BY,
+                UPDATED_BY,
+                FISCAL_YEAR_ID,
+                IS_DELETED
+            FROM PROCESS_MASTER
+            WHERE FISCAL_YEAR_ID = @FISCAL_YEAR_ID", connection);
+
+                command.Parameters.AddWithValue("@FISCAL_YEAR_ID", id ?? 0);
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return new ProcessMasterModels
+                    {
+                        PROCESS_MASTER_ID = reader["PROCESS_MASTER_ID"] is int pmid ? pmid : Convert.ToInt32(reader["PROCESS_MASTER_ID"]),
+                        FISCAL_YEAR_ID = reader["FISCAL_YEAR_ID"] as int? ?? (reader["FISCAL_YEAR_ID"] != DBNull.Value ? Convert.ToInt32(reader["FISCAL_YEAR_ID"]) : null),
+                         USER_PROCESS_REVIEW_NAME = reader["USER_PROCESS_REVIEW_NAME"] as string
+                        // Add other properties if you update ProcessMasterModels
+                    };
+                }
+            }
+            catch (Exception)
+            {
+                // Optionally log the exception
+                return null;
+            }
+            return null;
+        }
+        public async Task<AnnualProcessReviewModels?> GetAnnualProcessReview(int? id = 0)
+        {
+            try
+            {
+                await using var connection = _connectionDAO.GetConnectionWorkflow();
+                await using var command = new SqlCommand(@"
+            SELECT 
+                ANNUAL_PROCESS_REVIEW_ID,
+                PROCESS_REVIEW_DETAIL,
+                PROCESS_BACKGROUND,
+                OWNER_BusinessUnitId,
+                STATUS_CODE,
+                DETAIL,
+                CREATED_DATETIME,
+                UPDATED_DATETIME,
+                CREATED_BY,
+                UPDATED_BY,
+                FISCAL_YEAR_ID,
+                IS_DELETED,
+                IS_DRAFT,
+                APPROVE_REMARK
+            FROM ANNUAL_PROCESS_REVIEW
+            WHERE ANNUAL_PROCESS_REVIEW_ID = @ANNUAL_PROCESS_REVIEW_ID", connection);
+
+                command.Parameters.AddWithValue("@ANNUAL_PROCESS_REVIEW_ID", id ?? 0);
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return new AnnualProcessReviewModels
+                    {
+                        AnnualProcessReviewId = reader["ANNUAL_PROCESS_REVIEW_ID"] is int v1 ? v1 : Convert.ToInt32(reader["ANNUAL_PROCESS_REVIEW_ID"]),
+                        ProcessReviewDetail = reader["PROCESS_REVIEW_DETAIL"] as string,
+                        ProcessBackground = reader["PROCESS_BACKGROUND"] as string,
+                        OwnerBusinessUnitId = reader["OWNER_BusinessUnitId"] as string,
+                        StatusCode = reader["STATUS_CODE"] as string,
+                        Detail = reader["DETAIL"] as string,
+                        CreatedDateTime = reader["CREATED_DATETIME"] as DateTime? ?? (reader["CREATED_DATETIME"] != DBNull.Value ? Convert.ToDateTime(reader["CREATED_DATETIME"]) : null),
+                        UpdatedDateTime = reader["UPDATED_DATETIME"] as DateTime? ?? (reader["UPDATED_DATETIME"] != DBNull.Value ? Convert.ToDateTime(reader["UPDATED_DATETIME"]) : null),
+                        CreatedBy = reader["CREATED_BY"] as string,
+                        UpdatedBy = reader["UPDATED_BY"] as string,
+                        FiscalYearId = reader["FISCAL_YEAR_ID"] as int? ?? (reader["FISCAL_YEAR_ID"] != DBNull.Value ? Convert.ToInt32(reader["FISCAL_YEAR_ID"]) : null),
+                        IsDeleted = reader["IS_DELETED"] as bool? ?? (reader["IS_DELETED"] != DBNull.Value && Convert.ToBoolean(reader["IS_DELETED"])),
+                        IsDraft = reader["IS_DRAFT"] as bool? ?? (reader["IS_DRAFT"] != DBNull.Value && Convert.ToBoolean(reader["IS_DRAFT"])),
+                        ApproveRemark = reader["APPROVE_REMARK"] as string
+                    };
+                }
+            }
+            catch (Exception)
+            {
+                // Optionally log the exception
+                return null;
+            }
+            return null;
         }
     }
 

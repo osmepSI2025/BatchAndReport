@@ -21,7 +21,9 @@
         public string? Approver2Position { get; set; }
         public string? BusinessUnitOwner { get; set; }
 
-        public string? USER_PROCESS_REVIEW_NAME { get; set; }
+        public string? UserProcessReviewName { get; set; }
+        public string? PROCESS_REVIEW_DETAIL { get; set; }
+
     }
 
     public class ProcessGroupItem

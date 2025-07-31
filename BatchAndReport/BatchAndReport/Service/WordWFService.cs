@@ -1010,8 +1010,8 @@ public class WordWFService : IWordWFService
             var body = mainPart.Document.AppendChild(new Body());
 
             // Header
-            body.Append(CreateBoldParagraph(
-                $"การทบทวนกลุ่มกระบวนการหลักและกลุ่มกระบวนการสนับสนุน ประจำปีงบประมาณ {detail.FiscalYear}", 20));
+            body.Append(CreateBoldParagraph("" + detail.UserProcessReviewName + ""
+              , 20));
             body.Append(CreateEmptyLine());
 
             // === Core Process Table ===
@@ -1019,7 +1019,7 @@ public class WordWFService : IWordWFService
 
             // Row 1: กลุ่มกระบวนการหลัก + รหัส
             var coreRow1 = new TableRow();
-            coreRow1.Append(CreateCellFixed("กลุ่มกระบวนการหลัก\n(Core Process)", JustificationValues.Left, "10%", alignTop: true, rowspan: 2));
+            coreRow1.Append(CreateCellFixed("กลุ่มกระบวนการหลัก\n(Core Process)", JustificationValues.Left, "50px", alignTop: true, rowspan: 2));
 
             foreach (var core in detail.CoreProcesses)
             {
@@ -1051,7 +1051,7 @@ public class WordWFService : IWordWFService
                 if (i == 0)
                 {
                     row.Append(CreateCellFixed("กลุ่มกระบวนการสนับสนุน\n(Supporting Process)",
-                        JustificationValues.Left, "10%", alignTop: true, verticalMerge: "restart"));
+                        JustificationValues.Left, "50px", alignTop: true, verticalMerge: "restart"));
                 }
                 else
                 {
