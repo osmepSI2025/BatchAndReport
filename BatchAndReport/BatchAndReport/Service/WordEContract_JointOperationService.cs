@@ -244,7 +244,7 @@ public class WordEContract_JointOperationService
             font-size: 2.0em;
         }}
         .t-18 {{
-            font-size: 1.5em;
+            font-size: 2.5em;
         }}
         .t-22 {{
             font-size: 3.0em;
