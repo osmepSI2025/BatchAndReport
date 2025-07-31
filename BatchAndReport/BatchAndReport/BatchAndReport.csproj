@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <None Include="bin\Debug\net8.0\libwkhtmltox.dll" />
+    <None Include="wwwroot\Report\index.html" />
   </ItemGroup>
 
 </Project>

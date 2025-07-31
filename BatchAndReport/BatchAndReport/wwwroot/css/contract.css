@@ -1,4 +1,4 @@
-@font-face {
+﻿@font-face {
     font-family: 'THSarabunNew';
     src: url('/font/THSarabunNew.ttf') format('truetype');
     font-weight: normal;
@@ -6,17 +6,76 @@
 }
 body {
     font-family: 'THSarabunNew', 'TH SarabunPSK', 'Sarabun', sans-serif;
-    font-size: 22pt;
+    font-size: 16px;
 }
 .logo { text-align: center; margin-top: 40px; }
-.title { text-align: center; font-size: 44pt; font-weight: bold; margin-top: 40px; }
-.subtitle { text-align: center; font-size: 44pt; font-weight: bold; margin-top: 20px; }
-.subtitle2 { text-align: center; font-size: 44pt; font-weight: bold; margin-top: 20px; }
-.right { text-align: right; font-size: 28pt; margin-top: 10px; }
-.section { margin-top: 30px; font-size: 28pt; }
-.contract { margin-top: 20px; font-size: 28pt; text-indent: 2em; }
-.signature-table { width: 100%; margin-top: 60px; font-size: 28pt; }
-.signature-table td { text-align: center; vertical-align: top; padding: 20px; }
+.t-16 {
+    font-size: 1.3em;
+}
+
+.t-18 {
+    font-size: 1.5em;
+}
+
+.t-22 {
+    font-size: 1.8em;
+}
+
+.tab1 {
+    text-indent: 48px; /* Indent for the second line */
+}
+
+.tab2 {
+    text-indent: 96px; /* Indent for the second line */
+}
+
+.tab3 {
+    text-indent: 144px; /* Indent for the second line */
+}
+
+.d-flex {
+    display: flex;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.w-40 {
+    width: 40%;
+}
+
+.w-50 {
+    width: 50%;
+}
+
+.w-60 {
+    width: 60%;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.sign-single-right {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    left: 30%; /*ไปปรับตำแหน่งตามต้องการ*/
+}
+
+.sign-double {
+    display: flex;
+}
+
+.text-center-right-brake {
+    margin-left: 50%;
+    word-break: break-all;
+}
+
+.text-right {
+    text-align: right;
+}
 .watermark {
     position: fixed;
     top: 40%;
