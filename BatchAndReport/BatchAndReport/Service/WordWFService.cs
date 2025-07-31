@@ -222,7 +222,7 @@ public class WordWFService : IWordWFService
             foreach (var item in group)
             {
                 ws.Cells[$"B{startRow}"].Value = index++;
-                ws.Cells[$"C{startRow}"].Value = item.BusinessUnitId;
+                ws.Cells[$"C{startRow}"].Value = item.ProcessCode + " " + item.ProcessName;
                 startRow++;
             }
         }
@@ -667,18 +667,31 @@ public class WordWFService : IWordWFService
 
         if (!string.IsNullOrEmpty(detail.DiagramAttachFile))
         {
-            var base64 = ExtractBase64FromXml(detail.DiagramAttachFile);
-            if (!string.IsNullOrEmpty(base64))
+            string base64 = detail.DiagramAttachFile.Trim();
+
+            // 🔄 ล้าง prefix เช่น "data:image/png;base64,"
+            if (base64.Contains("base64,"))
+                base64 = base64.Substring(base64.IndexOf("base64,") + 7);
+
+            // 🔍 ตรวจ MIME Type จาก base64
+            string mimeType = "image/png";
+            if (base64.StartsWith("/9j")) mimeType = "image/jpeg";
+            else if (base64.StartsWith("R0lGOD")) mimeType = "image/gif";
+
+            try
             {
-                // ตรวจชนิด MIME เบื้องต้น
-                string mimeType = "image/png"; // default
-                if (base64.StartsWith("/9j")) mimeType = "image/jpeg";
-                else if (base64.StartsWith("R0lGOD")) mimeType = "image/gif";
+                // ทดสอบ decode base64
+                _ = Convert.FromBase64String(base64);
 
                 htmlBuilder.Append("<div class='diagram-image-container'><h3>ผังกระบวนการ</h3>");
                 htmlBuilder.Append($"<img src='data:{mimeType};base64,{base64}' alt='Diagram' style='max-width: 100%; height: auto;' /></div>");
             }
+            catch
+            {
+                htmlBuilder.Append("<p style='color:red;'>⚠ รูปภาพไม่สามารถแสดงได้ (base64 ผิดรูปแบบ)</p>");
+            }
         }
+
 
         htmlBuilder.Append("<table class='full-width-table'><thead><tr><th>จุดควบคุม<br>(Control Point)</th><th>กิจกรรมควบคุม<br>(Control Activity)</th><th>รายละเอียด</th></tr></thead><tbody>");
         if (detail.ControlPoints?.Any() == true)
