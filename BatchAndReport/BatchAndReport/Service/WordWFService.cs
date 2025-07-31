@@ -1,6 +1,9 @@
-﻿using BatchAndReport.Entities;
+﻿using BatchAndReport.DAO;
+using BatchAndReport.Entities;
 using BatchAndReport.Models;
 using BatchAndReport.Services;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -9,6 +12,7 @@ using OfficeOpenXml.Style;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using A = DocumentFormat.OpenXml.Drawing;
@@ -18,6 +22,14 @@ using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
 
 public class WordWFService : IWordWFService
 {
+    private readonly IConverter _pdfConverter;
+    public WordWFService(
+      IConverter pdfConverter
+    )
+    {
+        
+        _pdfConverter = pdfConverter;
+    }
     public byte[] GenAnnualWorkProcesses(WFProcessDetailModels detail)
     {
         using var stream = new MemoryStream();
@@ -30,13 +42,13 @@ public class WordWFService : IWordWFService
             var fiscalYear = detail.FiscalYear.ToString();
             var fiscalYearPrev = detail.FiscalYearPrevious;
 
-            body.Append(CreateHeading($"การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {fiscalYear}", 20));
+            body.Append(CreateHeading($"การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {fiscalYear}", 24));
             body.Append(CreateNumberedParagraph("รายละเอียดประเด็นการทบทวน", detail.ReviewDetails));
             body.Append(CreateEmptyLine());
             body.Append(CreateHeadingLeft($"การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {fiscalYear} ดังนี้", 20));
             body.Append(CreateThreeColumnTable(fiscalYearPrev, fiscalYear, detail.PrevProcesses, detail.CurrentProcesses, detail.ControlActivities));
 
-            body.Append(CreateItalicNote("หมายเหตุ: *หมายหมาย JD/ **หมายหมาย คว.2/***หมายหมายการอ้างถึงงานปัจจุบัน"));
+            body.Append(CreateItalicNote("หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม คว.2/***ทบทวนตามภารกิจงานปัจจุบัน"));
 
             body.Append(CreateEmptyLine());
 
@@ -184,21 +196,37 @@ public class WordWFService : IWordWFService
         int startRow = 4;
         int index = 1;
 
-        foreach (var item in detail)
+        var groupedDetails = detail
+        .GroupBy(item => $"{item.PlanCategoryName}\n\nวัตถุประสงค์: {item.Objective}");
+
+        foreach (var group in groupedDetails)
         {
-            // A: ชื่อแผน + วัตถุประสงค์
-            ws.Cells[$"A{startRow}"].Value = $"{item.PlanCategoryName}\n\nวัตถุประสงค์: {item.Objective}";
-            ws.Cells[$"A{startRow}"].Style.WrapText = true;
-            ws.Cells[$"A{startRow}"].Style.VerticalAlignment = ExcelVerticalAlignment.Top;
+            int groupStartRow = startRow;
+            int groupSize = group.Count();
 
-            // B: ลำดับ
-            ws.Cells[$"B{startRow}"].Value = index++;
+            // Merge cells in column A for this group
+            string mergedValue = group.Key;
+            string mergeRange = $"A{groupStartRow}:A{groupStartRow + groupSize - 1}";
+            ws.Cells[mergeRange].Merge = true;
+            ws.Cells[mergeRange].Value = mergedValue;
+            ws.Cells[mergeRange].Style.WrapText = true;
+            ws.Cells[mergeRange].Style.VerticalAlignment = ExcelVerticalAlignment.Top;
+            for (int i = groupStartRow; i < groupStartRow + groupSize; i++)
+            {
+                ws.Row(i).Height = 30; // Adjust height as needed
+            }
 
-            // C: BusinessUnitId
-            ws.Cells[$"C{startRow}"].Value = item.BusinessUnitId;
 
-            startRow++;
+
+            // Fill in columns B and C for each item in the group
+            foreach (var item in group)
+            {
+                ws.Cells[$"B{startRow}"].Value = index++;
+                ws.Cells[$"C{startRow}"].Value = item.BusinessUnitId;
+                startRow++;
+            }
         }
+
 
         // ===== Style B3:C3 =====
         using (var range = ws.Cells["B3:C3"])
@@ -540,27 +568,174 @@ public class WordWFService : IWordWFService
                 }
             }
 
-            if (!string.IsNullOrEmpty(detail.Header?.ProcessAttachFile))
-            {
-                var base64 = ExtractBase64FromXml(detail.Header.ProcessAttachFile);
-                if (!string.IsNullOrEmpty(base64))
-                {
-                    try
-                    {
-                        byte[] imageBytes = Convert.FromBase64String(base64);
-                        AddDiagramImagePage(body, imageBytes, mainPart);
-                    }
-                    catch (FormatException)
-                    {
-                        Console.WriteLine("Invalid base64 ProcessAttachFile.");
-                    }
-                }
-            }
-
             mainPart.Document.Save();
         }
 
         return stream.ToArray();
+    }
+
+    public async Task<byte[]> GenWorkProcessPointHtmlToPdf(WFSubProcessDetailModels detail)
+    {
+        if (detail == null)
+            throw new ArgumentNullException(nameof(detail), "WFSubProcessDetailModels cannot be null.");
+
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+        string logoBase64 = "";
+        if (System.IO.File.Exists(logoPath))
+        {
+            var bytes = System.IO.File.ReadAllBytes(logoPath);
+            logoBase64 = Convert.ToBase64String(bytes);
+        }
+        var lastRevDate = detail.Revisions?.LastOrDefault()?.DateTime;
+        var revDateText = lastRevDate.HasValue ? lastRevDate.Value.ToString("dd MMM yy", new CultureInfo("th-TH")) : "-";
+        var latestEditCount = detail.Revisions?.Count ?? 0;
+        var processName = detail.Header?.ProcessName ?? "-";
+        var processCode = detail.Header?.ProcessCode ?? "-";
+        var statusCode = detail.Header?.StatusCode ?? "-";
+        var createdBy = detail.Header?.CreatedBy ?? "-";
+        var unitName = detail.OwnerBusinessUnitName ?? "-";
+
+        var htmlBuilder = new StringBuilder();
+        htmlBuilder.Append(@"<!DOCTYPE html><html><head><meta charset='utf-8'><style>");
+        htmlBuilder.Append($"@font-face {{ font-family: 'THSarabunNew'; src: url('file:///{fontPath}') format('truetype'); }}");
+        htmlBuilder.Append(@"body { font-family: 'THSarabunNew', Arial, sans-serif; font-size: 16px; margin: 20px; line-height: 1.5; }");
+        htmlBuilder.Append(@".header-table, .full-width-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }");
+        htmlBuilder.Append(@".header-table td, .full-width-table th, .full-width-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }");
+        htmlBuilder.Append(@".full-width-table th { text-align: center; font-weight: bold; }");
+        htmlBuilder.Append(@".text-center { text-align: center; } .text-left { text-align: left; } .text-right { text-align: right; }");
+        htmlBuilder.Append(@".font-bold { font-weight: bold; } .font-size-20 { font-size: 20px; }");
+        htmlBuilder.Append(@".numbered-list { list-style-type: decimal; padding-left: 20px; } .empty-line { height: 10px; }");
+        htmlBuilder.Append(@".diagram-image-container { page-break-before: always; text-align: center; margin-top: 20px; }");
+        htmlBuilder.Append(@"</style></head><body>");
+
+        htmlBuilder.Append("<table class='header-table'>");
+        htmlBuilder.Append($"<tr><td class='text-left font-bold'><img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' /></td>");
+        htmlBuilder.Append($"<td class='text-left font-bold' style='width: 30%;'>ครั้งที่แก้ไข: {latestEditCount}<br>วันที่แก้ไข: {revDateText}<br>หน้า: 1/5</td></tr>");
+        htmlBuilder.Append($"<tr><td colspan='2' class='text-left' style='background-color: #DAF7FE;'>{processCode} {processName}</td></tr>");
+        htmlBuilder.Append($"<tr><td colspan='2' class='text-left'>หน่วยงาน: {unitName}</td></tr>");
+        htmlBuilder.Append("<tr><td colspan='2' class='text-left'><p class='text-left font-bold'>ตัวชี้วัดของกระบวนการ :</p><ul class='numbered-list'>");
+        if (detail.Evaluations?.Any() == true)
+            foreach (var eval in detail.Evaluations)
+                htmlBuilder.Append($"<li>{eval.EvaluationDesc}</li>");
+        else
+            htmlBuilder.Append("<li>-</li>");
+        htmlBuilder.Append("</ul></td></tr></table><div class='empty-line'></div>");
+
+        htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='4' style='background-color: #ddd;'>การอนุมัติเอกสาร</th></tr>");
+        htmlBuilder.Append("<tr><th>ลำดับ</th><th>ชื่อ</th><th>ตำแหน่ง</th><th>วันที่อนุมัติ</th></tr></thead><tbody>");
+        if (detail.Approvals?.Any() == true)
+        {
+            int i = 1;
+            foreach (var app in detail.Approvals)
+                htmlBuilder.Append($"<tr><td class='text-center'>{i++}</td><td>{app.EmployeeId}</td><td>{app.EmployeePositionId}</td><td>{app.UpdatedDateTime?.ToString("d MMM yy", new CultureInfo("th-TH")) ?? "-"}</td></tr>");
+        }
+        else
+            htmlBuilder.Append("<tr><td colspan='4' class='text-center'>ไม่มีข้อมูล</td></tr>");
+        htmlBuilder.Append("</tbody></table>");
+
+        htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='3' style='background-color: #ddd;'>ประวัติการแก้ไขเอกสาร</th></tr><tr><th>ครั้งที่</th><th>วันที่</th><th>รายละเอียด</th></tr></thead><tbody>");
+        if (detail.Revisions?.Any() == true)
+        {
+            int i = 1;
+            foreach (var rev in detail.Revisions)
+                htmlBuilder.Append($"<tr><td class='text-center'>{i++}</td><td class='text-center'>{rev.DateTime?.ToString("d MMM yy", new CultureInfo("th-TH"))}</td><td>{rev.EditDetail}</td></tr>");
+        }
+        else
+            htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
+        htmlBuilder.Append("</tbody></table>");
+
+        if (!string.IsNullOrEmpty(detail.DiagramAttachFile))
+        {
+            var base64 = ExtractBase64FromXml(detail.DiagramAttachFile);
+            if (!string.IsNullOrEmpty(base64))
+            {
+                // ตรวจชนิด MIME เบื้องต้น
+                string mimeType = "image/png"; // default
+                if (base64.StartsWith("/9j")) mimeType = "image/jpeg";
+                else if (base64.StartsWith("R0lGOD")) mimeType = "image/gif";
+
+                htmlBuilder.Append("<div class='diagram-image-container'><h3>ผังกระบวนการ</h3>");
+                htmlBuilder.Append($"<img src='data:{mimeType};base64,{base64}' alt='Diagram' style='max-width: 100%; height: auto;' /></div>");
+            }
+        }
+
+        htmlBuilder.Append("<table class='full-width-table'><thead><tr><th>จุดควบคุม<br>(Control Point)</th><th>กิจกรรมควบคุม<br>(Control Activity)</th><th>รายละเอียด</th></tr></thead><tbody>");
+        if (detail.ControlPoints?.Any() == true)
+        {
+            foreach (var cp in detail.ControlPoints)
+                htmlBuilder.Append($"<tr><td class='text-center'>{cp.ProcessControlCode}</td><td class='text-center'>{cp.ProcessControlActivity}</td><td>{cp.ProcessControlDetail}</td></tr>");
+        }
+        else
+            htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
+        htmlBuilder.Append("</tbody></table></body></html>");
+
+        var html = htmlBuilder.ToString();
+
+        var doc = new HtmlToPdfDocument()
+        {
+            GlobalSettings = {
+            PaperSize = PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new MarginSettings { Top = 20, Bottom = 20, Left = 20, Right = 20 }
+        },
+            Objects = {
+            new ObjectSettings {
+                HtmlContent = html,
+                FooterSettings = new FooterSettings {
+                    FontName = "THSarabunNew",
+                    FontSize = 8,
+                    Line = false,
+                    Center = "[page] / [toPage]"
+                }
+            }
+        }
+        };
+
+        if (_pdfConverter == null)
+            throw new Exception("PDF service (IConverter) is not available.");
+
+        var pdfBytes = _pdfConverter.Convert(doc);
+        return pdfBytes;
+    }
+
+
+
+    // Helper method to extract base64 from XML (unchanged from your original)
+    private string ExtractBase64FromXml(string xmlString)
+    {
+        try
+        {
+            XDocument doc = XDocument.Parse(xmlString);
+            XElement imageDataElement = doc.Descendants("ImageData").FirstOrDefault();
+            return imageDataElement?.Value;
+        }
+        catch (Exception)
+        {
+            return null; // Handle XML parsing errors gracefully
+        }
+    }
+
+    // You will need a CommonDAO or similar utility class for date conversion if not already present
+    public static class CommonDAO
+    {
+        public static string ToThaiDateString(DateTime date)
+        {
+            CultureInfo thCulture = new CultureInfo("th-TH");
+            return $"{date.Day} {date.ToString("MMMM", thCulture)} {date.Year + 543}";
+        }
+
+        public static string ToThaiDateStringCovert(DateTime date)
+        {
+            CultureInfo thCulture = new CultureInfo("th-TH");
+            return $"{date.Day} {date.ToString("MMMM", thCulture)} {date.Year + 543}";
+        }
+
+        public static string NumberToThaiText(decimal number)
+        {
+            // Simple example, for full conversion, you might need a more robust library
+            return $"({number.ToString("N2", new CultureInfo("th-TH"))} บาทถ้วน)";
+        }
     }
 
     private Table CreateProcessTables(WFProcessDetailModels detail)
@@ -680,20 +855,6 @@ public class WordWFService : IWordWFService
         }
 
         return filePaths;
-    }
-    private string? ExtractBase64FromXml(string xml)
-    {
-        try
-        {
-            var doc = new XmlDocument();
-            doc.LoadXml(xml);
-            var node = doc.SelectSingleNode("//content");
-            return node?.InnerText?.Trim();
-        }
-        catch
-        {
-            return null;
-        }
     }
 
     public byte[] GenWFProcessDetail(WFProcessDetailModels detail)
@@ -819,7 +980,7 @@ public class WordWFService : IWordWFService
                 {
                     Bold = bold ? new Bold() : null,
                     FontSize = new FontSize { Val = "20" }, // ~10pt
-                    RunFonts = new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" }
+                    RunFonts = new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" }
                 },
                 new Text(text) { Space = SpaceProcessingModeValues.Preserve }
             )
@@ -842,7 +1003,7 @@ public class WordWFService : IWordWFService
                     {
                         Bold = bold ? new Bold() : null,
                         FontSize = new FontSize { Val = "20" },
-                        RunFonts = new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" }
+                        RunFonts = new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" }
                     },
                     new Text(text)
                 )
@@ -888,7 +1049,7 @@ public class WordWFService : IWordWFService
                 new ParagraphProperties(new Justification { Val = align }),
                 new Run(
                     new RunProperties(
-                        new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                         new FontSize { Val = "20" }
                     ),
                     new Text(text ?? "-") { Space = SpaceProcessingModeValues.Preserve }
@@ -994,144 +1155,112 @@ public class WordWFService : IWordWFService
 
     private async Task AddDocumentHeader(MainDocumentPart mainPart, WFSubProcessDetailModels detail)
     {
-        try
+        var headerPart = mainPart.AddNewPart<HeaderPart>();
+        string headerPartId = mainPart.GetIdOfPart(headerPart);
+
+        var header = new Header();
+        var table = new Table();
+
+        // ➤ Table Properties (เต็มความกว้าง + เส้นกรอบ)
+        table.AppendChild(new TableProperties(
+            new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
+            new TableBorders(
+                new TopBorder { Val = BorderValues.Single },
+                new BottomBorder { Val = BorderValues.Single },
+                new LeftBorder { Val = BorderValues.Single },
+                new RightBorder { Val = BorderValues.Single },
+                new InsideHorizontalBorder { Val = BorderValues.Single },
+                new InsideVerticalBorder { Val = BorderValues.Single }
+            )
+        ));
+
+        // 🔹 โหลดโลโก้ (พร้อม bypass SSL validation)
+        var body = mainPart.Document.AppendChild(new Body());
+        // 1. Logo (centered)
+        var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+
+        // Add image part and feed image data
+        var imagePart = mainPart.AddImagePart(ImagePartType.Jpeg, "rIdLogo");
+        using (var imgStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
-            var headerPart = mainPart.AddNewPart<HeaderPart>();
-            string headerPartId = mainPart.GetIdOfPart(headerPart);
-
-            var header = new Header();
-            var table = new Table();
-
-            // Table Properties (full width + borders)
-            table.AppendChild(new TableProperties(
-                new TableWidth { Width = "5000", Type = TableWidthUnitValues.Pct },
-                new TableBorders(
-                    new TopBorder { Val = BorderValues.Single },
-                    new BottomBorder { Val = BorderValues.Single },
-                    new LeftBorder { Val = BorderValues.Single },
-                    new RightBorder { Val = BorderValues.Single },
-                    new InsideHorizontalBorder { Val = BorderValues.Single },
-                    new InsideVerticalBorder { Val = BorderValues.Single }
-                )
-            ));
-
-            // Load logo from local path test_logo.png
-            var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "test_logo.png");
-            if (!File.Exists(imagePath))
-            {
-                throw new FileNotFoundException($"Logo file not found: {imagePath}");
-            }
-
-            byte[] logoBytes;
-            try
-            {
-                logoBytes = await File.ReadAllBytesAsync(imagePath);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to read logo image: " + ex.Message, ex);
-            }
-
-            var imagePartx = mainPart.AddImagePart(ImagePartType.Png);
-            using (var ms = new MemoryStream(logoBytes))
-            {
-                imagePartx.FeedData(ms);
-            }
-
-            // Row 1: Logo + Text + Revision Info
-            var row1 = new TableRow();
-
-            var leftCell = new TableCell(
-                new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "66%" })
-            );
-
-            // Insert image (larger size for visibility)
-            leftCell.Append(
-                new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                    new Run(WordServiceSetting.CreateImage(
-                        mainPart.GetIdOfPart(imagePartx),
-                        600, 200))) // Increased size for better visibility
-            );
-
-            leftCell.Append(
-                new Paragraph(
-                    new ParagraphProperties(new Justification { Val = JustificationValues.Right }),
-                    new Run(
-                        new RunProperties(
-                            new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
-                            new FontSize { Val = "20" }, new Bold()
-                        ),
-                        new Text("ขั้นตอนการปฏิบัติงาน (Workflow)")
-                    )
-                )
-            );
-
-            // Vertical alignment top
-            if (leftCell.TableCellProperties == null)
-                leftCell.TableCellProperties = new TableCellProperties();
-
-            leftCell.TableCellProperties.Append(
-                new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Top }
-            );
-
-            // Right cell: Revision info
-            var rightCell = new TableCell(
-                new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "34%" })
-            );
-
-            var lastRev = detail.Revisions?.LastOrDefault()?.DateTime;
-            var revDateText = lastRev.HasValue ? lastRev.Value.ToString("d MMM yy", new CultureInfo("th-TH")) : "-";
-
-            rightCell.Append(
-                new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                    new Run(new Text("ครั้งที่แก้ไข: " + (detail.Revisions?.Count ?? 0)))),
-                new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                    new Run(new Text("วันที่แก้ไข: " + revDateText))),
-                new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                    new Run(new Text("หน้า: 1/5")))
-            );
-
-            row1.Append(leftCell, rightCell);
-            table.Append(row1);
-
-            // Row 2: ProcessCode + ProcessName
-            table.Append(new TableRow(new TableCell(
-                new TableCellProperties(
-                    new GridSpan { Val = 3 },
-                    new Shading { Fill = "DDEBF7", Val = ShadingPatternValues.Clear, Color = "auto" }
-                ),
-                new Paragraph(
-                    new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                    new Run(new Text($"{detail.Header?.ProcessCode ?? "-"} {detail.Header?.ProcessName ?? "-"}"))
-                )
-            )));
-
-            // Row 3: Owner Business Unit
-            table.Append(new TableRow(new TableCell(
-                new TableCellProperties(new GridSpan { Val = 3 }),
-                new Paragraph(
-                    new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
-                    new Run(new Text("หน่วยงาน: " + (detail.OwnerBusinessUnitName ?? "-")))
-                )
-            )));
-
-            // Append table to header
-            header.Append(table);
-            headerPart.Header = header;
-
-            // Section Properties: Attach header
-            var sectionProps = new SectionProperties();
-            sectionProps.Append(new HeaderReference { Type = HeaderFooterValues.Default, Id = headerPartId });
-
-            if (mainPart.Document.Body == null)
-                mainPart.Document.AppendChild(new Body());
-
-            mainPart.Document.Body.Append(sectionProps);
+            imagePart.FeedData(imgStream);
         }
-        catch (Exception ex)
-        {
-            throw new Exception("Error creating document header: " + ex.Message, ex);
-        }
+
+        // 🔹 Row 1: โลโก้ + ข้อความ + แก้ไขล่าสุด
+        var row1 = new TableRow();
+
+        // ✅ Left cell: logo + title
+        var leftCell = new TableCell(
+            new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "66%" }),
+            new Paragraph(new Run(WordServiceSetting.CreateImage(
+                 mainPart.GetIdOfPart(imagePart),
+                 240, 80))),
+            new Paragraph(
+                new ParagraphProperties(new Justification { Val = JustificationValues.Right }),
+                new Run(
+                    new RunProperties(
+                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK" },
+                        new FontSize { Val = "20" }, new Bold()
+                    ),
+                    new Text("ขั้นตอนการปฏิบัติงาน (Workflow)")
+                )
+            )
+        );
+
+        // ✅ Right cell: แสดงข้อมูลการแก้ไข
+        var rightCell = new TableCell(
+            new TableCellProperties(new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "34%" })
+        );
+
+        var lastRev = detail.Revisions?.LastOrDefault()?.DateTime;
+        var revDateText = lastRev.HasValue ? lastRev.Value.ToString("d MMM yy", new CultureInfo("th-TH")) : "-";
+
+        rightCell.Append(
+            new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                new Run(new Text("ครั้งที่แก้ไข: " + (detail.Revisions?.Count ?? 0)))),
+            new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                new Run(new Text("วันที่แก้ไข: " + revDateText))),
+            new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                new Run(new Text("หน้า: 1/5")))
+        );
+
+        row1.Append(leftCell, rightCell);
+        table.Append(row1);
+
+        // 🔹 Row 2: ProcessCode + ProcessName
+        table.Append(new TableRow(new TableCell(
+            new TableCellProperties(
+                new GridSpan { Val = 3 },
+                new Shading { Fill = "DDEBF7", Val = ShadingPatternValues.Clear, Color = "auto" }
+            ),
+            new Paragraph(
+                new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                new Run(new Text($"{detail.Header?.ProcessCode ?? "-"} {detail.Header?.ProcessName ?? "-"}"))
+            )
+        )));
+
+        // 🔹 Row 3: Owner Business Unit
+        table.Append(new TableRow(new TableCell(
+            new TableCellProperties(new GridSpan { Val = 3 }),
+            new Paragraph(
+                new ParagraphProperties(new Justification { Val = JustificationValues.Left }),
+                new Run(new Text("หน่วยงาน: " + (detail.OwnerBusinessUnitName ?? "-")))
+            )
+        )));
+
+        // Append table to header
+        header.Append(table);
+        headerPart.Header = header;
+
+        // Section Properties: Attach header
+        var sectionProps = new SectionProperties();
+        sectionProps.Append(new HeaderReference { Type = HeaderFooterValues.Default, Id = headerPartId });
+
+        // ❗สำคัญ: ต้องแน่ใจว่ามี Body แล้ว ก่อน Append
+        if (mainPart.Document.Body == null)
+            mainPart.Document.AppendChild(new Body());
+
+        mainPart.Document.Body.Append(sectionProps);
     }
     private Table CreateApprovalsTable(List<SubProcessReviewApproval> approvals)
     {
@@ -1221,7 +1350,7 @@ public class WordWFService : IWordWFService
             new Paragraph(
                 new ParagraphProperties(new Justification { Val = align }),
                 new Run(new RunProperties(
-                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                     new FontSize { Val = "20" }
                 ), new Text(text ?? "-") { Space = SpaceProcessingModeValues.Preserve })
             )
@@ -1265,13 +1394,47 @@ public class WordWFService : IWordWFService
             yield return new Paragraph(
                 new Run(
                     new RunProperties(
-                        new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                         new FontSize { Val = "20" }
                     ),
                     new Text($"{idx++}) {item}")
                 )
             );
         }
+    }
+
+    private Drawing CreateDrawingImage(string imagePartId, long cx, long cy)
+    {
+        return new Drawing(
+            new DW.Inline(
+                new DW.Extent { Cx = cx, Cy = cy },
+                new DW.EffectExtent(),
+                new DW.DocProperties { Id = 1U, Name = "Logo" },
+                new DW.NonVisualGraphicFrameDrawingProperties(new A.GraphicFrameLocks { NoChangeAspect = true }),
+                new A.Graphic(
+                    new A.GraphicData(
+                        new PIC.Picture(
+                            new PIC.NonVisualPictureProperties(
+                                new PIC.NonVisualDrawingProperties { Id = 0U, Name = "logo" },
+                                new PIC.NonVisualPictureDrawingProperties()
+                            ),
+                            new PIC.BlipFill(
+                                new A.Blip { Embed = imagePartId },
+                                new A.Stretch(new A.FillRectangle())
+                            ),
+                            new PIC.ShapeProperties(
+                                new A.Transform2D(
+                                    new A.Offset { X = 0L, Y = 0L },
+                                    new A.Extents { Cx = cx, Cy = cy }
+                                ),
+                                new A.PresetGeometry(new A.AdjustValueList()) { Preset = A.ShapeTypeValues.Rectangle }
+                            )
+                        )
+                    )
+                    { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }
+                )
+            )
+        );
     }
 
     private Table CreateHeaderBoxTable(WorkflowPoint workflow)
@@ -1391,7 +1554,7 @@ public class WordWFService : IWordWFService
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                     new FontSize { Val = fontSize.ToString() }
                 ),
                 new Text(text)
@@ -1407,7 +1570,7 @@ public class WordWFService : IWordWFService
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                     new FontSize { Val = fontSize.ToString() }
                 ),
                 new Text(text)
@@ -1424,7 +1587,7 @@ public class WordWFService : IWordWFService
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                     new FontSize { Val = "20" }
                 ),
                 new Text(title)));
@@ -1435,7 +1598,7 @@ public class WordWFService : IWordWFService
                 new Run(new Break()),
                 new Run(
                     new RunProperties(
-                        new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                        new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                         new FontSize { Val = "20" }
                     ),
                     new Text(item)
@@ -1500,7 +1663,7 @@ public class WordWFService : IWordWFService
                 new Paragraph(
                     new Run(
                         new RunProperties(
-                            new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                             new FontSize { Val = "20" } // 16pt
                         ),
                         new Text(text ?? "")
@@ -1558,7 +1721,7 @@ public class WordWFService : IWordWFService
             ),
             new Run(
                 new RunProperties(
-                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                     new FontSize { Val = "20" }
                 )
             )
@@ -1594,7 +1757,7 @@ public class WordWFService : IWordWFService
                     new Justification { Val = JustificationValues.Center }
                 ),
                 new Run(
-                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                     new FontSize { Val = "20" },
                     new Text(text ?? "")
                 )
@@ -1607,7 +1770,7 @@ public class WordWFService : IWordWFService
             new Run(
                 new RunProperties(
                     new Bold(),
-                    new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                    new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                     new FontSize { Val = fontSize.ToString() }
                 ),
                 new Text(text)
@@ -1620,7 +1783,7 @@ public class WordWFService : IWordWFService
             new Indentation { Left = "720" }
         ), new Run(
             new RunProperties(
-                new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+                new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
                 new FontSize { Val = "20" }
             ),
             new Text(text ?? "")
@@ -1633,7 +1796,7 @@ public class WordWFService : IWordWFService
     private RunProperties CreateDefaultRunProperties(bool bold = false, bool italic = false)
     {
         var runProps = new RunProperties(
-            new RunFonts { Ascii = "TH Sarabun New", HighAnsi = "TH Sarabun New" },
+            new RunFonts { Ascii = "TH SarabunPSK", HighAnsi = "TH SarabunPSK", EastAsia = "TH SarabunPSK", ComplexScript = "TH SarabunPSK" },
             new FontSize { Val = "20" }
         );
         if (bold) runProps.Append(new Bold());

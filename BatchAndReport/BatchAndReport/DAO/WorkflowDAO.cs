@@ -106,8 +106,29 @@ namespace BatchAndReport.DAO
                 ReviewDetails = review.ProcessReviewDetail?.Split('\n') ?? [],
                 ApproveRemarks = review.ApproveRemark?.Split('\n') ?? [],
                 PrevProcesses = prevProcessNames,
-                CurrentProcesses = details.Where(d => d.ProcessReviewTypeId != null).Select(d => d.ProcessName).ToList(),
-                ControlActivities = details.Where(d => d.IsCgdControlProcess == true).Select(d => d.ProcessName).ToList(),
+                CurrentProcesses = details
+                .Where(d => d.ProcessReviewTypeId != null)
+                .Select(d => d.ProcessReviewTypeId switch
+                {
+                    1 => d.ProcessName + "*",
+                    2 => d.ProcessName + "**",
+                    3 => d.ProcessName + "***",
+                    _ => d.ProcessName
+                })
+                .ToList(),
+
+                ControlActivities = details
+                .Where(d => d.IsCgdControlProcess == true)
+                .Select(d => d.ProcessReviewTypeId switch
+                {
+                    1 => d.ProcessName + "*",
+                    2 => d.ProcessName + "**",
+                    3 => d.ProcessName + "***",
+                    null => d.ProcessName,
+                    _ => d.ProcessName
+                })
+                .ToList(),
+
                 WorkflowProcesses = details.Where(d => d.IsWorkflow == true).Select(d => d.ProcessName).ToList(),
 
                 Approver1Name = approver1Id != null && approverInfo.ContainsKey(approver1Id) ? approverInfo[approver1Id].Name : null,
@@ -129,40 +150,55 @@ namespace BatchAndReport.DAO
         string? processCode = null,
         int? processCategory = null)
         {
-            var query = from detail in _k2context_workflow.AnnualProcessReviewDetails
-                        join review in _k2context_workflow.AnnualProcessReviews
-                            on detail.AnnualProcessReviewId equals review.AnnualProcessReviewId
-                        join plan_cat_detail in _k2context_workflow.PlanCategoriesDetails
-                            on review.OwnerBusinessUnitId equals plan_cat_detail.BusinessUnitId
-                        join plan_cat_detail1 in _k2context_workflow.PlanCategoriesDetails
-                            on plan_cat_detail.PlanCategoriesId equals plan_cat_detail1.PlanCategoriesId
-                        join plan_cat in _k2context_workflow.PlanCategories
-                            on plan_cat_detail.PlanCategoriesId equals plan_cat.PlanCategoriesId
-                        join pm in _k2context_workflow.ProcessMasterDetails
-                            on new { detail.ProcessGroupCode, FiscalYearId = review.FiscalYearId }
-                            equals new { pm.ProcessGroupCode, pm.FiscalYearId }
-                        where plan_cat_detail.IsActive == true
-                              && plan_cat_detail.IsDeleted == false
-                              && detail.IsCgdControlProcess == true
-                              && (fiscalYearId == null || review.FiscalYearId == fiscalYearId)
-                              && (businessUnitId == null || review.OwnerBusinessUnitId == businessUnitId)
-                              && (processTypeCode == null || pm.ProcessTypeCode == processTypeCode)
-                              && (processGroupCode == null || detail.ProcessGroupCode == processGroupCode)
-                              && (processCode == null || detail.ProcessCode == processCode)
-                              && (processCategory == null || detail.ProcessReviewTypeId == processCategory)
+            var workflowData = (from detail in _k2context_workflow.AnnualProcessReviewDetails
+                                join review in _k2context_workflow.AnnualProcessReviews
+                                    on detail.AnnualProcessReviewId equals review.AnnualProcessReviewId
+                                join plan_cat_detail in _k2context_workflow.PlanCategoriesDetails
+                                    on review.OwnerBusinessUnitId equals plan_cat_detail.BusinessUnitId
+                                join plan_cat_detail1 in _k2context_workflow.PlanCategoriesDetails
+                                    on plan_cat_detail.PlanCategoriesId equals plan_cat_detail1.PlanCategoriesId
+                                join plan_cat in _k2context_workflow.PlanCategories
+                                    on plan_cat_detail.PlanCategoriesId equals plan_cat.PlanCategoriesId
+                                join pm in _k2context_workflow.ProcessMasterDetails
+                                    on new { detail.ProcessGroupCode, FiscalYearId = review.FiscalYearId }
+                                    equals new { pm.ProcessGroupCode, pm.FiscalYearId }
+                                where plan_cat_detail.IsActive == true
+                                      && plan_cat_detail.IsDeleted == false
+                                      && detail.IsCgdControlProcess == true
+                                      && (fiscalYearId == null || review.FiscalYearId == fiscalYearId)
+                                      && (businessUnitId == null || review.OwnerBusinessUnitId == businessUnitId)
+                                      && (processTypeCode == null || pm.ProcessTypeCode == processTypeCode)
+                                      && (processGroupCode == null || detail.ProcessGroupCode == processGroupCode)
+                                      && (processCode == null || detail.ProcessCode == processCode)
+                                      && (processCategory == null || detail.ProcessReviewTypeId == processCategory)
+                                select new WFInternalControlProcessModels
+                                {
+                                    PlanCategoryName = plan_cat.PlanCategoriesName ?? string.Empty,
+                                    BusinessUnitId = plan_cat_detail1.BusinessUnitId ?? string.Empty,
+                                    Objective = plan_cat_detail1.Objective ?? string.Empty,
+                                    ProcessCode = detail.ProcessCode ?? string.Empty,
+                                    ProcessName = detail.ProcessName ?? string.Empty
+                                }).GroupBy(x => new { x.PlanCategoryName, x.BusinessUnitId, x.Objective, x.ProcessCode, x.ProcessName })
+                                .Select(g => g.First())
+                                .ToList();
+
+
+            var query = from wf in workflowData
+                        join bu in _dbContext.BusinessUnits.ToList()
+                            on wf.BusinessUnitId equals bu.BusinessUnitId
                         select new WFInternalControlProcessModels
                         {
-                            PlanCategoryName = plan_cat.PlanCategoriesName ?? string.Empty,
-                            BusinessUnitId = plan_cat_detail1.BusinessUnitId ?? string.Empty,
-                            Objective = plan_cat_detail1.Objective ?? string.Empty,
-                            ProcessCode = detail.ProcessCode ?? string.Empty,
-                            ProcessName = detail.ProcessName ?? string.Empty
+                            PlanCategoryName = wf.PlanCategoryName,
+                            BusinessUnitId = bu.NameTh ?? string.Empty,
+                            Objective = wf.Objective,
+                            ProcessCode = wf.ProcessCode,
+                            ProcessName = wf.ProcessName
                         };
 
-            return await query
-                .GroupBy(x => new { x.PlanCategoryName, x.BusinessUnitId, x.Objective, x.ProcessCode, x.ProcessName })
-                .Select(g => g.First())
-                .ToListAsync();
+            return await Task.FromResult(
+                query
+                    .ToList()
+            );
         }
         public async Task<WorkSystemModels> GetWorkSystemDataAsync(
         int? fiscalYearId,
