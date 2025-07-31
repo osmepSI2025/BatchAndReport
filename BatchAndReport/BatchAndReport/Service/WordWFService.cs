@@ -112,11 +112,11 @@ public class WordWFService : IWordWFService
         ws.Cells["A2:C2"].Merge = true;
         ws.Cells["A2"].Value = "กระบวนการ (ทบทวน ปี 2567)";
         ws.Cells["D2"].Value = "2566";
-        ws.Cells["E2"].Value = "ทบทวน";
-        ws.Cells["F2"].Value = "หน่วยงาน";
-        ws.Cells["G2"].Value = "Workflow";
-        ws.Cells["H2"].Value = "WI";
-        ws.Cells["I2"].Value = "ที่มา";
+        ws.Cells["E2"].Value = "หน่วยงาน";
+        ws.Cells["F2"].Value = "Workflow";
+        ws.Cells["G2"].Value = "WI";
+        ws.Cells["H2"].Value = "ที่มา";
+        ws.Cells["I2"].Value = "มีการใช้ระบบดิจิทัล";
         ws.Cells["A2:I2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
         ws.Cells["A2:I2"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(0, 84, 127));
         ws.Cells["A2:I2"].Style.Font.Color.SetColor(System.Drawing.Color.White);
@@ -154,11 +154,11 @@ public class WordWFService : IWordWFService
             ws.Cells[startRow, 2].Value = item.ProcessCode;
             ws.Cells[startRow, 3].Value = item.ProcessName;
             ws.Cells[startRow, 4].Value = item.PrevProcessCode;
-            ws.Cells[startRow, 5].Value = item.ReviewType;
-            ws.Cells[startRow, 6].Value = item.Department;
-            ws.Cells[startRow, 7].Value = item.Workflow;
-            ws.Cells[startRow, 8].Value = item.WI;
-            ws.Cells[startRow, 9].Value = ""; // ที่มา
+            ws.Cells[startRow, 5].Value = item.Department;
+            ws.Cells[startRow, 6].Value = item.Workflow;
+            ws.Cells[startRow, 7].Value = item.WI;
+            ws.Cells[startRow, 8].Value = ""; // ที่มา
+            ws.Cells[startRow, 9].Value = item.isDigital;
             startRow++;
             no++;
         }
@@ -167,6 +167,7 @@ public class WordWFService : IWordWFService
         ws.Cells.AutoFitColumns();
         return package.GetAsByteArray();
     }
+
     public byte[] GenInternalControlSystem(List<WFInternalControlProcessModels> detail)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;

@@ -207,11 +207,11 @@ namespace BatchAndReport.DAO
         string? processGroupCode = null,
         string? processCode = null,
         int? processCategory = null)
-            {
-                var result = new WorkSystemModels();
-                var processDetails = new List<ProcessDetailDto>();
+        {
+            var result = new WorkSystemModels();
+            var processDetails = new List<ProcessDetailDto>();
 
-                var query = @"
+            var query = @"
         SELECT 
             d.PROCESS_CODE,
             d.PROCESS_NAME,
@@ -220,7 +220,8 @@ namespace BatchAndReport.DAO
             CASE WHEN d.IS_WORKFLOW = 1 THEN N'✓' ELSE N'-' END AS Workflow,
             CASE WHEN d.PREV_IS_WORKFLOW = 1 THEN N'✓' ELSE N'-' END AS PrevWorkflow,
             CASE WHEN d.IS_WI = 1 THEN N'✓' ELSE N'-' END AS WI,
-            t.PROCESS_REVIEW_TYPE_NAME AS ReviewType
+            t.PROCESS_REVIEW_TYPE_NAME AS ReviewType,
+            CASE WHEN d.IS_DIGITAL = 1 THEN N'ใช่' ELSE N'ไม่ใช่' END AS isDigital
         FROM ANNUAL_PROCESS_REVIEW_DETAIL d
         INNER JOIN ANNUAL_PROCESS_REVIEW r
             ON d.ANNUAL_PROCESS_REVIEW_ID = r.ANNUAL_PROCESS_REVIEW_ID
@@ -240,47 +241,48 @@ namespace BatchAndReport.DAO
             AND (@PROCESS_CODE IS NULL OR d.PROCESS_CODE = @PROCESS_CODE)
             AND (@PROCESS_CATEGORY IS NULL OR d.PROCESS_REVIEW_TYPE_ID = @PROCESS_CATEGORY);";
 
-                var connStr = _k2context_workflow.Database.GetDbConnection().ConnectionString;
+            var connStr = _k2context_workflow.Database.GetDbConnection().ConnectionString;
 
-                using (var conn = new SqlConnection(connStr))
+            using (var conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                using (var cmd = new SqlCommand(query, conn))
                 {
-                    await conn.OpenAsync();
+                    cmd.Parameters.AddWithValue("@FISCAL_YEAR_ID", (object?)fiscalYearId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@OWNER_BusinessUnitId", (object?)businessUnitId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PROCESS_TYPE_CODE", (object?)processTypeCode ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PROCESS_GROUP_CODE", (object?)processGroupCode ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PROCESS_CODE", (object?)processCode ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PROCESS_CATEGORY", (object?)processCategory ?? DBNull.Value);
 
-                    using (var cmd = new SqlCommand(query, conn))
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
                     {
-                        cmd.Parameters.AddWithValue("@FISCAL_YEAR_ID", (object?)fiscalYearId ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@OWNER_BusinessUnitId", (object?)businessUnitId ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@PROCESS_TYPE_CODE", (object?)processTypeCode ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@PROCESS_GROUP_CODE", (object?)processGroupCode ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@PROCESS_CODE", (object?)processCode ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@PROCESS_CATEGORY", (object?)processCategory ?? DBNull.Value);
-
-                        using var reader = await cmd.ExecuteReaderAsync();
-                        while (await reader.ReadAsync())
+                        var dto = new ProcessDetailDto
                         {
-                            var dto = new ProcessDetailDto
-                            {
-                                ProcessCode = reader["PROCESS_CODE"]?.ToString(),
-                                ProcessName = reader["PROCESS_NAME"]?.ToString(),
-                                PrevProcessCode = reader["PREV_PROCESS_CODE"]?.ToString(),
-                                Department = reader["Department"]?.ToString(),
-                                Workflow = reader["Workflow"]?.ToString(),
-                                PrevWorkflow = reader["PrevWorkflow"]?.ToString(),
-                                WI = reader["WI"]?.ToString(),
-                                ReviewType = reader["ReviewType"]?.ToString()
-                            };
+                            ProcessCode = reader["PROCESS_CODE"]?.ToString(),
+                            ProcessName = reader["PROCESS_NAME"]?.ToString(),
+                            PrevProcessCode = reader["PREV_PROCESS_CODE"]?.ToString(),
+                            Department = reader["Department"]?.ToString(),
+                            Workflow = reader["Workflow"]?.ToString(),
+                            PrevWorkflow = reader["PrevWorkflow"]?.ToString(),
+                            WI = reader["WI"]?.ToString(),
+                            isDigital = reader["isDigital"]?.ToString()
+                        };
 
-                            processDetails.Add(dto);
-                        }
+                        processDetails.Add(dto);
                     }
                 }
-
-                result.ProcessDetails = processDetails;
-
-                Console.WriteLine($"ProcessDetails count: {result.ProcessDetails.Count}");
-
-                return result;
             }
+
+            result.ProcessDetails = processDetails;
+
+            Console.WriteLine($"ProcessDetails count: {result.ProcessDetails.Count}");
+
+            return result;
+        }
+
 
         public async Task<WFSubProcessDetailModels?> GetSubProcessDetailAsync(int subProcessId)
         {

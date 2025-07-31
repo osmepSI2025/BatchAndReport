@@ -27,6 +27,7 @@ namespace BatchAndReport.Models
         public string PrevWorkflow { get; set; }
         public string WI { get; set; }
         public string ReviewType { get; set; }
+        public string isDigital { get; set; }
     }
 
 }
