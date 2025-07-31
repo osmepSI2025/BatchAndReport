@@ -23,7 +23,7 @@ public class WorkflowProcessModel : PageModel
     public async Task<IActionResult> OnGetAsync(int id_param)
     {
         // Fetch related ProcessMasterDetails for idParam
-        var all = await _k2context_workflow.ProcessMasterDetails
+        var all = await _k2context_workflow.TempProcessMasterDetails
             .Where(p => p.ProcessMasterId == id_param)
             .ToListAsync();
 
@@ -48,6 +48,7 @@ public class WorkflowProcessModel : PageModel
 
         var detail = new WFProcessDetailModels
         {
+            USER_PROCESS_REVIEW_NAME = all.ToList()[0].USER_PROCESS_REVIEW_NAME?? string.Empty,
             FiscalYear = fiscalYear,
 
             CoreProcesses = all

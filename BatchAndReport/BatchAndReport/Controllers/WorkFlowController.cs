@@ -137,17 +137,8 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            //var wordBytes = await _serviceWFWord.GenWorkProcessPoint(detail);
-            //var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
-            //return File(wordBytes,
-            //    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            //    $"WorkProcessPoint.docx");
-            //return File(pdfBytes,
-                //"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                //$"WorkProcessPoint.pdf");
 
             var wordBytes = await _serviceWFWord.GenWorkProcessPointHtmlToPdf(detail);
-            //  return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
             return File(wordBytes, "application/pdf", "WorkProcessPoint.pdf");
         }
 

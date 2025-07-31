@@ -24,5 +24,16 @@ namespace BatchAndReport.DAO
             var connectionString = _configuration.GetConnectionString(connectionName);
             return new SqlConnection(connectionString);
         }
+        public SqlConnection GetConnectionWorkflow(string connectionName = "K2DBContext_Workflow")
+        {
+            var connectionString = _configuration.GetConnectionString(connectionName);
+            return new SqlConnection(connectionString);
+        }
+        public SqlConnection GetConnectionHR(string connectionName = "K2DBContext")
+        {
+            var connectionString = _configuration.GetConnectionString(connectionName);
+            return new SqlConnection(connectionString);
+        }
+        
     }
 }

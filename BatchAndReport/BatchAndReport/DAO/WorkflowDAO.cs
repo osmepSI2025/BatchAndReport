@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography.Xml;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -329,8 +330,40 @@ namespace BatchAndReport.DAO
             }
 
             model.Approvals = await _k2context_workflow.SubProcessReviewApprovals
-                .Where(x => x.SubProcessMasterId == subProcessId)
-                .ToListAsync();
+            .Where(x => x.SubProcessMasterId == subProcessId)
+            .ToListAsync();
+
+            var approverIds = model.Approvals
+                .Select(x => x.EmployeeId)
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct()
+                .ToList();
+
+            var approverInfo = await _dbContext.Employees
+                .Where(e => approverIds.Contains(e.EmployeeId))
+                .Include(e => e.Position)
+                .Select(e => new
+                {
+                    e.EmployeeId,
+                    Name = e.NameTh,
+                    Position = e.Position.NameTh
+                  ,
+                    E_Signature =e.E_Signature,
+                })
+                .ToDictionaryAsync(e => e.EmployeeId);
+
+            model.ApprovalsDetail = model.Approvals
+                .Select(x => new SubProcessReviewApprovalModels
+                {
+                    SubProcessReviewApprovalId = x.SubProcessReviewApprovalId,
+                    SubProcessMasterId = x.SubProcessMasterId,
+                    EmployeePositionId = x.EmployeePositionId,
+                    EmployeeId = x.EmployeeId,
+                    EmployeeName = !string.IsNullOrEmpty(x.EmployeeId) && approverInfo.ContainsKey(x.EmployeeId) ? approverInfo[x.EmployeeId].Name : null,
+                    EmployeePosition = !string.IsNullOrEmpty(x.EmployeeId) && approverInfo.ContainsKey(x.EmployeeId) ? approverInfo[x.EmployeeId].Position : null
+                    , E_Signature = !string.IsNullOrEmpty(x.EmployeeId) && approverInfo.ContainsKey(x.EmployeeId) ? approverInfo[x.EmployeeId].E_Signature : null,
+                })
+                .ToList();
 
             var revisionRaw = await _k2context_workflow.Set<SubProcessMasterHistory>()
                 .FromSqlRaw(@"
@@ -367,6 +400,12 @@ namespace BatchAndReport.DAO
                 .ToListAsync();
             model.DiagramAttachFile = header.DiagramAttachFile;
 
+            var revisionRelateLaws = await GetRalateLaws(subProcessId);
+            if (revisionRelateLaws.ToList().Count>0&& revisionRelateLaws!=null) 
+            {
+                model.Listrelate_Laws = revisionRelateLaws;
+            }
+        
             return model;
         }
 
@@ -456,6 +495,52 @@ namespace BatchAndReport.DAO
                 .GroupBy(x => new { x.PlanCategoryName, x.BusinessUnitId, x.Objective, x.ProcessCode, x.ProcessName })
                 .Select(g => g.First())
                 .ToListAsync();
+        }
+        public async Task<List<relate_LawsModels>> GetRalateLaws(int? id = 0)
+        {
+            var result = new List<relate_LawsModels>();
+            try
+            {
+                await using var connection = _connectionDAO.GetConnectionWorkflow();
+                await using var command = new SqlCommand(@"
+            SELECT 
+                RELATED_LAWS_ID,
+                SUB_PROCESS_MASTER_ID,
+                RELATED_LAWS_DESC,
+                CREATED_DATETIME,
+                UPDATED_DATETIME,
+                CREATED_BY,
+                UPDATED_BY,
+                IS_DELETED
+            FROM RELATED_LAWS
+            WHERE SUB_PROCESS_MASTER_ID = @SUB_PROCESS_MASTER_ID", connection);
+        
+
+                command.Parameters.AddWithValue("@SUB_PROCESS_MASTER_ID", id ?? 0);
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new relate_LawsModels
+                    {
+                        RELATED_LAWS_ID = reader["RELATED_LAWS_ID"] is int rlId ? rlId : Convert.ToInt32(reader["RELATED_LAWS_ID"]),
+                        SUB_PROCESS_MASTER_ID = reader["SUB_PROCESS_MASTER_ID"] is int spId ? spId : Convert.ToInt32(reader["SUB_PROCESS_MASTER_ID"]),
+                        RELATED_LAWS_DESC = reader["RELATED_LAWS_DESC"]?.ToString(),
+                        CREATED_DATETIME = reader["CREATED_DATETIME"] as DateTime? ?? (reader["CREATED_DATETIME"] != DBNull.Value ? Convert.ToDateTime(reader["CREATED_DATETIME"]) : null),
+                        UPDATED_DATETIME = reader["UPDATED_DATETIME"] as DateTime? ?? (reader["UPDATED_DATETIME"] != DBNull.Value ? Convert.ToDateTime(reader["UPDATED_DATETIME"]) : null),
+                        CREATED_BY = reader["CREATED_BY"]?.ToString(),
+                        UPDATED_BY = reader["UPDATED_BY"]?.ToString(),
+                        IS_DELETED = reader["IS_DELETED"] is bool b ? b : (reader["IS_DELETED"] != DBNull.Value && Convert.ToBoolean(reader["IS_DELETED"]))
+                    });
+                }
+            }
+            catch (Exception)
+            {
+                // Optionally log the exception
+                return new List<relate_LawsModels>();
+            }
+            return result;
         }
         public async Task<List<WFCreateProcessStatusModels>> GetCreateProcessStatusAsync(
             int? fiscalYearId,
@@ -580,7 +665,6 @@ namespace BatchAndReport.DAO
 
             return result.CreateProcessStatusModels;
         }
-
     }
 
 }

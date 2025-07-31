@@ -372,22 +372,21 @@ namespace BatchAndReport.Entities
                 entity.Property(e => e.CreatedDateTime)
                     .HasColumnName("CREATED_DATETIME");
 
-                entity.Property(e => e.UpdatedDateTime)
-                    .HasColumnName("UPDATED_DATETIME");
+              
 
                 entity.Property(e => e.CreatedBy)
                     .HasColumnName("CREATED_BY")
                     .HasMaxLength(50);
 
-                entity.Property(e => e.UpdatedBy)
-                    .HasColumnName("UPDATED_BY")
-                    .HasMaxLength(50);
+              
 
                 entity.Property(e => e.FiscalYearId)
                     .HasColumnName("FISCAL_YEAR_ID");
 
-                entity.Property(e => e.IsDeleted)
-                    .HasColumnName("IS_DELETED");
+
+                entity.Property(e => e.USER_PROCESS_REVIEW_NAME)
+                  .HasColumnName("USER_PROCESS_REVIEW_NAME")
+                  .HasMaxLength(500); 
             });
 
             modelBuilder.Entity<WfLookup>(entity =>

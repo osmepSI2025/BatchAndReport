@@ -43,6 +43,9 @@ namespace BatchAndReport.Entities
 
         public string? PositionId { get; set; }
         public virtual Position? Position { get; set; }
+
+        public string? E_Signature { get; set; }
+        
     }
 
     public class EmployeeMovement

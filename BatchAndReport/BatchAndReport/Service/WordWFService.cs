@@ -686,8 +686,35 @@ public class WordWFService : IWordWFService
         htmlBuilder.Append("<tr><td class='text-center'>ลงนาม</td>");
         for (int i = 0; i < 3; i++)
         {
-            var item = detail.Approvals?.ElementAtOrDefault(i);
-            htmlBuilder.Append($"<td class='text-center'>{(item != null ? "(ลายเซ็น)" : "-")}</td>");
+            var item = detail.ApprovalsDetail?.ElementAtOrDefault(i);
+           
+           
+            if (item.E_Signature != null && item.E_Signature != "")
+            {
+                var SignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", item.E_Signature);
+                if (System.IO.File.Exists(SignPath))
+                {
+                    var bytes = System.IO.File.ReadAllBytes(SignPath);
+                    var base64 = Convert.ToBase64String(bytes);
+                    htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
+                }
+                else
+                {
+                    var SignPathNoSign = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
+                    var bytes = System.IO.File.ReadAllBytes(SignPathNoSign);
+                    var base64 = Convert.ToBase64String(bytes);
+                    htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
+
+                }
+              
+            }
+            else 
+            {
+                var SignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
+                var bytes = System.IO.File.ReadAllBytes(SignPath);
+                var base64 = Convert.ToBase64String(bytes);
+                htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
+            }
         }
         htmlBuilder.Append("</tr>");
 
@@ -695,8 +722,8 @@ public class WordWFService : IWordWFService
         htmlBuilder.Append("<tr><td class='text-center'></td>");
         for (int i = 0; i < 3; i++)
         {
-            var item = detail.Approvals?.ElementAtOrDefault(i);
-            htmlBuilder.Append($"<td class='text-center'>{(item != null ? "(" + (item.EmployeeId ?? "-") + ")" : "-")}</td>");
+            var item = detail.ApprovalsDetail?.ElementAtOrDefault(i);
+            htmlBuilder.Append($"<td class='text-center'>{(item != null ? "(" + (item.EmployeeName ?? "-") + ")" : "-")}</td>");
         }
         htmlBuilder.Append("</tr>");
 
@@ -704,8 +731,8 @@ public class WordWFService : IWordWFService
         htmlBuilder.Append("<tr><td class='text-center'>ตำแหน่ง</td>");
         for (int i = 0; i < 3; i++)
         {
-            var item = detail.Approvals?.ElementAtOrDefault(i);
-            htmlBuilder.Append($"<td class='text-center'>{(item?.ApprovalTypeCode ?? "-")}</td>");
+            var item = detail.ApprovalsDetail?.ElementAtOrDefault(i);
+            htmlBuilder.Append($"<td class='text-center'>{(item?.EmployeePosition ?? "-")}</td>");
         }
         htmlBuilder.Append("</tr>");
         htmlBuilder.Append("</tbody></table>");
@@ -724,14 +751,15 @@ public class WordWFService : IWordWFService
 
         if (!string.IsNullOrEmpty(detail.DiagramAttachFile))
         {
-            string base64 = detail.DiagramAttachFile.Trim();
-
+            string strxml = detail.DiagramAttachFile.Trim();
+            var xdoc = XDocument.Parse(strxml);
+            string base64 = xdoc.Descendants("content").FirstOrDefault()?.Value?.Trim();
             // 🔄 ล้าง prefix เช่น "data:image/png;base64,"
             if (base64.Contains("base64,"))
                 base64 = base64.Substring(base64.IndexOf("base64,") + 7);
 
-            // 🔍 ตรวจ MIME Type จาก base64
-            string mimeType = "image/png";
+            // 🔍 ตรวจ MIME Type จาก base64  
+            string mimeType = "image/png";      
             if (base64.StartsWith("/9j")) mimeType = "image/jpeg";
             else if (base64.StartsWith("R0lGOD")) mimeType = "image/gif";
 
@@ -758,8 +786,33 @@ public class WordWFService : IWordWFService
         }
         else
             htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
-        htmlBuilder.Append("</tbody></table></body></html>");
+        htmlBuilder.Append("</tbody></table>");
 
+
+        if (detail.Listrelate_Laws != null && detail.Listrelate_Laws.Count > 0)
+        {
+            htmlBuilder.Append("<div class='tab1'><h3>กฎหมายที่เกี่ยวข้อง/ ที่บังคับใช้</h3>");
+            htmlBuilder.Append("<table class='full-width-table'><tbody>");
+            int i = 1;
+            foreach (var cp in detail.Listrelate_Laws)
+            {
+                htmlBuilder.Append($"<tr><td class='text-center'>{i}</td><td class='tab1'>{cp.RELATED_LAWS_DESC}</td></tr>");
+                i++;
+            }
+            htmlBuilder.Append("</tbody></table></div>");
+        }
+        else 
+        {
+            htmlBuilder.Append("<div class='tab1'><h3>กฎหมายที่เกี่ยวข้อง/ ที่บังคับใช้</h3>");
+            htmlBuilder.Append("<table class='full-width-table'><tbody>");
+         
+                htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
+          
+            htmlBuilder.Append("</tbody></table></div>");
+        }
+
+            // ปิด html
+            htmlBuilder.Append("</body></html>");
         var html = htmlBuilder.ToString();
 
         var doc = new HtmlToPdfDocument()

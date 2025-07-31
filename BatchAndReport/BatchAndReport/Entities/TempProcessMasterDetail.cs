@@ -11,11 +11,12 @@ namespace BatchAndReport.Entities
         public string? ProcessGroupCode { get; set; }
         public string? ProcessGroupName { get; set; }
         public DateTime? CreatedDateTime { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
+
         public string? CreatedBy { get; set; }
-        public string? UpdatedBy { get; set; }
+
         public int? FiscalYearId { get; set; }
-        public bool? IsDeleted { get; set; }
+        public string? USER_PROCESS_REVIEW_NAME { get; set; }
+        
     }
 
 
