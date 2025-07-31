@@ -51,7 +51,7 @@ namespace BatchAndReport.Controllers
             //    $"AnnualWorkProcesses.pdf");
 
             var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_HtmlToPDF(detail);
-            return File(pdfBytes, "application/pdf", "สัญญาร่วมดำเนินการ.pdf");
+            return File(pdfBytes, "application/pdf", "AnnualWorkProcesses.pdf");
         }
 
         [HttpGet("ExportWorkSystem")]
@@ -154,11 +154,10 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var wordBytes = _serviceWFWord.GenWFProcessDetail(detail);
-            var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
-            return File(pdfBytes,
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                $"WFProcessDetail.pdf");
+           // var wordBytes = _serviceWFWord.GenWFProcessDetail(detail);
+            //var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
+            var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenExportWorkProcesses_HtmlToPDF(detail);
+            return File(pdfBytes, "application/pdf", "ExportWorkProcesses.pdf");
         }
         [HttpGet("ExportCreateWFStatus")]
         public async Task<IActionResult> ExportCreateWFStatus(
