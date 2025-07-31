@@ -749,9 +749,9 @@ public class WordWFService : IWordWFService
         {
             htmlBuilder.Append("<div class='tab1'><h3>กฎหมายที่เกี่ยวข้อง/ ที่บังคับใช้</h3>");
             htmlBuilder.Append("<table class='full-width-table'><tbody>");
-
-            htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
-
+         
+                htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
+          
             htmlBuilder.Append("</tbody></table></div>");
         }
 
