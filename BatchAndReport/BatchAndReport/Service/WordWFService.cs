@@ -623,16 +623,36 @@ public class WordWFService : IWordWFService
         htmlBuilder.Append("</ul></td></tr></table><div class='empty-line'></div>");
 
         htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='4' style='background-color: #ddd;'>การอนุมัติเอกสาร</th></tr>");
-        htmlBuilder.Append("<tr><th>ลำดับ</th><th>ชื่อ</th><th>ตำแหน่ง</th><th>วันที่อนุมัติ</th></tr></thead><tbody>");
-        if (detail.Approvals?.Any() == true)
+        htmlBuilder.Append("<tr><th></th><th>ผู้จัดทำ</th><th>ผู้ตรวจสอบ</th><th>ผู้อนุมัติ</th></tr></thead><tbody>");
+
+        // ลงนาม
+        htmlBuilder.Append("<tr><td class='text-center'>ลงนาม</td>");
+        for (int i = 0; i < 3; i++)
         {
-            int i = 1;
-            foreach (var app in detail.Approvals)
-                htmlBuilder.Append($"<tr><td class='text-center'>{i++}</td><td>{app.EmployeeId}</td><td>{app.EmployeePositionId}</td><td>{app.UpdatedDateTime?.ToString("d MMM yy", new CultureInfo("th-TH")) ?? "-"}</td></tr>");
+            var item = detail.Approvals?.ElementAtOrDefault(i);
+            htmlBuilder.Append($"<td class='text-center'>{(item != null ? "(ลายเซ็น)" : "-")}</td>");
         }
-        else
-            htmlBuilder.Append("<tr><td colspan='4' class='text-center'>ไม่มีข้อมูล</td></tr>");
+        htmlBuilder.Append("</tr>");
+
+        // ชื่อ
+        htmlBuilder.Append("<tr><td class='text-center'></td>");
+        for (int i = 0; i < 3; i++)
+        {
+            var item = detail.Approvals?.ElementAtOrDefault(i);
+            htmlBuilder.Append($"<td class='text-center'>{(item != null ? "(" + (item.EmployeeId ?? "-") + ")" : "-")}</td>");
+        }
+        htmlBuilder.Append("</tr>");
+
+        // ตำแหน่ง
+        htmlBuilder.Append("<tr><td class='text-center'>ตำแหน่ง</td>");
+        for (int i = 0; i < 3; i++)
+        {
+            var item = detail.Approvals?.ElementAtOrDefault(i);
+            htmlBuilder.Append($"<td class='text-center'>{(item?.ApprovalTypeCode ?? "-")}</td>");
+        }
+        htmlBuilder.Append("</tr>");
         htmlBuilder.Append("</tbody></table>");
+
 
         htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='3' style='background-color: #ddd;'>ประวัติการแก้ไขเอกสาร</th></tr><tr><th>ครั้งที่</th><th>วันที่</th><th>รายละเอียด</th></tr></thead><tbody>");
         if (detail.Revisions?.Any() == true)
