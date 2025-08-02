@@ -143,6 +143,7 @@ namespace BatchAndReport.DAO
                 Approve1Date = history.FirstOrDefault(h => h.StatusCode == "APRH01")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
                 Approve2Date = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
                 PROCESS_REVIEW_DETAIL = AnnuProcessReview?.ProcessReviewDetail,
+                PROCESS_BACKGROUND = AnnuProcessReview?.ProcessBackground,
             };
         }
 

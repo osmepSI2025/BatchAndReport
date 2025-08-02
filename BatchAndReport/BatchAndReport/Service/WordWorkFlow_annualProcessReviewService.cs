@@ -51,9 +51,9 @@ public class WordWorkFlow_annualProcessReviewService
         {
             htmlBody.Append("</br>");
             htmlBody.Append("<div >ความเป็นมา</div>");
-            if (!string.IsNullOrEmpty(detail.PROCESS_REVIEW_DETAIL))
+            if (!string.IsNullOrEmpty(detail.PROCESS_BACKGROUND))
             {
-                var lines = detail.PROCESS_REVIEW_DETAIL
+                var lines = detail.PROCESS_BACKGROUND
                     .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
                     .Select(line => $"<div class='tab1'>{System.Net.WebUtility.HtmlEncode(line)}</div>");
                 htmlBody.Append(string.Join("", lines));
@@ -80,7 +80,7 @@ public class WordWorkFlow_annualProcessReviewService
         <tr style='background:#DDEBF7;font-weight:bold;text-align:center;'>
             <td>กระบวนการ ปี {detail.FiscalYearPrevious} (เดิม)</td>
             <td>กระบวนการ ปี {detail.FiscalYear} (ทบทวน)</td>
-            <td>กิจกรรมควบคุม (Control Activity)</td>
+            <td>กระบวนการที่กำหนดกิจกรรมควบคุม (Control Activity) ส่งกรมบัญชีกลาง</td>
         </tr>
     ");
         int rowCount = Math.Max(
@@ -98,7 +98,7 @@ public class WordWorkFlow_annualProcessReviewService
         htmlBody.Append("</table>");
 
         // Note
-        htmlBody.Append("<div style='font-style:italic;margin-bottom:12px;'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม คว.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>");
+        htmlBody.Append("<div style='font-style:italic;margin-bottom:12px;'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>");
 
         // Workflow processes
         if (detail.WorkflowProcesses?.Count > 0)
@@ -312,77 +312,77 @@ public class WordWorkFlow_annualProcessReviewService
         }
 
         // Section heading
-        htmlBody.Append($@"
-        <div>
-            การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้
-        </div>
-    ");
+    //    htmlBody.Append($@"
+    //    <div>
+    //        การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้
+    //    </div>
+    //");
 
-        // Three-column table
-        int rowCount = Math.Max(
-            Math.Max(detail.PrevProcesses?.Count ?? 0, detail.CurrentProcesses?.Count ?? 0),
-            detail.ControlActivities?.Count ?? 0
-        );
-        htmlBody.Append("<table class='w-100' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px;'>");
-        htmlBody.Append($@"
-        <tr style='background:#DDEBF7;font-weight:bold;text-align:center;'>
-            <td>กระบวนการ ปี {detail.FiscalYearPrevious} (เดิม)</td>
-            <td>กระบวนการ ปี {detail.FiscalYear} (ทบทวน)</td>
-            <td>กิจกรรมควบคุม (Control Activity)</td>
-        </tr>
-    ");
-        for (int i = 0; i < rowCount; i++)
-        {
-            htmlBody.Append("<tr>");
-            htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
-            htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
-            htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "")}</td>");
-            htmlBody.Append("</tr>");
-        }
-        htmlBody.Append("</table>");
+    //    // Three-column table
+    //    int rowCount = Math.Max(
+    //        Math.Max(detail.PrevProcesses?.Count ?? 0, detail.CurrentProcesses?.Count ?? 0),
+    //        detail.ControlActivities?.Count ?? 0
+    //    );
+    //    htmlBody.Append("<table class='w-100' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px;'>");
+    //    htmlBody.Append($@"
+    //    <tr style='background:#DDEBF7;font-weight:bold;text-align:center;'>
+    //        <td>กระบวนการ ปี {detail.FiscalYearPrevious} (เดิม)</td>
+    //        <td>กระบวนการ ปี {detail.FiscalYear} (ทบทวน)</td>
+    //        <td>กระบวนการที่กำหนดกิจกรรมควบคุม (Control Activity) ส่งกรมบัญชีกลาง</td>
+    //    </tr>
+    //");
+    //    for (int i = 0; i < rowCount; i++)
+    //    {
+    //        htmlBody.Append("<tr>");
+    //        htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
+    //        htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
+    //        htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "")}</td>");
+    //        htmlBody.Append("</tr>");
+    //    }
+    //    htmlBody.Append("</table>");
 
-        // Note
-        htmlBody.Append("<div style='font-style:italic;margin-bottom:12px;'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม คว.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>");
+        //// Note
+        //htmlBody.Append("<div style='font-style:italic;margin-bottom:12px;'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>");
 
-        // Workflow processes
-        if (detail.WorkflowProcesses?.Count > 0)
-        {
-            htmlBody.Append("<div>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>");
-            foreach (var wf in detail.WorkflowProcesses)
-                htmlBody.Append($"<div style='margin-left:32px;'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>");
-        }
+        //// Workflow processes
+        //if (detail.WorkflowProcesses?.Count > 0)
+        //{
+        //    htmlBody.Append("<div>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>");
+        //    foreach (var wf in detail.WorkflowProcesses)
+        //        htmlBody.Append($"<div style='margin-left:32px;'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>");
+        //}
 
-        // Comments
-        htmlBody.Append("<div>ความคิดเห็น</div>");
-        htmlBody.Append("<div style='margin-left:32px;'>☐ เห็นชอบการปรับปรุง</div>");
-        htmlBody.Append("<div style='margin-left:32px;'>☐ มีความเห็นเพิ่มเติม</div>");
+        //// Comments
+        //htmlBody.Append("<div>ความคิดเห็น</div>");
+        //htmlBody.Append("<div style='margin-left:32px;'>☐ เห็นชอบการปรับปรุง</div>");
+        //htmlBody.Append("<div style='margin-left:32px;'>☐ มีความเห็นเพิ่มเติม</div>");
 
-        // Approve remarks
-        if (detail.ApproveRemarks?.Length > 0)
-        {
-            foreach (var r in detail.ApproveRemarks)
-                htmlBody.Append($"<div style='margin-left:32px;'>{System.Net.WebUtility.HtmlEncode(r)}</div>");
-        }
+        //// Approve remarks
+        //if (detail.ApproveRemarks?.Length > 0)
+        //{
+        //    foreach (var r in detail.ApproveRemarks)
+        //        htmlBody.Append($"<div style='margin-left:32px;'>{System.Net.WebUtility.HtmlEncode(r)}</div>");
+        //}
 
         // Signature section
-        htmlBody.Append(@"
-        <table class='signature-table'>
-            <tr>
-                <td>
-                    <div>ลงชื่อ....................................................</div>
-                    <div>(" + (detail.Approver1Name ?? "(ชื่อผู้ลงนาม 1)") + @")</div>
-                    <div>" + (detail.Approver1Position ?? "ตำแหน่ง") + @"</div>
-                    <div>วันที่ " + (detail.Approve1Date ?? "ไม่พบข้อมูล") + @"</div>
-                </td>
-                <td>
-                    <div>ลงชื่อ....................................................</div>
-                    <div>(" + (detail.Approver2Name ?? "(ชื่อผู้ลงนาม 2)") + @")</div>
-                    <div>" + (detail.Approver2Position ?? "ตำแหน่ง") + @"</div>
-                    <div>วันที่ " + (detail.Approve2Date ?? "ไม่พบข้อมูล") + @"</div>
-                </td>
-            </tr>
-        </table>
-    ");
+    //    htmlBody.Append(@"
+    //    <table class='signature-table'>
+    //        <tr>
+    //            <td>
+    //                <div>ลงชื่อ....................................................</div>
+    //                <div>(" + (detail.Approver1Name ?? "(ชื่อผู้ลงนาม 1)") + @")</div>
+    //                <div>" + (detail.Approver1Position ?? "ตำแหน่ง") + @"</div>
+    //                <div>วันที่ " + (detail.Approve1Date ?? "ไม่พบข้อมูล") + @"</div>
+    //            </td>
+    //            <td>
+    //                <div>ลงชื่อ....................................................</div>
+    //                <div>(" + (detail.Approver2Name ?? "(ชื่อผู้ลงนาม 2)") + @")</div>
+    //                <div>" + (detail.Approver2Position ?? "ตำแหน่ง") + @"</div>
+    //                <div>วันที่ " + (detail.Approve2Date ?? "ไม่พบข้อมูล") + @"</div>
+    //            </td>
+    //        </tr>
+    //    </table>
+    //");
 
         // Compose full HTML
         var html = $@"

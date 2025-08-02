@@ -48,7 +48,7 @@ public class WordWFService : IWordWFService
             body.Append(CreateHeadingLeft($"การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {fiscalYear} ดังนี้", 20));
             body.Append(CreateThreeColumnTable(fiscalYearPrev, fiscalYear, detail.PrevProcesses, detail.CurrentProcesses, detail.ControlActivities));
 
-            body.Append(CreateItalicNote("หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม คว.2/***ทบทวนตามภารกิจงานปัจจุบัน"));
+            body.Append(CreateItalicNote("หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน"));
 
             body.Append(CreateEmptyLine());
 
@@ -732,34 +732,37 @@ public class WordWFService : IWordWFService
         for (int i = 0; i < 3; i++)
         {
             var item = detail.ApprovalsDetail?.ElementAtOrDefault(i);
-           
-           
-            if (item.E_Signature != null && item.E_Signature != "")
+
+            if (item!=null) 
             {
-                var SignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", item.E_Signature);
-                if (System.IO.File.Exists(SignPath))
+                if (item.E_Signature != null && item.E_Signature != "")
                 {
+                    var SignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", item.E_Signature);
+                    if (System.IO.File.Exists(SignPath))
+                    {
+                        var bytes = System.IO.File.ReadAllBytes(SignPath);
+                        var base64 = Convert.ToBase64String(bytes);
+                        htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
+                    }
+                    else
+                    {
+                        var SignPathNoSign = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
+                        var bytes = System.IO.File.ReadAllBytes(SignPathNoSign);
+                        var base64 = Convert.ToBase64String(bytes);
+                        htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
+
+                    }
+
+                }
+                else
+                {
+                    var SignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
                     var bytes = System.IO.File.ReadAllBytes(SignPath);
                     var base64 = Convert.ToBase64String(bytes);
                     htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
                 }
-                else
-                {
-                    var SignPathNoSign = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
-                    var bytes = System.IO.File.ReadAllBytes(SignPathNoSign);
-                    var base64 = Convert.ToBase64String(bytes);
-                    htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
-
-                }
-              
             }
-            else 
-            {
-                var SignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
-                var bytes = System.IO.File.ReadAllBytes(SignPath);
-                var base64 = Convert.ToBase64String(bytes);
-                htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
-            }
+          
         }
         htmlBuilder.Append("</tr>");
 

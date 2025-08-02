@@ -24,6 +24,7 @@
         public string? UserProcessReviewName { get; set; }
         public string? PROCESS_REVIEW_DETAIL { get; set; }
 
+        public string? PROCESS_BACKGROUND { get; set; }
     }
 
     public class ProcessGroupItem
