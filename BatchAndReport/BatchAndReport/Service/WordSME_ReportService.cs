@@ -478,7 +478,7 @@ SMEProjectDetailModels model
         <div  class='tab1'>{model.ProjectRationale ?? ""}</div>
         <div  class='tab1'><b>วัตถุประสงค์ของโครงการ :</b></div>
         <div  class='tab1'>{model.ProjectObjective ?? ""}</div>
-        <div  class='tab1'><b>กลุ่มเป้าหมาย (สามารถเลือกได้มากกว่า 1 กลุ่มเป้าหมาย):</b></div>");
+        <div  class='tab1'><b>กลุ่มเป้าหมาย</b></div>");
 
         if (model.TargetGroup!=null) 
         {
