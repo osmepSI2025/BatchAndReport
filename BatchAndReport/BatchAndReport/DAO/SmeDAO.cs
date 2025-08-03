@@ -115,9 +115,12 @@ namespace BatchAndReport.DAO
                 StartDate = Convert.ToDateTime(reader["START_DATE"]),
                 EndDate = Convert.ToDateTime(reader["END_DATE"]),
                 ProjectFocus = reader["PROJECT_HIGHLIGHT"]?.ToString(),
+
                 OperationArea = new List<string>(),
                 IndustrySector = new List<string>(),
                 OutputIndicators = new List<Indicator>() // Initialize OutputIndicators as a list of Indicator objects
+         
+            , FiscalYearDesc = reader["FISCAL_YEAR_DESC"]?.ToString(),
             };
 
             var requestId = reader["REQUEST_ID"]?.ToString();
@@ -289,6 +292,8 @@ namespace BatchAndReport.DAO
                     ProjectName = reader["PROJECT_NAME"]?.ToString(),
                     BudgetAmount = reader["BUDGET_AMOUNT"] as decimal?,
                     ProjectStatus = reader["ProjectStatus"]?.ToString()
+                    , Ministry_Id = reader["MINISTRY_ID"]?.ToString(),
+                    Ministry_Name = reader["MINISTRY_NAME"]?.ToString()
                 };
 
                 results.Add(item);

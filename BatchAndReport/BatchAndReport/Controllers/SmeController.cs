@@ -19,19 +19,22 @@ namespace BatchAndReport.Controllers
         private readonly ICallAPIService _serviceApi;
         private readonly IPdfService _servicePdf;
         private readonly IWordService _serviceWord;
+        private readonly WordSME_ReportService _wordSME_ReportService;
 
         public SmeController(
             SmeDAO smeDao,
             IApiInformationRepository repositoryApi,
             ICallAPIService serviceApi,
             IPdfService servicePdf,
-            IWordService serviceWord)
+            IWordService serviceWord,
+            WordSME_ReportService wordSME_ReportService)
         {
             _smeDao = smeDao;
             _repositoryApi = repositoryApi;
             _serviceApi = serviceApi;
             _servicePdf = servicePdf;
             _serviceWord = serviceWord;
+            _wordSME_ReportService = wordSME_ReportService;
         }
 
         [HttpGet("GetSME_Project")]
@@ -139,11 +142,17 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var wordBytes = _serviceWord.GenerateWord(detail);
-            var pdfBytes = _serviceWord.ConvertWordToPdf(wordBytes);
-            return File(pdfBytes,
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                $"SME_Project_{projectCode}.pdf");
+            //var wordBytes = _serviceWord.GenerateWord(detail);
+            //var pdfBytes = _serviceWord.ConvertWordToPdf(wordBytes);
+            //return File(pdfBytes,
+            //    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            //    $"SME_Project_{projectCode}.pdf");
+            var pdfBytes = await _wordSME_ReportService.ExportSMEProjectDetail_ToPDF(detail);
+            return File(
+                pdfBytes,
+                "application/pdf",
+                 $"SME_Project_{projectCode}.pdf"
+            );
         }
 
         [HttpGet("ExportSMESummaryWord")]
@@ -156,12 +165,19 @@ namespace BatchAndReport.Controllers
             if (projects == null || !projects.Any())
                 return NotFound("ไม่พบข้อมูลสำหรับปีงบประมาณที่ระบุ");
 
-            var bytes = _serviceWord.GenerateSummaryWord(projects, strategies, budYear); // Pass 'budYear' as the second argument
+          //  var bytes = _serviceWord.GenerateSummaryWord(projects, strategies, budYear); // Pass 'budYear' as the second argument
 
-            var pdfBytes = _serviceWord.ConvertWordToPdf(bytes);
+            //var pdfBytes = _serviceWord.ConvertWordToPdf(bytes);
+            //return File(
+            //    pdfBytes,
+            //    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            //    $"SME_Summary_{budYear}.pdf"
+            //);
+
+            var pdfBytes = await _wordSME_ReportService.GenerateSummarySME_Budget_ToPdf(projects, strategies, budYear);
             return File(
                 pdfBytes,
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/pdf",
                 $"SME_Summary_{budYear}.pdf"
             );
         }

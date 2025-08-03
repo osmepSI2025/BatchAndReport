@@ -7,6 +7,7 @@
     public string? DepartmentName { get; set; }
     public string? ActivityName { get; set; }
     public int FiscalYear { get; set; }
+  
     public decimal BudgetAmount { get; set; }
     public decimal? BudgetAmountApprove { get; set; }
     public string? StrategyDesc { get; set; }
@@ -48,6 +49,10 @@
     public List<Indicator>? OutcomeIndicators { get; set; }
     public List<Strategy>? Strategies { get; set; }
     public string? AdditionalNotes { get; set; }
+
+    // หาปี จาก FiscalYear Master
+    public string? FiscalYearDesc { get; set; }
+    public string? MinistryId { get; set; }
 }
 
 public class Indicator

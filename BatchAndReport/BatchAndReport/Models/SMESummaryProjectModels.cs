@@ -15,4 +15,7 @@ public class SMEStrategyDetailModels
     public string? ProjectName { get; set; }
     public decimal? BudgetAmount { get; set; }
     public string? ProjectStatus { get; set; }
+
+    public string? Ministry_Id { get; set; }
+    public string? Ministry_Name{ get; set; }
 }

@@ -92,6 +92,8 @@ builder.Services.AddScoped<WordEContract_ContactToDoThingService>();
 // add work flow
 
 builder.Services.AddScoped<WordWorkFlow_annualProcessReviewService>();
+//import SME
+builder.Services.AddScoped<WordSME_ReportService>();
 
 //Impoert EContract Report
 builder.Services.AddScoped<E_ContractReportDAO>();
