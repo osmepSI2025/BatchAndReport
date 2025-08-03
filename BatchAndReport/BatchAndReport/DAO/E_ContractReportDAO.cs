@@ -30,20 +30,21 @@ namespace BatchAndReport.DAO
         {
             var conn = _k2context_EContract.Database.GetDbConnection();
             await using var connection = new SqlConnection(conn.ConnectionString);
+            await connection.OpenAsync();
+
+            // 🔹 Load JOA main detail
             await using var command = new SqlCommand("sp_Preview_JOA", connection)
             {
                 CommandType = CommandType.StoredProcedure
             };
-
             command.Parameters.AddWithValue("@JOA_ID_INPUT", Joa_id);
-            await connection.OpenAsync();
 
             using var reader = await command.ExecuteReaderAsync();
             if (!await reader.ReadAsync()) return null;
 
             var detail = new E_ConReport_JOADetailModels
             {
-                JOA_ID = reader["JOA_ID"] as string,
+                JOA_ID = reader["JOA_ID"]?.ToString(),
                 Contract_Number = reader["Contract_Number"] as string,
                 Project_Name = reader["Project_Name"] as string,
                 Organization = reader["Organization"] as string,
@@ -69,11 +70,39 @@ namespace BatchAndReport.DAO
                 UpdateBy = reader["UpdateBy"] as string,
                 Flag_Delete = reader["Flag_Delete"] as bool?,
                 Request_ID = reader["Request_ID"] as string,
-                Contract_Status = reader["Contract_Status"] as string
+                Contract_Status = reader["Contract_Status"] as string,
+                Signatories = new List<E_ConReport_SignatoryModels>()
             };
+
+            // 🔹 Convert JOA_ID to int for @con_id
+            int conId = 0;
+            _ = int.TryParse(detail.JOA_ID, out conId);
+
+            await reader.CloseAsync();
+
+            // 🔹 Load Signatory list from SP_Preview_Signatory_List_Report
+            await using var signatoryCmd = new SqlCommand("SP_Preview_Signatory_List_Report", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+            signatoryCmd.Parameters.AddWithValue("@con_id", conId);
+            signatoryCmd.Parameters.AddWithValue("@con_type", "JOA"); // ใช้ค่าตามที่ระบบระบุ
+
+            using var signatoryReader = await signatoryCmd.ExecuteReaderAsync();
+            while (await signatoryReader.ReadAsync())
+            {
+                detail.Signatories.Add(new E_ConReport_SignatoryModels
+                {
+                    Signatory_Name = signatoryReader["Signatory_Name"] as string,
+                    Position = signatoryReader["Position"] as string,
+                    BU_UNIT = signatoryReader["BU_UNIT"] as string,
+                    DS_FILE = signatoryReader["DS_FILE"] as string
+                });
+            }
 
             return detail;
         }
+
 
         public async Task<List<E_ConReport_JOAPoposeModels>> GetJOAPoposeAsync(string? Joa_id = "0")
         {

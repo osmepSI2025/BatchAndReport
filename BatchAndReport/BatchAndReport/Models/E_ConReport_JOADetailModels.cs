@@ -29,6 +29,7 @@
         public bool? Flag_Delete { get; set; }
         public string? Request_ID { get; set; }
         public string? Contract_Status { get; set; }
+        public List<E_ConReport_SignatoryModels> Signatories { get; set; } = new();
     }
     public class E_ConReport_JOAPoposeModels
     {
@@ -36,5 +37,12 @@
         public int? JOA_ID { get; set; }
         public string? Detail { get; set; }
        
+    }
+    public class E_ConReport_SignatoryModels
+    {
+        public string? Signatory_Name { get; set; }
+        public string? Position { get; set; }
+        public string? BU_UNIT { get; set; }
+        public string? DS_FILE { get; set; }
     }
 }

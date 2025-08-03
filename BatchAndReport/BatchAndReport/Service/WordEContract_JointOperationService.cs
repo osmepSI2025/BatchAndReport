@@ -6,6 +6,7 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Spire.Doc.Documents;
+using System.Text;
 using System.Threading.Tasks;
 using static SkiaSharp.HarfBuzz.SKShaper;
 using Paragraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
@@ -225,6 +226,45 @@ public class WordEContract_JointOperationService
         var strDateTH = CommonDAO.ToThaiDateString(dataResult.Contract_SignDate ?? DateTime.Now);
         var purposeList = await _eContractReportDAO.GetJOAPoposeAsync(conId);
 
+        var signatoryHtml = new StringBuilder();
+
+        foreach (var signer in dataResult.Signatories)
+        {
+            string signatureHtml;
+
+            if (!string.IsNullOrEmpty(signer.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+            {
+                try
+                {
+                    // ตัดเอาเฉพาะ Base64 ในแท็ก <content>...</content>
+                    var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                    var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                    signatureHtml = $@"<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+                }
+                catch
+                {
+                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ)</div>";
+                }
+            }
+            else
+            {
+                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ)</div>";
+            }
+
+            signatoryHtml.AppendLine($@"
+    <div class='sign-single-right'>
+        {signatureHtml}
+        <div class='t-16 text-center tab1'>({signer.Signatory_Name})</div>
+        <div class='t-16 text-center tab1'>{signer.BU_UNIT}</div>
+    </div>");
+        }
+
+
+
         var html = $@"<html>
 <head>
     <meta charset='utf-8'>
@@ -367,21 +407,9 @@ public class WordEContract_JointOperationService
  
 </br>
 </br>
-<div class='sign-single-right'> 
-        <div class=' t-16 text-center tab1'>(ลงชื่อ){dataResult.OSMEP_Signer} </div> 
-        <div class=' t-16 text-center tab1'>({dataResult.OSMEP_Signer})</div> 
-        <div class=' t-16 text-center tab1'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div> 
-      </div>
-      <div class='sign-single-right'> 
-        <div class=' t-16 text-center tab1'>(ลงชื่อ) {dataResult.OSMEP_Signer} </div> 
-        <div class=' t-16 text-center tab1'>(                         )</div> 
-        <div class=' t-16 text-center tab1'>หน่วยงาน</div> 
-      </div>
-      <div class='sign-single-right'> 
-        <div class=' t-16 text-center tab1'>(ลงชื่อ){dataResult.Contract_Signer}</div> 
-        <div class=' t-16 text-center tab1'>(                         )</div> 
-     
-      </div>
+<!-- 🔹 รายชื่อผู้ลงนาม -->
+{signatoryHtml.ToString()}
+
 </div>
 </body>
 </html>
