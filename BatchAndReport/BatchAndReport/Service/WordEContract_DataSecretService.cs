@@ -1,4 +1,6 @@
 ﻿using BatchAndReport.DAO;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 
@@ -6,12 +8,15 @@ public class WordEContract_DataSecretService
 {
     private readonly WordServiceSetting _w;
     E_ContractReportDAO _eContractReportDAO;
+    private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
     public WordEContract_DataSecretService(WordServiceSetting ws
          , E_ContractReportDAO eContractReportDAO
+          , IConverter pdfConverter
         )
     {
         _w = ws;
         _eContractReportDAO = eContractReportDAO;
+         _pdfConverter = pdfConverter;
     }
     #region  4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ
     public async Task<byte[]> OnGetWordContact_DataSecretService(string id)
@@ -264,6 +269,144 @@ public class WordEContract_DataSecretService
             return stream.ToArray();
         }
 
+    }
+
+    public async Task<byte[]> OnGetWordContact_DataSecretService_ToPDF(string id) 
+    {
+        var result = await _eContractReportDAO.GetNDAAsync(id);
+        if (result == null)
+        {
+            throw new Exception("NDA data not found.");
+        }
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+        var cssPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css", "contract.css").Replace("\\", "/");
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+        string logoBase64 = "";
+        if (System.IO.File.Exists(logoPath))
+        {
+            var bytes = System.IO.File.ReadAllBytes(logoPath);
+            logoBase64 = Convert.ToBase64String(bytes);
+        }
+
+        var strDateTH = CommonDAO.ToThaiDateString(result.Sign_Date ?? DateTime.Now);
+       
+
+        var html = $@"<html>
+<head>
+    <meta charset='utf-8'>
+  
+     <style>
+        @font-face {{
+            font-family: 'THSarabunNew';
+            src: url('file:///{fontPath}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }}
+         body {{
+            font-size: 22px;
+            font-family: 'THSarabunNew', Arial, sans-serif;
+         
+        }}
+        .t-16 {{
+            font-size: 1.5em;
+        }}
+        .t-18 {{
+            font-size: 1.7em;
+        }}
+        .t-22 {{
+            font-size: 1.9em;
+        }}
+        .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
+        .tab2 {{ text-indent: 96px;  word-break: break-all; }}
+        .tab3 {{ text-indent: 144px;  word-break: break-all; }}
+        .tab4 {{ text-indent: 192px;  word-break: break-all;}}
+        .d-flex {{ display: flex; }}
+        .w-100 {{ width: 100%; }}
+        .w-40 {{ width: 40%; }}
+        .w-50 {{ width: 50%; }}
+        .w-60 {{ width: 60%; }}
+        .text-center {{ text-align: center; }}
+        .sign-single-right {{
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            left: 20%;
+        }}
+        .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
+        .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
+
+        .sign-double {{ display: flex; }}
+        .text-center-right-brake {{
+            margin-left: 50%;
+            word-break: break-all;
+        }}
+        .text-right {{ text-align: right; }}
+        .contract, .section {{
+            margin: 12px 0;
+            line-height: 1.7;
+        }}
+        .section {{
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: left;
+            margin-top: 24px;
+        }}
+        .signature-table {{
+            width: 100%;
+            margin-top: 32px;
+            border-collapse: collapse;
+        }}
+        .signature-table td {{
+            padding: 16px;
+            text-align: center;
+            vertical-align: top;
+            font-size: 1.1em;
+        }}
+     .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
+        .logo-table td {{ border: none; }}
+ 
+
+    </style>
+</head><body>
+
+//////HTML
+
+</body>
+</html>
+";
+
+        if (_pdfConverter == null)
+            throw new Exception("PDF service is not available.");
+
+        var doc = new HtmlToPdfDocument()
+        {
+            GlobalSettings = {
+            PaperSize = PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+            Objects = {
+            new ObjectSettings() {
+                HtmlContent = html,
+                FooterSettings = new FooterSettings
+                {
+                    FontName = "THSarabunNew",
+                    FontSize = 6,
+                    Line = false,
+                    Center = "[page] / [toPage]"
+                }
+            }
+        }
+        };
+
+        var pdfBytes = _pdfConverter.Convert(doc);
+        return pdfBytes;
     }
     #endregion  4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ
 }

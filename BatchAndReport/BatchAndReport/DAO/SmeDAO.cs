@@ -115,12 +115,21 @@ namespace BatchAndReport.DAO
                 StartDate = Convert.ToDateTime(reader["START_DATE"]),
                 EndDate = Convert.ToDateTime(reader["END_DATE"]),
                 ProjectFocus = reader["PROJECT_HIGHLIGHT"]?.ToString(),
-
+                ProjectStatus = reader["PROJECT_STATUS"]?.ToString(),
                 OperationArea = new List<string>(),
                 IndustrySector = new List<string>(),
-                OutputIndicators = new List<Indicator>() // Initialize OutputIndicators as a list of Indicator objects
-         
+                OutputIndicators = new List<Indicator>(),
+                OutcomeIndicators = new List<Indicator>(),// Initialize OutputIndicators as a list of Indicator objects
+                SME_ISSUE_CODE  = reader["PROJECT_STATUS"]?.ToString()
             , FiscalYearDesc = reader["FISCAL_YEAR_DESC"]?.ToString(),
+                IS_BUDGET_USED_FLAG = reader["IS_BUDGET_USED_FLAG"]?.ToString(),
+                OrgPartner = reader["ORG_PARTNER"]?.ToString(),
+                DaysDiff = reader["DaysDiff"]?.ToString(),
+                Partner_Name = reader["Partner_Name"]?.ToString(),
+                RoleDescription =  reader["Role_Description"]?.ToString(),
+                BUDGET_SOURCE_NAME= reader["BUDGET_SOURCE_NAME"]?.ToString(),
+                STRATEGY_DESC = reader["STRATEGY_DESC"]?.ToString(),
+                Topic = reader["Topic"]?.ToString(),
             };
 
             var requestId = reader["REQUEST_ID"]?.ToString();
@@ -206,7 +215,7 @@ namespace BatchAndReport.DAO
                     };
 
                     if (!string.IsNullOrEmpty(indicator.Name))
-                        detail.OutputIndicators.Add(indicator); // Add Indicator object to the list
+                        detail.OutcomeIndicators.Add(indicator); // Add Indicator object to the list
                 }
                 await indReader1.CloseAsync();
 
@@ -231,8 +240,29 @@ namespace BatchAndReport.DAO
                         detail.Strategies.Add(strategy); // Add Indicator object to the list
                 }
                 await stdReader.CloseAsync();
+
+                // สาขาเป้าหมาย
+                await using var branchPoint = new SqlCommand(
+                    "SELECT STRING_AGG(sptb.TARGET_BRANCH_DESC, ', ') AS TARGET_BRANCH_LIST FROM SME_PROJECT_TARGET_BRANCH sptb WHERE REQUEST_ID = @RequestId",
+                    connection
+                );
+                branchPoint.Parameters.AddWithValue("@RequestId", requestId);
+
+                string? targetBranchList = null;
+                using var branchReader = await branchPoint.ExecuteReaderAsync();
+                if (await branchReader.ReadAsync())
+                {
+                    targetBranchList = branchReader["TARGET_BRANCH_LIST"]?.ToString();
+                }
+                await branchReader.CloseAsync();
+
+                // Assign to model property
+                detail.TARGET_BRANCH_LIST = targetBranchList;
+
             }
 
+            
+            
             return detail;
         }
 
@@ -299,6 +329,7 @@ namespace BatchAndReport.DAO
                 results.Add(item);
             }
 
+             
             return results;
         }
 
@@ -341,7 +372,95 @@ namespace BatchAndReport.DAO
         }
 
 
+        public async Task<List<OwnerAndContactDetailsModels>> GetOwnerAndContactAsync(string? Mou_id = "0")
+        {
+            try
+            {
+
+                var result = new List<OwnerAndContactDetailsModels>();
+                await using var connection = _connectionDAO.GetConnectionK2DBContext_SME();
+                await using var command = new SqlCommand(@"
+        SELECT spc.FULL_NAME 
+,spc.[POSITION] 
+,spc.OFFICE_NUMBER 
+,spc.MOBILE_NUMBER 
+,spc.EMAIL 
+,spc.line_id
+,spc.RESPONSIBILITY_TYPE_CODE
+,LK1.LookupValue 
+FROM SME_PROJECT_REQUEST SPR
+LEFT JOIN SME_PROJECT_CONTACT spc  ON SPR.REQUEST_ID  = SPC.REQUEST_ID 
+ LEFT JOIN SME_Lookup LK1 ON SPc.RESPONSIBILITY_TYPE_CODE = LK1.LookupCode AND LK1.LookupType = 'REQUEST_CONTACT'
+WHERE PROJECT_CODE =  @PROJECT_CODE", connection);
+
+                command.Parameters.AddWithValue("@PROJECT_CODE", Mou_id ?? "0");
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new OwnerAndContactDetailsModels
+                    {
+                    ContactEmail = reader["EMAIL"]?.ToString(),
+                    ContactLineId = reader["line_id"]?.ToString(),
+                    ContactMobile = reader["MOBILE_NUMBER"]?.ToString(),
+                    ContactName = reader["FULL_NAME"]?.ToString(),
+                    ContactPhone = reader["OFFICE_NUMBER"]?.ToString(),
+                    ContactPosition = reader["POSITION"]?.ToString(),
+                    OwnerName = reader["FULL_NAME"]?.ToString(),
+                    OwnerPosition = reader["POSITION"]?.ToString(),
+                    OwnerPhone = reader["OFFICE_NUMBER"]?.ToString(),
+                    OwnerMobile = reader["MOBILE_NUMBER"]?.ToString(),
+                    OwnerEmail = reader["EMAIL"]?.ToString(),
+                     OwnerLineId = reader["line_id"]?.ToString(),
+       
+                    });
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+        }
 
 
+        public async Task<LookUpModels?> GetLookupAsync(string lookupType, string? lookupcode = "0")
+        {
+            try
+            {
+                LookUpModels? result = null;
+                await using var connection = _connectionDAO.GetConnectionK2DBContext_SME();
+                await using var command = new SqlCommand(@"
+            SELECT Id, LookupCode, LookupType, LookupValue, FlagDelete, CreateBy, UpdateBy
+            FROM SME_Lookup
+            WHERE LookupType = @lookupType AND LookupCode = @lookupCode", connection);
+
+                command.Parameters.AddWithValue("@lookupType", lookupType ?? "0");
+                command.Parameters.AddWithValue("@lookupCode", lookupcode ?? "0");
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    result = new LookUpModels
+                    {
+                        Id = reader["Id"] != DBNull.Value ? Convert.ToInt32(reader["Id"]) : 0,
+                        LookupCode = reader["LookupCode"]?.ToString(),
+                        LookupType = reader["LookupType"]?.ToString(),
+                        LookupValue = reader["LookupValue"]?.ToString(),
+                        FlagDelete = reader["FlagDelete"]?.ToString(),
+                        CreateBy = reader["CreateBy"]?.ToString(),
+                        UpdateBy = reader["UpdateBy"]?.ToString()
+                    };
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
     }
 }

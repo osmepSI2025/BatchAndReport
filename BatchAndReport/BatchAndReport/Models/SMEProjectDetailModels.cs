@@ -53,6 +53,18 @@
     // หาปี จาก FiscalYear Master
     public string? FiscalYearDesc { get; set; }
     public string? MinistryId { get; set; }
+    public string? IS_BUDGET_USED_FLAG { get; set; }
+    public string? SME_ISSUE_CODE { get; set; }
+
+    public string? TARGET_BRANCH_LIST { get; set; }
+    public string? DaysDiff { get; set; }
+    public string? Partner_Name { get; set; }
+    public string? BUDGET_SOURCE_NAME { get; set; }
+
+    public string? Topic { get; set; }
+    public string? STRATEGY_DESC { get; set; }
+    
+
 }
 
 public class Indicator
@@ -67,4 +79,22 @@ public class Strategy
     public string? StrategyId { get; set; }
     public string? Topic { get; set; }
     public string? StrategyDesc { get; set; }
+}
+
+public class OwnerAndContactDetailsModels
+{
+    // 🔽 Additional fields
+    public List<string>? Plans { get; set; }
+    public string? OwnerName { get; set; }
+    public string? OwnerPosition { get; set; }
+    public string? OwnerPhone { get; set; }
+    public string? OwnerMobile { get; set; }
+    public string? OwnerEmail { get; set; }
+    public string? OwnerLineId { get; set; }
+    public string? ContactName { get; set; }
+    public string? ContactPosition { get; set; }
+    public string? ContactPhone { get; set; }
+    public string? ContactMobile { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? ContactLineId { get; set; }
 }

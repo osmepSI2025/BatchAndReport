@@ -7,18 +7,22 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Globalization;
 using System.Text;
+using System.Xml.Linq;
 public class WordSME_ReportService
 {
     private readonly WordServiceSetting _w;
     private readonly Econtract_Report_GADAO _e;
     private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
+    private readonly SmeDAO _smeDao;
     public WordSME_ReportService(WordServiceSetting ws, Econtract_Report_GADAO e
         , IConverter pdfConverter
+        , SmeDAO smeDao
         )
     {
         _w = ws;
         _e = e;
         _pdfConverter = pdfConverter; // กำหนดค่า DI สำหรับ PDF Converter
+        _smeDao = smeDao;
     }
 
 
@@ -50,14 +54,14 @@ public class WordSME_ReportService
 
         // ------------------ Part 1: Summary ------------------
         htmlBody.Append($@"
-    <div class='t-16 text-center'><b>ภาพรวมโครงการและงบประมาณเพื่อการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (SME)</br>
+    <div class='t-16 text-center' class='t-16'><b>ภาพรวมโครงการและงบประมาณเพื่อการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (SME)</br>
     ภายใต้แผนปฏิบัติการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ประจำปี พ.ศ. {year}</b></div>
     <hr>
-    <table style='width: 100%;'>
-        <tr style='font-weight:bold;background:#f0f0f0;'>
-            <th>ประเด็นการส่งเสริม SME</th>
-            <th>จำนวนโครงการ</th>
-            <th>งบประมาณ (ล้านบาท)</th>
+    <table style='width: 100%; border:1px solid #000; border-collapse:collapse;'>
+        <tr style='font-weight:bold;background:#f0f0f0;' class='t-16'>
+            <th style='border:1px solid #000;'>ประเด็นการส่งเสริม SME</th>
+            <th style='border:1px solid #000;'>จำนวนโครงการ</th>
+            <th style='border:1px solid #000;'>งบประมาณ (ล้านบาท)</th>
         </tr>
 ");
 
@@ -65,20 +69,20 @@ public class WordSME_ReportService
         foreach (var row in projects)
         {
             htmlBody.Append($@"
-        <tr>
-            <td>ประเด็นที่{i} {row.IssueName ?? ""}</td>
-            <td>{row.ProjectCount?.ToString("N0", culture) ?? "0"}</td>
-            <td class='text-right' >{(row.Budget.GetValueOrDefault() / 1_000_000).ToString("N4", culture)}</td>
+        <tr class='t-16'>
+            <td style='border:1px solid #000;' >ประเด็นที่{i} {row.IssueName ?? ""}</td>
+            <td style='border:1px solid #000;'>{row.ProjectCount?.ToString("N0", culture) ?? "0"}</td>
+            <td class='text-right' style='border:1px solid #000;'>{(row.Budget.GetValueOrDefault() / 1_000_000).ToString("N4", culture)}</td>
         </tr>
     ");
             i++;
         }
 
         htmlBody.Append($@"
-    <tr style='font-weight:bold;background:#f0f0f0;'>
-        <td>รวมทั้งหมด</td>
-        <td>{totalProjects.ToString("N0", culture)}</td>
-        <td class='text-right'>{(totalBudget / 1_000_000).ToString("N4", culture)}</td>
+    <tr style='font-weight:bold;background:#f0f0f0;' class='t-16'>
+        <td style='border:1px solid #000;'>รวมทั้งหมด</td>
+        <td style='border:1px solid #000;'>{totalProjects.ToString("N0", culture)}</td>
+        <td class='text-right' style='border:1px solid #000;'>{(totalBudget / 1_000_000).ToString("N4", culture)}</td>
     </tr>
 </table>
 <br>
@@ -86,30 +90,36 @@ public class WordSME_ReportService
 <br>
 ");
         // ------------------ Part 2: Strategy Detail ------------------
-        var grouped = strategyList.GroupBy(p => p.Topic).ToList();
+        var grouped = strategyList.GroupBy(p => p.Topic).Distinct().ToList();
         int topicIndex = 1;
         foreach (var topicGroup in grouped)
         {
+            var TopictotalProject = topicGroup.Count();
+            var TopicsumBudget = topicGroup.Sum(p => p.BudgetAmount);
             htmlBody.Append($@"<div class='t-16'><b>ประเด็นการส่งเสริมที่ {topicIndex} {topicGroup.Key}</b></div>");
+            htmlBody.Append($@"<div class='t-16'>จำนวน {TopictotalProject} โครงการ งบประมาณ {TopicsumBudget:N2} ล้านบาท</div>");
+            htmlBody.Append($@"</br>");
+
             var strategyGrouped = topicGroup.GroupBy(p => p.StrategyDesc).ToList();
             int strategyIndex = 1;
             foreach (var strategyGroup in strategyGrouped)
             {
                 var totalProject = strategyGroup.Count();
                 var sumBudget = strategyGroup.Sum(p => p.BudgetAmount);
+              
+           
 
-                htmlBody.Append($@"<div >จำนวน {totalProject} โครงการ งบประมาณ {sumBudget:N2} ล้านบาท</div>");
-
-                htmlBody.Append($@"<div class='t-16'><b>กลยุทธ์ที่ {strategyIndex} {strategyGroup.Key}</b></div>");
+                htmlBody.Append($@"<div class='t-16'><b>กลยุทธ์ที่ {strategyIndex} {strategyGroup.Key}</b></div>");        
+                htmlBody.Append($@"<div  class='t-16'>จำนวน {totalProject} โครงการ งบประมาณ {sumBudget:N2} ล้านบาท</div>");
 
                 // Table
                 htmlBody.Append($@"
-            <table style='width: 100%;'>
-                <tr>
-                    <th>หน่วยงาน/โครงการ</th>
-                    <th>งบประมาณ</th>
-                </tr>
-        ");
+    <table style='width: 100%; border:1px solid #000; border-collapse:collapse;'>
+        <tr>
+            <th style='border:1px solid #000;' class='t-16'>หน่วยงาน/โครงการ</th>
+            <th style='border:1px solid #000;' class='t-16'>งบประมาณ</th>
+        </tr>
+");
 
                 var deptGrouped = strategyGroup.GroupBy(p => new { p.DepartmentCode, p.Department }).ToList();
                 int projectIndex = 1;
@@ -117,19 +127,19 @@ public class WordSME_ReportService
                 {
                     var deptTotal = deptGroup.Sum(p => p.BudgetAmount);
                     htmlBody.Append($@"
-                <tr style='font-weight:bold;background:#e0e0e0;'>
-                    <td>{deptGroup.Key.Department}</td>
-                    <td class='text-right' >{deptTotal:N2}</td>
-                </tr>
-            ");
+        <tr style='font-weight:bold;background:#e0e0e0;'>
+            <td style='border:1px solid #000;' class='t-16'>{deptGroup.Key.Department}</td>
+            <td style='border:1px solid #000; text-align:right;' class='t-16'>{deptTotal:N2}</td>
+        </tr>
+    ");
                     foreach (var proj in deptGroup)
                     {
                         htmlBody.Append($@"
-                    <tr>
-                        <td style='padding-left:32px;'>{projectIndex}. {proj.ProjectName}</td>
-                        <td class='text-right'>{proj.BudgetAmount:N2}</td>
-                    </tr>
-                ");
+            <tr>
+                <td style='border:1px solid #000; padding-left:32px;' class='t-16'>{projectIndex}. {proj.ProjectName}</td>
+                <td style='border:1px solid #000; text-align:right;' class='t-16'>{proj.BudgetAmount:N2}</td>
+            </tr>
+        ");
                         projectIndex++;
                     }
                 }
@@ -138,7 +148,7 @@ public class WordSME_ReportService
                 strategyIndex++;
             }
             topicIndex++;
-            htmlBody.Append("<div style='page-break-after:always;'></div>");
+            //htmlBody.Append("<div style='page-break-after:always;'></div>");
         }
         // Compose full HTML
         var html = $@"
@@ -263,23 +273,65 @@ SMEProjectDetailModels model
         var htmlBody = new StringBuilder();
 
 
+
         // Heading
         htmlBody.Append($@"
         <div class='t-22 text-center'><b>แบบฟอร์มการจัดทำข้อเสนอ ประจำปีงบประมาณ {model.FiscalYearDesc}</b></div>
         <br>
         <div>กระทรวง : {model.MinistryName}</div>
         <div>หน่วยงาน : {model.DepartmentName}</div>
-        <div>ชื่อกิจกรรม : {model.ActivityName}</div>
+        <div>ชื่อกิจกรรม : {model.ProjectName}</div>
         <div>งบประมาณ : {model.BudgetAmount:N0}</div>
-        <br>
-        <div><b>□ ใช้งบประมาณ</b></div>
-        <div class='tab1'>□ xxxxxxxxxxx</div>
-        <div class='tab1'>□ xxxxxxxxxxx</div>
-        <div>□ ไม่ใช้งบประมาณ</div>
-        <div><b>สถานภาพโครงการ : □ โครงการใหม่ □ โครงการต่อเนื่อง □ โครงการเดิม □ โครงการ Flagship</b></div>
-        <br>
+     
+
+    
     ");
 
+        if (model.IS_BUDGET_USED_FLAG == "Y")
+        {
+            htmlBody.Append($@"
+       <div>  ใช้งบประมาณ :  {model.BUDGET_SOURCE_NAME}</div>
+     
+    ");
+        }
+        else
+        {
+            htmlBody.Append($@"
+  
+        <div>  ไม่ใช้งบประมาณ</div>
+   
+   
+    ");
+        }
+        if (model.ProjectStatus == "01")
+        {
+            htmlBody.Append(@" 
+        <div>สถานภาพโครงการ : โครงการใหม่ </div>
+    ");
+                
+        }
+        else if (model.ProjectStatus == "02")
+        {
+            htmlBody.Append(@" 
+        <div>สถานภาพโครงการ :โครงการต่อเนื่อง </div>
+    ");
+        }
+        else if (model.ProjectStatus == "03")
+        {
+            htmlBody.Append(@" 
+        <div>สถานภาพโครงการ :โครงการเดิม </div>
+    ");
+        }
+        else if (model.ProjectStatus == "04") 
+        {
+
+            htmlBody.Append(@" 
+        <div>สถานภาพโครงการ : โครงการ Flagship</div>
+    ");
+        }
+
+
+        var OwnerModel = await _smeDao.GetOwnerAndContactAsync(model.ProjectCode);
         // Responsible Table
         htmlBody.Append($@"
 <table style='width:100%; border-collapse:collapse; border:1px solid #000;'>
@@ -289,43 +341,109 @@ SMEProjectDetailModels model
                 <td style='border:1px solid #000;text-align:center;'>ผู้ประสานงาน</td>
             </tr>
             <tr>
-                <td style='border:1px solid #000;'>ชื่อ-นามสกุล</td>
-                <td style='border:1px solid #000;'>{model.OwnerName}</td>
-                <td style='border:1px solid #000;'>{model.ContactName}</td>
+                <td style='border:1px solid #000;text-align:center;'>ชื่อ-นามสกุล</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerName??""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactName ?? ""}</td>
             </tr>
             <tr>
-                <td style='border:1px solid #000;'>ตำแหน่ง</td>
-                <td style='border:1px solid #000;'>{model.OwnerPosition}</td>
-                <td style='border:1px solid #000;'>{model.ContactPosition}</td>
+                <td style='border:1px solid #000;text-align:center;'>ตำแหน่ง</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerPosition}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactPosition ?? ""}</td>
             </tr>
             <tr>
-                <td style='border:1px solid #000;'>โทรศัพท์</td>
-                <td style='border:1px solid #000;'>{model.OwnerPhone}</td>
-                <td style='border:1px solid #000;'>{model.ContactPhone}</td>
+                <td style='border:1px solid #000;text-align:center;'>โทรศัพท์</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerPhone ?? ""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactPhone ?? ""}</td>
             </tr>
             <tr>
-                <td style='border:1px solid #000;'>มือถือ</td>
-                <td style='border:1px solid #000;'>{model.OwnerMobile}</td>
-                <td style='border:1px solid #000;'>{model.ContactMobile}</td>
+                <td style='border:1px solid #000;text-align:center;'>มือถือ</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerMobile ?? ""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactMobile ?? ""}</td>
             </tr>
             <tr>
-                <td style='border:1px solid #000;'>Email</td>
-                <td style='border:1px solid #000;'>{model.OwnerEmail}</td>
-                <td style='border:1px solid #000;'>{model.ContactEmail}</td>
+                <td style='border:1px solid #000;text-align:center;'>Email</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerEmail ?? ""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactEmail ?? ""}</td>
             </tr>
             <tr>
-                <td style='border:1px solid #000;'>Line ID</td>
-                <td style='border:1px solid #000;'>{model.OwnerLineId}</td>
-                <td style='border:1px solid #000;'>{model.ContactLineId}</td>
+                <td style='border:1px solid #000;text-align:center;'>Line ID</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerLineId ?? ""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactLineId ?? ""}</td>
             </tr>
         </table>
         <br>
     ");
 
+        if (model.SME_ISSUE_CODE == "SI01")
+        {
+            htmlBody.Append(@" 
+           <div  class='tab1'><b>X Digital □ Environment/Green □ Social □ Governance □ Soft power</b></div>
+    ");
+
+        }
+        else if (model.ProjectStatus == "SI02")
+        {
+            htmlBody.Append(@" 
+          <div  class='tab1'><b>□ Digital X Environment/Green □ Social □ Governance □ Soft power</b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI03")
+        {
+            htmlBody.Append(@" 
+         <div  class='tab1'><b>□ Digital □ Environment/Green X Social □ Governance □ Soft power</b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI04")
+        {
+
+            htmlBody.Append(@" 
+          <div  class='tab1'><b>□ Digital □ Environment/Green □ Social X Governance □ Soft power</b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI054")
+        {
+
+            htmlBody.Append(@" 
+          <div  class='tab1'><b>□ Digital □ Environment/Green □ Social □ Governance X Soft power</b></div>
+    ");
+        }
+
         htmlBody.Append($@"
-        <div  class='tab1'><b>ประเด็นสำคัญในการส่งเสริม SME ปี พ.ศ.{model.FiscalYearDesc}</b></div>
-        <div  class='tab1'><b>□ Digital □ Environment/Green □ Social □ Governance □ Soft power</b></div>
-        <div  class='tab1'>ประเด็นสำคัญในการส่งเสริม SME ปี พ.ศ.{model.FiscalYearDesc} ประเด็นการส่งเสริม/กลยุทธ์ที่สอดคล้องกับแผนปฎิบัติการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อมประจำปีงบประมาณ (เลือกเพียง 1 ประเด็นการส่งเสริม 1 กลยุทธ์ ต่อ 1 โครงการ)</div>
+        <div  class='tab1'><b>ประเด็นสำคัญในการส่งเสริม SME ปี พ.ศ.{model.FiscalYearDesc}</b></div>  ");
+        if (model.SME_ISSUE_CODE == "SI01")
+        {
+            htmlBody.Append(@" 
+           <div  class='tab1'><b> Digital </b></div>
+    ");
+
+        }
+        else if (model.ProjectStatus == "SI02")
+        {
+            htmlBody.Append(@" 
+          <div  class='tab1'><b> Environment/Green </b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI03")
+        {
+            htmlBody.Append(@" 
+         <div  class='tab1'><b> Social</b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI04")
+        {
+
+            htmlBody.Append(@" 
+          <div  class='tab1'><b>Governance </b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI054")
+        {
+
+            htmlBody.Append(@" 
+          <div  class='tab1'><b> Soft power</b></div>
+    ");
+        }
+        htmlBody.Append($@"<div  class='tab1'>ประเด็นสำคัญในการส่งเสริม SME ปี พ.ศ.{model.FiscalYearDesc} ประเด็นการส่งเสริม/กลยุทธ์ที่สอดคล้องกับแผนปฎิบัติการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อมประจำปีงบประมาณ (เลือกเพียง 1 ประเด็นการส่งเสริม 1 กลยุทธ์ ต่อ 1 โครงการ)</div>
     ");
 
         // Strategy Table
@@ -335,20 +453,24 @@ SMEProjectDetailModels model
                 <td style='border:1px solid #000;text-align:center;'>ประเด็นการส่งเสริม</td>
                 <td style='border:1px solid #000;text-align:center;'>กลยุทธ์</td>
             </tr>
+            <tr >
+                <td style='border:1px solid #000;text-align:center;'>{model.Topic}</td>
+                <td style='border:1px solid #000;text-align:center;'>{model.STRATEGY_DESC}</td>
+            </tr>
     ");
-        if (model.Strategies != null)
-        {
-            int index = 1;
-            foreach (var strategy in model.Strategies)
-            {
-                htmlBody.Append($@"
-                <tr>
-                    <td style='border:1px solid #000;'>□ {strategy.StrategyId}</td>
-                   <td style='border:1px solid #000;'>□ {index++} {strategy.StrategyDesc}</td>
-                </tr>
-            ");
-            }
-        }
+        //if (model.Strategies != null)
+        //{
+        //    int index = 1;
+        //    foreach (var strategy in model.Strategies)
+        //    {
+        //        htmlBody.Append($@"
+        //        <tr>
+        //            <td style='border:1px solid #000;'>□ {strategy.StrategyId}</td>
+        //           <td style='border:1px solid #000;'>□ {index++} {strategy.StrategyDesc}</td>
+        //        </tr>
+        //    ");
+        //    }
+        //}
         htmlBody.Append("</table><br>");
 
         htmlBody.Append($@"
@@ -356,27 +478,47 @@ SMEProjectDetailModels model
         <div  class='tab1'>{model.ProjectRationale ?? ""}</div>
         <div  class='tab1'><b>วัตถุประสงค์ของโครงการ :</b></div>
         <div  class='tab1'>{model.ProjectObjective ?? ""}</div>
-        <div  class='tab1'><b>กลุ่มเป้าหมาย (สามารถเลือกได้มากกว่า 1 กลุ่มเป้าหมาย):</b></div>
-        <div class='tab2'>□ วิสาหกิจระยะเริ่มต้น Early-Stage Enterprise □ วิสาหกิจขนาดย่อม Small Enterprise</div>
-        <div class='tab2'>□ วิสาหกิจรายย่อย Micro Enterprise □ วิสาหกิจขนาดกลาง Medium Enterprise □ ทุกกลุ่ม</div>
-        <div  class='tab1'><b>รายละเอียดแผนการดำเนินงาน/กิจกรรม...</b></div>
+        <div  class='tab1'><b>กลุ่มเป้าหมาย (สามารถเลือกได้มากกว่า 1 กลุ่มเป้าหมาย):</b></div>");
+
+        if (model.TargetGroup!=null) 
+        {
+            var docx = XDocument.Parse(model.TargetGroup);
+            var lookupCodes = docx.Descendants("field")
+                .Where(f => (string)f.Attribute("name") == "LookupCode")
+                .Select(f => (string)f.Element("value"))
+                .ToList();
+
+            foreach (var code in lookupCodes)
+            {
+                var lookup = await _smeDao.GetLookupAsync("TARGET_GROUP", code);
+                if (lookup != null && !string.IsNullOrEmpty(lookup.LookupValue))
+                {
+                    htmlBody.Append($@"<div class='tab2'> {lookup.LookupValue}</div>");
+                }
+            }
+
+        }
+
+
+               htmlBody.Append($@"<div  class='tab1'><b>รายละเอียดแผนการดำเนินงาน/กิจกรรม...</b></div>
         <div  class='tab1'>{model.Activities ?? ""}</div>
         <div  class='tab1'><b>จุดเด่นของโครงการ :</b></div>
         <div  class='tab1'>{model.ProjectFocus ?? ""}</div>
         <div  class='tab1'><b>พื้นที่ดำเนินการ :</b></div>
         <div  class='tab1'>{string.Join(", ", model.OperationArea ?? new List<string>())}</div>
-        <div  class='tab1'><b>สาขาเป้าหมาย :</b></div>
+        <div  class='tab1'><b>สาขาเป้าหมาย :{model.TARGET_BRANCH_LIST}</b></div>
         <div  class='tab1'>{string.Join(", ", model.IndustrySector ?? new List<string>())}</div>
         <div  class='tab1'><b>การพัฒนา 11 อุตสาหกรรม Soft Power :</b></div>
-        <div class='tab2'>□ power 1</div>
-        <div class='tab2'>□ power 2</div>
-        <div class='tab2'>□ power 3</div>
-        <div  class='tab1'><b>ระยะเวลาในการดำเนินโครงการ :</b></div>
-        <div  class='tab1'>{model.Timeline ?? ""}</div>
+
+        <div  class='tab1'><b>ระยะเวลาในการดำเนินโครงการ :{model.DaysDiff ?? ""} วัน</b></div>
+ 
         <div  class='tab1'><b>หน่วยงานที่ร่วมบูรณาการ...</b></div>
-        <div  class='tab1'>{model.OrgPartner} ทำหน้าที่ {model.RoleDescription}</div>
+        <div  class='tab1'>{model.Partner_Name} ทำหน้าที่ {model.RoleDescription}</div>
         <div  class='tab1'><b>ตัวชี้วัดที่สำคัญ...</b></div>
     ");
+
+
+
 
         // Output Indicators Table
         htmlBody.Append($@"

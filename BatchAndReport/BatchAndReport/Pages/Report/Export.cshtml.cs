@@ -630,6 +630,25 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาการรักษาข้อมูลที่เป็นความลับ.docx");
         }
+        public async Task OnGetWordContact_NDA_PDF(string ContractId = "3")
+        {
+            var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "PDSA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
+        }
 
         #endregion 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
 
@@ -639,10 +658,24 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
         }
-        public async Task<IActionResult> OnGetWordContact_PDSA_PDF(string ContractId = "3")
+        public async Task OnGetWordContact_PDSA_PDF(string ContractId = "3")
         {
             var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId);
-            return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "PDSA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+           // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
         # endregion 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
 

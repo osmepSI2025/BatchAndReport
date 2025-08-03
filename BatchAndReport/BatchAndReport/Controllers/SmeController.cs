@@ -162,6 +162,7 @@ namespace BatchAndReport.Controllers
             var projects = await _smeDao.GetSummaryProjectAsync(budYear);
             var strategies = await _smeDao.GetProjectStrategyAsync(budYear);
 
+           // var xdata = strategies.Distinct().ToList();
             // ตรวจสอบว่ามีข้อมูลหรือไม่
             if (projects == null || !projects.Any())
                 return NotFound("ไม่พบข้อมูลสำหรับปีงบประมาณที่ระบุ");

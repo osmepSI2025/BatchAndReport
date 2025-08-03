@@ -18,7 +18,7 @@ public class WordEContract_DataPersonalService
         _pdfConverter = pdfConverter;
     }
 
-    #region  4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล
+    #region  4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
     public async Task<byte[]> OnGetWordContact_DataPersonalService(string id)
     {
         try
@@ -550,7 +550,7 @@ public class WordEContract_DataPersonalService
 
     #endregion  4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล
 
-    #region
+    #region PDSA
     public async Task<byte[]> OnGetWordContact_DataPersonalService_ToPDF(string id)
     {
         try
