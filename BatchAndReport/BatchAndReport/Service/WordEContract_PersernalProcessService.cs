@@ -364,10 +364,10 @@ public class WordEContract_PersernalProcessService
         .t-22 {{
             font-size: 3.0em;
         }}
-        .tab1 {{ text-indent: 48px; }}
-        .tab2 {{ text-indent: 96px; }}
-        .tab3 {{ text-indent: 144px; }}
-        .tab4 {{ text-indent: 192px; }}
+        .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
+        .tab2 {{ text-indent: 96px;  word-break: break-all; }}
+        .tab3 {{ text-indent: 144px;  word-break: break-all; }}
+        .tab4 {{ text-indent: 192px;  word-break: break-all;}}
         .d-flex {{ display: flex; }}
         .w-100 {{ width: 100%; }}
         .w-40 {{ width: 40%; }}

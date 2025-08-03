@@ -619,7 +619,11 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(id);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
         }
-
+        public async Task<IActionResult> OnGetWordContact_PDSA_PDF(string id = "3")
+        {
+            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(id);
+            return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
+        }
         # endregion 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
 
         #region 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA

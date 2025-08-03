@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'TH Sarabun New';
+    src: url('THSarabunNew.woff2') format('woff2'),
+        url('THSarabunNew.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+

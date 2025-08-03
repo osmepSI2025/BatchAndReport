@@ -236,9 +236,10 @@ public class WordEContract_JointOperationService
             font-weight: normal;
             font-style: normal;
         }}
-        body {{
+         body {{
             font-size: 22px;
             font-family: 'THSarabunNew', Arial, sans-serif;
+         
         }}
         .t-16 {{
             font-size: 2.0em;
@@ -249,10 +250,10 @@ public class WordEContract_JointOperationService
         .t-22 {{
             font-size: 3.0em;
         }}
-        .tab1 {{ text-indent: 48px; }}
-        .tab2 {{ text-indent: 96px; }}
-        .tab3 {{ text-indent: 144px; }}
-        .tab4 {{ text-indent: 192px; }}
+        .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
+        .tab2 {{ text-indent: 96px;  word-break: break-all; }}
+        .tab3 {{ text-indent: 144px;  word-break: break-all; }}
+        .tab4 {{ text-indent: 192px;  word-break: break-all;}}
         .d-flex {{ display: flex; }}
         .w-100 {{ width: 100%; }}
         .w-40 {{ width: 40%; }}
@@ -265,6 +266,9 @@ public class WordEContract_JointOperationService
             position: relative;
             left: 20%;
         }}
+        .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
+        .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
+
         .sign-double {{ display: flex; }}
         .text-center-right-brake {{
             margin-left: 50%;
@@ -294,6 +298,8 @@ public class WordEContract_JointOperationService
         }}
      .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
         .logo-table td {{ border: none; }}
+ 
+
     </style>
 </head><body>
 

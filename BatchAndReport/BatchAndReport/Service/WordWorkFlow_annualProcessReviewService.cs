@@ -41,7 +41,7 @@ public class WordWorkFlow_annualProcessReviewService
 
         // Heading
         htmlBody.Append($@"
-        <div class='text-center'>
+        <div class='text-center t-18'>
             <b>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
         </div>
     ");
@@ -50,37 +50,37 @@ public class WordWorkFlow_annualProcessReviewService
         if (detail.ReviewDetails?.Length > 0)
         {
             htmlBody.Append("</br>");
-            htmlBody.Append("<div >ความเป็นมา</div>");
+            htmlBody.Append("<div  class=' t-18'>ความเป็นมา</div>");
             if (!string.IsNullOrEmpty(detail.PROCESS_BACKGROUND))
             {
                 var lines = detail.PROCESS_BACKGROUND
                     .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
-                    .Select(line => $"<div class='tab1'>{System.Net.WebUtility.HtmlEncode(line)}</div>");
+                    .Select(line => $"<div class='tab1 t-18'>{System.Net.WebUtility.HtmlEncode(line)}</div>");
                 htmlBody.Append(string.Join("", lines));
             }
 
             htmlBody.Append("</br>");
-            htmlBody.Append("<div >รายละเอียดประเด็นการทบทวน</div>");
-            htmlBody.Append("<ol style='margin-left:32px;'>");
+            htmlBody.Append("<div  class='t-18' >รายละเอียดประเด็นการทบทวน</div>");
+            htmlBody.Append("<ol   style='margin-left:32px;'>");
             foreach (var item in detail.ReviewDetails)
-                htmlBody.Append($"<li>{System.Net.WebUtility.HtmlEncode(item)}</li>");
+                htmlBody.Append($"<li  class='t-18'>{System.Net.WebUtility.HtmlEncode(item)}</li>");
             htmlBody.Append("</ol>");
         }
 
         // Section heading
         htmlBody.Append($@"
-        <div >
+        <div  class='t-18' >
             การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้
         </div>
     ");
 
         // Three-column table
-        htmlBody.Append("<table class='w-100' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px;'>");
+        htmlBody.Append("<table class='w-100 t-18' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px;'>");
         htmlBody.Append($@"
-        <tr style='background:#DDEBF7;font-weight:bold;text-align:center;'>
-            <td>กระบวนการ ปี {detail.FiscalYearPrevious} (เดิม)</td>
-            <td>กระบวนการ ปี {detail.FiscalYear} (ทบทวน)</td>
-            <td>กระบวนการที่กำหนดกิจกรรมควบคุม (Control Activity) ส่งกรมบัญชีกลาง</td>
+        <tr style='background:#DDEBF7;font-weight:bold; vertical-align: top; '>
+            <td >กระบวนการ ปี {detail.FiscalYearPrevious} (เดิม)</td>
+            <td >กระบวนการ ปี {detail.FiscalYear} (ทบทวน)</td>
+            <td  >กระบวนการที่กำหนดกิจกรรมควบคุม (Control Activity) ส่งกรมบัญชีกลาง</td>
         </tr>
     ");
         int rowCount = Math.Max(
@@ -90,15 +90,15 @@ public class WordWorkFlow_annualProcessReviewService
         for (int i = 0; i < rowCount; i++)
         {
             htmlBody.Append("<tr>");
-            htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
+            htmlBody.Append($"<td >{System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
             htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
-            htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "")}</td>");
+            htmlBody.Append($"<td >{System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "")}</td>");
             htmlBody.Append("</tr>");
         }
         htmlBody.Append("</table>");
 
         // Note
-        htmlBody.Append("<div style='font-style:italic;margin-bottom:12px;'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>");
+        htmlBody.Append("<div class='t-18' style='font-style:italic;margin-bottom:12px;'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>");
 
         // Workflow processes
         if (detail.WorkflowProcesses?.Count > 0)
@@ -109,20 +109,20 @@ public class WordWorkFlow_annualProcessReviewService
         }
 
         // Comments
-        htmlBody.Append("<div >ความคิดเห็น</div>");
-        htmlBody.Append("<div style='margin-left:32px;'>☐ เห็นชอบการปรับปรุง</div>");
-        htmlBody.Append("<div style='margin-left:32px;'>☐ มีความเห็นเพิ่มเติม</div>");
+        htmlBody.Append("<div class='t-18' >ความคิดเห็น</div>");
+        htmlBody.Append("<div class='t-18' style='margin-left:32px;'>☐ เห็นชอบการปรับปรุง</div>");
+        htmlBody.Append("<div class='t-18' style='margin-left:32px;'>☐ มีความเห็นเพิ่มเติม</div>");
 
         // Approve remarks
         if (detail.ApproveRemarks?.Length > 0)
         {
             foreach (var r in detail.ApproveRemarks)
-                htmlBody.Append($"<div style='margin-left:32px;'>{System.Net.WebUtility.HtmlEncode(r)}</div>");
+                htmlBody.Append($"<div class='t-18' style='margin-left:32px;'>{System.Net.WebUtility.HtmlEncode(r)}</div>");
         }
 
         // Signature section
         htmlBody.Append(@"
-        <table class='signature-table'>
+        <table class='signature-table t-18'>
             <tr>
                 <td>
                     <div>ลงชื่อ....................................................</div>
@@ -156,13 +156,13 @@ public class WordWorkFlow_annualProcessReviewService
                 font-size: 22px;
                 font-family: 'THSarabunNew', Arial, sans-serif;
             }}
-            .t-16 {{ font-size: 1.5em; }}
+            .t-18 {{ font-size: 1.5em; }}
             .t-18 {{ font-size: 1.7em; }}
             .t-22 {{ font-size: 1.9em; }}
-            .tab1 {{ text-indent: 48px; }}
-            .tab2 {{ text-indent: 96px; }}
-            .tab3 {{ text-indent: 144px; }}
-            .tab4 {{ text-indent: 192px; }}
+                 .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
+        .tab2 {{ text-indent: 96px;  word-break: break-all; }}
+        .tab3 {{ text-indent: 144px;  word-break: break-all; }}
+        .tab4 {{ text-indent: 192px;  word-break: break-all;}}
             .d-flex {{ display: flex; }}
             .w-100 {{ width: 100%; }}
             .w-40 {{ width: 40%; }}
@@ -277,12 +277,12 @@ public class WordWorkFlow_annualProcessReviewService
             htmlBody.Append("<tr>");
             htmlBody.Append("<td rowspan='2' style='width:20%;font-weight:bold;background:#fff;'>กลุ่มกระบวนการหลัก<br/>(Core Process)</td>");
             foreach (var core in detail.CoreProcesses)
-                htmlBody.Append($"<td class='t-16' style='background:#00C896;text-align:center;vertical-align:middle;'>{System.Net.WebUtility.HtmlEncode(core.ProcessGroupCode)}</td>");
+                htmlBody.Append($"<td class='t-18' style='background:#00C896;text-align:center;vertical-align:middle;'>{System.Net.WebUtility.HtmlEncode(core.ProcessGroupCode)}</td>");
             htmlBody.Append("</tr>");
             // Row 2: ชื่อกระบวนการ
             htmlBody.Append("<tr>");
             foreach (var core in detail.CoreProcesses)
-                htmlBody.Append($"<td class='t-16' style='background:#00C896;text-align:center;vertical-align:middle;white-space:normal;word-break:break-word;'>{System.Net.WebUtility.HtmlEncode(core.ProcessGroupName)}</td>");
+                htmlBody.Append($"<td class='t-18' style='background:#00C896;text-align:center;vertical-align:middle;white-space:normal;word-break:break-word;'>{System.Net.WebUtility.HtmlEncode(core.ProcessGroupName)}</td>");
             htmlBody.Append("</tr>");
             htmlBody.Append("</table>");
         }
@@ -290,7 +290,7 @@ public class WordWorkFlow_annualProcessReviewService
         // Supporting Process Table
         if (detail.SupportProcesses != null && detail.SupportProcesses.Count > 0)
         {
-            htmlBody.Append("<table class='w-100' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px; table-layout:fixed;'>");
+            htmlBody.Append("<table class='w-100 t-18' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px; table-layout:fixed;'>");
             htmlBody.Append("<colgroup>");
             htmlBody.Append("<col style='width:20%;'/>"); // First column
             htmlBody.Append("<col style='width:10%;'/>"); // Code column
@@ -304,8 +304,8 @@ public class WordWorkFlow_annualProcessReviewService
                 {
                     htmlBody.Append($"<td rowspan='{detail.SupportProcesses.Count}' style='width:20%;font-weight:bold;'>กลุ่มกระบวนการสนับสนุน<br/>(Supporting Process)</td>");
                 }
-                htmlBody.Append($"<td class='t-16' style='background:#4CB1F0;text-align:center;width:10%;'>{System.Net.WebUtility.HtmlEncode(support.ProcessGroupCode)}</td>");
-                htmlBody.Append($"<td class='t-16' style='background:#4CB1F0;text-align:left;width:70%;'>{System.Net.WebUtility.HtmlEncode(support.ProcessGroupName)}</td>");
+                htmlBody.Append($"<td class='t-18' style='background:#4CB1F0;text-align:center;width:10%;'>{System.Net.WebUtility.HtmlEncode(support.ProcessGroupCode)}</td>");
+                htmlBody.Append($"<td class='t-18' style='background:#4CB1F0;text-align:left;width:70%;'>{System.Net.WebUtility.HtmlEncode(support.ProcessGroupName)}</td>");
                 htmlBody.Append("</tr>");
             }
             htmlBody.Append("</table>");
@@ -400,13 +400,13 @@ public class WordWorkFlow_annualProcessReviewService
                 font-size: 22px;
                 font-family: 'THSarabunNew', Arial, sans-serif;
             }}
-            .t-16 {{ font-size: 1.5em; }}
+            .t-18 {{ font-size: 1.5em; }}
             .t-18 {{ font-size: 1.7em; }}
             .t-22 {{ font-size: 1.9em; }}
-            .tab1 {{ text-indent: 48px; }}
-            .tab2 {{ text-indent: 96px; }}
-            .tab3 {{ text-indent: 144px; }}
-            .tab4 {{ text-indent: 192px; }}
+                  .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
+        .tab2 {{ text-indent: 96px;  word-break: break-all; }}
+        .tab3 {{ text-indent: 144px;  word-break: break-all; }}
+        .tab4 {{ text-indent: 192px;  word-break: break-all;}}
             .d-flex {{ display: flex; }}
             .w-100 {{ width: 100%; }}
             .w-40 {{ width: 40%; }}
