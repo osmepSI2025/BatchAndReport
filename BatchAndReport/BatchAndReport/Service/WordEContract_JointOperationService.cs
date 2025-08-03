@@ -242,13 +242,13 @@ public class WordEContract_JointOperationService
          
         }}
         .t-16 {{
-            font-size: 2.0em;
+            font-size: 1.5em;
         }}
         .t-18 {{
-            font-size: 2.5em;
+            font-size: 1.7em;
         }}
         .t-22 {{
-            font-size: 3.0em;
+            font-size: 1.9em;
         }}
         .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
         .tab2 {{ text-indent: 96px;  word-break: break-all; }}
@@ -332,7 +332,7 @@ public class WordEContract_JointOperationService
 </br>
 </br>
     <div class='t-16 tab3'>
-        สัญญาร่วมดำเนินการฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เมื่อวันที่ {strDateTH[0]} เดือน {strDateTH[1]} พ.ศ.{strDateTH[2]} ระหว่าง
+        สัญญาร่วมดำเนินการฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม </br>เมื่อวันที่ {strDateTH[0]} เดือน {strDateTH[1]} พ.ศ.{strDateTH[2]} ระหว่าง
     </div>
     <div class='t-16 tab3'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย {dataResult.Organization ?? ""} สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ
 </div>
@@ -349,7 +349,7 @@ public class WordEContract_JointOperationService
     <div class='t-16 tab4'>
         1.1 ตกลงร่วมดำเนินการโครงการโดยสนับสนุนงบประมาณ จำนวน {dataResult.Contract_Value} บาท ( {CommonDAO.NumberToThaiText(dataResult.Contract_Value ?? 0)} ) ซึ่งได้รวมภาษีมูลค่าเพิ่ม ตลอดจนค่าภาษีอากรอื่น ๆ แล้วให้กับ “ชื่อหน่วยร่วม” และการใช้จ่ายเงินให้เป็นไปตามแผนการจ่ายเงินตามเอกสารแนบท้ายสัญญา
     </div>
-    <div class='t-16 tab4'>1.2 ประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์</div>
+    <div class='t-18 tab4'>1.2 ประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์</div>
     <div class='t-16 tab4'>1.3 กำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ</div>
     <div class='t-16 tab3'><B>ข้อ 2 ขอบเขตหน้าที่ของ “ชื่อหน่วยร่วม”</B></div>
     <div class='t-16 tab4'>2.1 ตกลงที่จะร่วมดำเนินการโครงการตามวัตถุประสงค์ของการโครงการและขอบเขตการดำเนินการ ตามรายละเอียดโครงการ แผนการดำเนินการ และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ที่แนบท้ายสัญญาฉบับนี้</div>
@@ -368,7 +368,7 @@ public class WordEContract_JointOperationService
 </br>
 </br>
 <div class='sign-single-right'> 
-        <div class=' t-16 text-center tab1'>(ลงชื่อ)................................................. </div> 
+        <div class=' t-16 text-center tab1'>(ลงชื่อ){dataResult.OSMEP_Signer} </div> 
         <div class=' t-16 text-center tab1'>({dataResult.OSMEP_Signer})</div> 
         <div class=' t-16 text-center tab1'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div> 
       </div>
