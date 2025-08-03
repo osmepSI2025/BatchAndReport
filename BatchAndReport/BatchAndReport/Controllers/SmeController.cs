@@ -148,6 +148,7 @@ namespace BatchAndReport.Controllers
             //    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             //    $"SME_Project_{projectCode}.pdf");
             var pdfBytes = await _wordSME_ReportService.ExportSMEProjectDetail_ToPDF(detail);
+
             return File(
                 pdfBytes,
                 "application/pdf",

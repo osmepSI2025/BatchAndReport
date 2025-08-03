@@ -693,8 +693,22 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_JOA_PDF(string ContractId = "32")
         {
             var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
-          //  return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
-            return File(wordBytes, "application/pdf", "สัญญาร่วมดำเนินการ.pdf");
+
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "JOA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            return File(wordBytes, "application/pdf", "JOA_" + ContractId + ".pdf");
         }
         #endregion 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
 
