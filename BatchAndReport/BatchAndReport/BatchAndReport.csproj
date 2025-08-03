@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\Document\JOA\" />
+    <Folder Include="wwwroot\Document\PDPA\" />
     <Folder Include="wwwroot\Document\PDSA\" />
   </ItemGroup>
 
