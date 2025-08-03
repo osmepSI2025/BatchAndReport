@@ -5,6 +5,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OfficeOpenXml;
+using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 namespace BatchAndReport.Pages.Report
 {
@@ -524,18 +525,18 @@ namespace BatchAndReport.Pages.Report
         #endregion สสว. สัญญาเงินกู้ยืม โครงการพลิกฟื้นวิสาห 
 
         #region  4.1.3.3. สัญญาจ้างลูกจ้าง EC
-        public async Task<IActionResult> OnGetWordContact_EC(string id="3")
+        public async Task<IActionResult> OnGetWordContact_EC(string ContractId="3")
         {
-            var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee(id);
+            var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างลูกจ้าง.docx");
 
         }
         #endregion 4.1.3.3. สัญญาจ้างลูกจ้าง
 
         #region 4.1.1.2.15.สัญญาจ้างทำของ CWA
-        public async Task<IActionResult> OnGetWordContact_CWA(string id="1")
+        public async Task<IActionResult> OnGetWordContact_CWA(string ContractId="1")
         {
-            var wordBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing(id);
+            var wordBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างทำของ.docx");
 
 
@@ -543,9 +544,9 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.15.สัญญาจ้างทำของ CWA
 
         #region 4.1.1.2.14.สัญญาจ้างผู้เชี่ยวชาญรายบุคคลหรือจ้างบริษัทที่ปรึกษา ร.317-60 CTR31760
-        public async Task<IActionResult> OnGetWordContact_CTR31760(string id ="1")
+        public async Task<IActionResult> OnGetWordContact_CTR31760(string ContractId ="1")
         {
-            var wordBytes =await _ConsultantService.OnGetWordContact_ConsultantService(id);
+            var wordBytes =await _ConsultantService.OnGetWordContact_ConsultantService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างที่ปรึกษา.docx");
         }
 
@@ -553,90 +554,109 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60 PML31460
 
-        public async Task<IActionResult> OnGetWordContact_PML31460(string id ="1")
+        public async Task<IActionResult> OnGetWordContact_PML31460(string ContractId ="1")
         {
-            var wordBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter(id);
+            var wordBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60.docx");
         }
 
         #endregion 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60 PML31460
 
         #region 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60 SMC31060
-        public async Task<IActionResult> OnGetWordContact_SMC31060(string id ="1")
+        public async Task<IActionResult> OnGetWordContact_SMC31060(string ContractId ="1")
         {
-            var wordBytes = await _maintenanceComputerService.OnGetWordContact_MaintenanceComputer(id);
+            var wordBytes = await _maintenanceComputerService.OnGetWordContact_MaintenanceComputer(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60.docx");
         }
         #endregion 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60 SMC31060
 
         #region 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
-        public async Task<IActionResult> OnGetWordContact_CLA30960(string id)
+        public async Task<IActionResult> OnGetWordContact_CLA30960(string ContractId)
         {
-            var wordBytes =await _LoanComputerService.OnGetWordContact_LoanComputer(id);
+            var wordBytes =await _LoanComputerService.OnGetWordContact_LoanComputer(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาเช่าคอมพิวเตอร์ ร.309-60.docx");
         }
         #endregion 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
 
         #region 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60 SLA30860
-        public async Task<IActionResult> OnGetWordContact_SLA30860(string id ="1")
+        public async Task<IActionResult> OnGetWordContact_SLA30860(string ContractId ="1")
         {
-            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram(id);
+            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์.docx");
         }
         #endregion 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60 SLA30860
 
         #region 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์ CPA
-        public async Task<IActionResult> OnGetWordContact_CPA(string id ="1")
+        public async Task<IActionResult> OnGetWordContact_CPA(string ContractId ="1")
         {
-            var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService(id);
+            var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายคอมพิวเตอร์.docx");
         }
+        public async Task OnGetWordContact_CPA_PDF(string ContractId = "1")
+        {
+            var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
 
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "CPA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            //return File(wordBytes, "application/pdf", "CPA_" + ContractId + ".pdf");
+        }
         #endregion 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์ CPA
 
         #region 4.1.1.2.8.สัญญาซื้อขาย ร.305-60 SPA30560
 
-        public async Task<IActionResult> OnGetWordContact_SPA30560(string id = "1")
+        public async Task<IActionResult> OnGetWordContact_SPA30560(string ContractId = "1")
         {
-            var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService(id);
+            var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขาย.docx");
         }
 
         #endregion 4.1.1.2.8.สัญญาซื้อขาย ร.305-60 SPA30560
 
         #region 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
-        public async Task<IActionResult> OnGetWordContact_NDA(string id ="1")
+        public async Task<IActionResult> OnGetWordContact_NDA(string ContractId ="1")
         {
-            var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService(id);
+            var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาการรักษาข้อมูลที่เป็นความลับ.docx");
         }
 
         #endregion 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
 
         #region 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
-        public async Task<IActionResult> OnGetWordContact_PDSA(string id ="3")
+        public async Task<IActionResult> OnGetWordContact_PDSA(string ContractId ="3")
         {
-            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(id);
+            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
         }
-        public async Task<IActionResult> OnGetWordContact_PDSA_PDF(string id = "3")
+        public async Task<IActionResult> OnGetWordContact_PDSA_PDF(string ContractId = "3")
         {
-            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(id);
+            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId);
             return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
         # endregion 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
 
         #region 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA
 
-        public async Task<IActionResult> OnGetWordContact_JDCA(string id="1")
+        public async Task<IActionResult> OnGetWordContact_JDCA(string ContractId="1")
         {
-            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataService(id);
+            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.docx");
 
         }
-        public async Task<IActionResult> OnGetWordContact_JDCA_PDF(string id = "1")
+        public async Task<IActionResult> OnGetWordContact_JDCA_PDF(string ContractId = "1")
         {
-            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(id);
+            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId);
             return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.pdf");
         }
         #endregion 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA
@@ -669,15 +689,29 @@ namespace BatchAndReport.Pages.Report
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 
         #region 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
-        public async Task<IActionResult> OnGetWordContact_GA(string id="1")
+        public async Task<IActionResult> OnGetWordContact_GA(string ContractId = "1")
         {
-            var wordBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService(id);
+            var wordBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือในการสนับสนุน SMEs.docx");
         }
-        public async Task<IActionResult> OnGetWordContact_GA_PDF(string id = "1")
+        public async Task OnGetWordContact_GA_PDF(string ContractId = "1")
         {
-            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(id);
-            return File(pdfBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
+            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId);
+
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "GA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+           // return File(pdfBytes, "application/pdf", "GA_"+ContractId+".pdf");
         }
 
 
@@ -690,7 +724,7 @@ namespace BatchAndReport.Pages.Report
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
         }
 
-        public async Task<IActionResult> OnGetWordContact_JOA_PDF(string ContractId = "32")
+        public async Task OnGetWordContact_JOA_PDF(string ContractId = "32")
         {
             var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
 
@@ -708,7 +742,7 @@ namespace BatchAndReport.Pages.Report
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            return File(wordBytes, "application/pdf", "JOA_" + ContractId + ".pdf");
+          //  return File(wordBytes, "application/pdf", "JOA_" + ContractId + ".pdf");
         }
         #endregion 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
 
@@ -725,9 +759,9 @@ namespace BatchAndReport.Pages.Report
 
 
         #region Word to PDF using Interop
-        public async Task<IActionResult> OnGetWordtoPDF(string id = "1")
+        public async Task<IActionResult> OnGetWordtoPDF(string ContractId = "1")
         {
-            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(id);
+            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId);
             return File(pdfBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
 

@@ -1,5 +1,6 @@
 ﻿using BatchAndReport.Entities;
 using BatchAndReport.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,10 +10,11 @@ namespace BatchAndReport.DAO
     public class EContractDAO // Fixed spelling error: Changed "EcontractDAO" to "EContractDAO"  
     {
         private readonly K2DBContext_EContract _context;
-
-        public EContractDAO(K2DBContext_EContract context) // Fixed spelling error: Changed "EcontractDAO" to "EContractDAO"  
+        private readonly SqlConnectionDAO _connectionDAO;
+        public EContractDAO(K2DBContext_EContract context, SqlConnectionDAO connectionDAO) // Fixed spelling error: Changed "EcontractDAO" to "EContractDAO"  
         {
             _context = context;
+            _connectionDAO = connectionDAO;
         }
 
         public async Task InsertOrUpdateEmployeeContractsAsync(List<MEmployeeContractModels> contracts)
@@ -179,6 +181,54 @@ namespace BatchAndReport.DAO
             await _context.SaveChangesAsync();
             return resultList;
         }
+        public async Task<List<E_ConReport_RelatedDocumentsModels>> GetRelatedDocumentsAsync(string? id = "0", string TypeContract = "")
+        {
+            var result = new List<E_ConReport_RelatedDocumentsModels>();
+            try
+            {
+                await using var connection = _connectionDAO.GetConnectionK2Econctract();
+                await using var command = new SqlCommand(@"
+            SELECT 
+                Document_ID,
+                Contract_ID,
+                Contract_Type,
+                DocumentTitle,
+                Required_Flag,
+                FilePath,
+                PageAmount,
+                Flag_Delete,
+                File_Name,
+                File_Location
+            FROM RelatedDocuments
+            WHERE Contract_ID = @Contract_ID AND Contract_Type = @Contract_Type", connection);
 
+                command.Parameters.AddWithValue("@Contract_ID", id ?? "0");
+                command.Parameters.AddWithValue("@Contract_Type", TypeContract ?? "0");
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new E_ConReport_RelatedDocumentsModels
+                    {
+                        Document_ID = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
+                        Contract_ID = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                        Contract_Type = reader.IsDBNull(2) ? null : reader.GetString(2),
+                        DocumentTitle = reader.IsDBNull(3) ? null : reader.GetString(3),
+                        Required_Flag = reader.IsDBNull(4) ? null : reader.GetString(4),
+                        FilePath = reader.IsDBNull(5) ? null : reader.GetString(5),
+                        PageAmount = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
+                        Flag_Delete = reader.IsDBNull(7) ? null : reader.GetString(7),
+                        File_Name = reader.IsDBNull(8) ? null : reader.GetString(8),
+                        File_Location = reader.IsDBNull(9) ? null : reader.GetString(9)
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Optionally log the exception here
+            }
+            return result;
+        }
     }
 }
