@@ -663,28 +663,54 @@ namespace BatchAndReport.Pages.Report
 
 
         #region 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
-        public async Task<IActionResult> OnGetWordContact_PDPA(string PDPAid = "1")
+        public async Task<IActionResult> OnGetWordContact_PDPA(string ContractId = "1")
         {
-            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService(PDPAid);
+            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.docx");
         }
-        public async Task<IActionResult> OnGetWordContact_PDPA_PDF(string PDPAid = "1")
+        public async Task OnGetWordContact_PDPA_PDF(string ContractId = "1")
         {
-            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(PDPAid);
-            return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.pdf");
+            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "PDPA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.pdf");
         }
         #endregion 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
-        public async Task<IActionResult> OnGetWordContact_MOU(string MOUId ="2")
+        public async Task<IActionResult> OnGetWordContact_MOU(string ContractId = "2")
         {
-            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(MOUId);
+            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือ.docx");
         }
-        public async Task<IActionResult> OnGetWordContact_MOU_PDF(string MOUId = "2")
+        public async Task OnGetWordContact_MOU_PDF(string ContractId = "2")
         {
-            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(MOUId);
-            return File(wordBytes, "application/pdf", "บันทึกข้อตกลงความร่วมมือ.pdf");
+            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "MOU_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            //   return File(wordBytes, "application/pdf", "MOU_" + ContractId + ".pdf");
         }
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 

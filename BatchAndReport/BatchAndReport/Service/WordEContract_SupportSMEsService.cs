@@ -213,9 +213,7 @@ public class WordEContract_SupportSMEsService
         var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
         var cssPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css", "contract.css").Replace("\\", "/");
 
-        string signDate = result.ContractSignDate.HasValue
-            ? result.ContractSignDate.Value.ToString("dd MMMM yyyy", new CultureInfo("th-TH"))
-            : "____";
+        string signDate = CommonDAO.ToThaiDateStringCovert(result.ContractSignDate ?? DateTime.Now);
         string stringGrantAmount = CommonDAO.NumberToThaiText(result.GrantAmount ?? 0);
         string stringGrantStartDate = CommonDAO.ToThaiDateStringCovert(result.GrantStartDate ?? DateTime.Now);
         string stringGrantEndDate = CommonDAO.ToThaiDateStringCovert(result.GrantEndDate ?? DateTime.Now);
@@ -236,13 +234,13 @@ public class WordEContract_SupportSMEsService
             font-family: 'THSarabunNew', Arial, sans-serif;
         }}
         .t-16 {{
-            font-size: 2.0em;
+            font-size: 1.5em;
         }}
         .t-18 {{
-            font-size: 2.5em;
+            font-size: 1.7em;
         }}
         .t-22 {{
-            font-size: 3.0em;
+            font-size: 1.9em;
         }}
            .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
         .tab2 {{ text-indent: 96px;  word-break: break-all; }}
@@ -296,9 +294,10 @@ public class WordEContract_SupportSMEsService
     </div>
 </br>
 </br>
-    <div class='t-22 text-center'>สัญญารับเงินอุดหนุน</div>
-    <div class='t-22 text-center'>เพื่อสนับสนุนและยกระดับศักยภาพผู้ประกอบการวิสาหกิจขนาดกลางและขนาดย่อม</div>
-    <div class='t-22 text-center'>ผ่านระบบผู้ให้บริการทางธุรกิจ ปี {DateTime.Now.Year}</div>
+    <div class='t-22 text-center'><B>สัญญารับเงินอุดหนุน</B></div>
+    <div class='t-22 text-center'><B>เพื่อสนับสนุนและยกระดับศักยภาพผู้ประกอบการวิสาหกิจขนาดกลางและขนาดย่อม</B></div>
+    <div class='t-22 text-center'><B>ผ่านระบบผู้ให้บริการทางธุรกิจ ปี {DateTime.Now.Year}</B></div>
+</br>
     <div class=' t-16 text-right'>ทะเบียนผู้รับเงินอุดหนุนเลขที่ {result.TaxID}</div>
     <div class=' t-16 text-right'>เลขที่สัญญา {result.Contract_Number}</div>
 </br>
@@ -338,28 +337,29 @@ public class WordEContract_SupportSMEsService
     <div class='t-16 tab3'>ถ้าผู้รับเงินอุดหนุนเปลี่ยนแปลงสถานที่อยู่ หรือไปรษณีย์อิเล็กทรอนิกส์ (E-mail) ผู้รับเงินอุดหนุน มีหน้าที่แจ้งให้ผู้ให้เงินอุดหนุนทราบภายใน 7 (เจ็ด) วัน นับแต่วันเปลี่ยนแปลงสถานที่อยู่หรือไปรษณีย์ อิเล็กทรอนิกส์ (E-mail) หากผู้รับเงินอุดหนุนไม่แจ้งการเปลี่ยนแปลงสถานที่อยู่และผู้ให้เงินอุดหนุนได้ส่ง หนังสือ คำบอกกล่าวทวงถาม จดหมาย หรือเอกสารอื่นใดไปยังผู้รับเงินอุดหนุนตามที่อยู่ที่ปรากฏในสัญญานี้ ให้ถือว่าผู้รับเงินอุดหนุนได้ทราบข้อความในเอกสารดังกล่าวโดยชอบตามวรรคหนึ่งแล้ว</div>
     <div class='t-16 tab3'>สัญญานี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน คู่สัญญาได้อ่านและเข้าใจข้อความ โดยละเอียดตลอดแล้ว และได้ตกลงกันให้ถือว่าได้ส่ง ณ ที่ทำการงานของผู้ให้เงินอุดหนุน หรือได้รับ ณ ที่ทำการ งานของผู้รับเงินอุดหนุน จึงได้ลงลายมือชื่อ พร้อมทั้งประทับตรา (ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยาน และคู่สัญญา ต่างยึดถือไว้ ฝ่ายละหนึ่งฉบับ</div>
 
-
-<div class='sign-double'>
+</br>
+</br>
+<div class='sign-single-right'>
         <div class='w-50  text-center'> 
-           <div class=' t-16  '>(ลงชื่อ).................................................ผู้ให้เงินอุดหนุน</div> 
+           <div class=' t-16  '>(ลงชื่อ){result.OSMEP_Signer}ผู้ให้เงินอุดหนุน</div> 
         <div class=' t-16  '>(นายวชิระ แก้วกอ)</div> 
         <div class=' t-16  '>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
        </div>
          <div class='w-50 text-center '>  
-          <div class=' t-16  '>(ลงชื่อ).................................................ผู้รับเงินอุดหนุน</div> 
+          <div class=' t-16  '>(ลงชื่อ){result.Contract_Signer}ผู้รับเงินอุดหนุน</div> 
         <div class=' t-16  '>(....................................................)</div> 
         <div class=' t-16  '> ผู้ประกอบการวิสาหกิจขนาดกลางและขนาดย่อม</div> 
  <div class=' t-16  '> ราย.................................................... </div> 
       </div>
    </div>
-<div class='sign-double'>
+<div class='sign-single-right'>
         <div class='w-50  text-center'> 
-           <div class=' t-16  '>(ลงชื่อ).................................................พยาน</div> 
+           <div class=' t-16  '>(ลงชื่อ){result.OSMEP_Witness}พยาน</div> 
         <div class=' t-16  '>(นางสาวนิธิวดี  สมบูรณ)</div> 
       
        </div>
          <div class='w-50 text-center '>  
-          <div class=' t-16  '>(ลงชื่อ).................................................พยาน</div> 
+          <div class=' t-16  '>(ลงชื่อ){result.Contract_Witness}พยาน</div> 
         <div class=' t-16  '>(....................................................)</div> 
    </div>
       </div>
