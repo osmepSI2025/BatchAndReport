@@ -70,7 +70,8 @@ namespace BatchAndReport.DAO
                     SaleBankAccountName = reader["SaleBankAccountName"] as string,
                     SaleBankAccountNumber = reader["SaleBankAccountNumber"] as string,
                     DeliveryLocation = reader["DeliveryLocation"] as string,
-                    DeliveryDateIn = reader["DeliveryDateIn"] == DBNull.Value ? null : reader.GetDateTime(reader.GetOrdinal("DeliveryDateIn")),
+                    DeliveryDateIn = reader["DeliveryDateIn"] == DBNull.Value ? null : Convert.ToInt32(reader["DeliveryDateIn"]),
+
                     NotiLocation = reader["NotiLocation"] as string,
                     NotiDaysBeforeDelivery = reader["NotiDaysBeforeDelivery"] == DBNull.Value ? null : Convert.ToInt32(reader["NotiDaysBeforeDelivery"]),
                     LocationDesignDays = reader["LocationDesignDays"] == DBNull.Value ? null : Convert.ToInt32(reader["LocationDesignDays"]),
@@ -79,11 +80,11 @@ namespace BatchAndReport.DAO
                     MaximumDownTimeHours = reader["MaximumDownTimeHours"] == DBNull.Value ? null : Convert.ToInt32(reader["MaximumDownTimeHours"]),
                     MaximumDownPercents = reader["MaximumDownPercents"] == DBNull.Value ? null : Convert.ToDecimal(reader["MaximumDownPercents"]),
                     PenaltyPerHours = reader["PenaltyPerHours"] == DBNull.Value ? null : Convert.ToDecimal(reader["PenaltyPerHours"]),
-                    NormalTimeFixDays = reader["NormalTimeFixDays"] == DBNull.Value ? null : Convert.ToInt32(reader["NormalTimeFixDays"]),
-                    OffTimeFixDays = reader["OffTimeFixDays"] == DBNull.Value ? null : Convert.ToInt32(reader["OffTimeFixDays"]),
+                  //  NormalTimeFixDays = reader["NormalTimeFixDays"] == DBNull.Value ? null : Convert.ToInt32(reader["NormalTimeFixDays"]),
+                //    OffTimeFixDays = reader["OffTimeFixDays"] == DBNull.Value ? null : Convert.ToInt32(reader["OffTimeFixDays"]),
                     FixPenaltyPerHours = reader["FixPenaltyPerHours"] == DBNull.Value ? null : Convert.ToDecimal(reader["FixPenaltyPerHours"]),
                     FixReplaceCompDays = reader["FixReplaceCompDays"] == DBNull.Value ? null : Convert.ToInt32(reader["FixReplaceCompDays"]),
-                    FixReplacePenaltyPerHours = reader["FixReplacePenaltyPerHours"] == DBNull.Value ? null : Convert.ToDecimal(reader["FixReplacePenaltyPerHours"]),
+                 //   FixReplacePenaltyPerHours = reader["FixReplacePenaltyPerHours"] == DBNull.Value ? null : Convert.ToDecimal(reader["FixReplacePenaltyPerHours"]),
                     TrainingPeriodDays = reader["TrainingPeriodDays"] == DBNull.Value ? null : Convert.ToInt32(reader["TrainingPeriodDays"]),
                     ComputerManualsCount = reader["ComputerManualsCount"] == DBNull.Value ? null : Convert.ToInt32(reader["ComputerManualsCount"]),
                     GuaranteeType = reader["GuaranteeType"] as string,
@@ -91,7 +92,7 @@ namespace BatchAndReport.DAO
                     GuaranteePercent = reader["GuaranteePercent"] == DBNull.Value ? null : Convert.ToDecimal(reader["GuaranteePercent"]),
                     NewGuaranteeDays = reader["NewGuaranteeDays"] == DBNull.Value ? null : Convert.ToInt32(reader["NewGuaranteeDays"]),
                     RespReplaceDays = reader["RespReplaceDays"] == DBNull.Value ? null : Convert.ToInt32(reader["RespReplaceDays"]),
-                    TeminationNewMonths = reader["TeminationNewMonths"] == DBNull.Value ? null : Convert.ToInt32(reader["TeminationNewMonths"]),
+                    TeminationNewMonths = reader["TeminationNewMonths"] as string,
                     FinePerDaysPercent = reader["FinePerDaysPercent"] == DBNull.Value ? null : Convert.ToDecimal(reader["FinePerDaysPercent"]),
                     ComputerSendBackDays = reader["ComputerSendBackDays"] == DBNull.Value ? null : Convert.ToInt32(reader["ComputerSendBackDays"]),
                     EnforcementOfFineDays = reader["EnforcementOfFineDays"] == DBNull.Value ? null : Convert.ToInt32(reader["EnforcementOfFineDays"]),
@@ -113,9 +114,14 @@ namespace BatchAndReport.DAO
                     CitizenId = reader["CitizenId"] as string,
                     RespReplaceYears = reader["RespReplaceYears"] == DBNull.Value ? null : Convert.ToInt32(reader["RespReplaceYears"]),
                     RespReplaceMonth = reader["RespReplaceMonth"] == DBNull.Value ? null : Convert.ToInt32(reader["RespReplaceMonth"]),
-                    Request_ID = reader["Request_ID"] == DBNull.Value ? null : Convert.ToInt32(reader["Request_ID"]),
+                    Request_ID = reader["Request_ID"] as string,
                     Contract_Status = reader["Contract_Status"] as string,
-                    GuaranteeTypeOther = reader["GuaranteeTypeOther"] as string
+                    GuaranteeTypeOther = reader["GuaranteeTypeOther"] as string,
+                    NormalTimeFixHours= reader["NormalTimeFixHours"] ==  DBNull.Value ? null : Convert.ToDecimal(reader["NormalTimeFixHours"]),
+                    OffTimeFixHours = reader["OffTimeFixHours"] == DBNull.Value ? null : Convert.ToDecimal(reader["OffTimeFixHours"]),
+                    FixReplacePenaltyPerDays = reader["FixReplacePenaltyPerDays"] == DBNull.Value ? null : Convert.ToDecimal(reader["FixReplacePenaltyPerDays"]),
+               
+                     NeedAttachCuS = reader["NeedAttachCuS"] == DBNull.Value ? null : (bool?)Convert.ToBoolean(reader["NeedAttachCuS"]),
                 };
 
                 return detail;

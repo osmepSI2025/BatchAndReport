@@ -571,10 +571,29 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60 SMC31060
 
         #region 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
-        public async Task<IActionResult> OnGetWordContact_CLA30960(string ContractId)
+        public async Task<IActionResult> OnGetWordContact_CLA30960(string ContractId ="1")
         {
             var wordBytes =await _LoanComputerService.OnGetWordContact_LoanComputer(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาเช่าคอมพิวเตอร์ ร.309-60.docx");
+        }
+        public async Task OnGetWordContact_CLA30960_PDF(string ContractId = "1")
+        {
+            var wordBytes = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "CLA30960_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
         #endregion 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
 
@@ -584,6 +603,27 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์.docx");
         }
+        public async Task OnGetWordContact_SLA30860_PDF(string ContractId = "1")
+        {
+            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "SLA30860_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
+        }
+
+
         #endregion 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60 SLA30860
 
         #region 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์ CPA
@@ -612,6 +652,8 @@ namespace BatchAndReport.Pages.Report
 
             //return File(wordBytes, "application/pdf", "CPA_" + ContractId + ".pdf");
         }
+
+
         #endregion 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์ CPA
 
         #region 4.1.1.2.8.สัญญาซื้อขาย ร.305-60 SPA30560
