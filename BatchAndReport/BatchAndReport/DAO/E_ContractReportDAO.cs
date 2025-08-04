@@ -605,7 +605,7 @@ namespace BatchAndReport.DAO
                 await using var connection = _connectionDAO.GetConnectionK2Econctract();
                 await using var command = new SqlCommand(@"
         SELECT Detail, RP_ID, NDA_ID
-        FROM PDPA_Agreement_List
+        FROM NDA_RequestPurpose
         WHERE NDA_ID = @NDA_ID", connection);
 
                 command.Parameters.AddWithValue("@NDA_ID", id ?? "0");

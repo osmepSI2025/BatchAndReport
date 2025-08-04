@@ -622,6 +622,26 @@ namespace BatchAndReport.Pages.Report
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขาย.docx");
         }
 
+        public async Task OnGetWordContact_SPA30560_PDF(string ContractId = "1")
+        {
+            var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "SPA30560_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
+        }
+
         #endregion 4.1.1.2.8.สัญญาซื้อขาย ร.305-60 SPA30560
 
         #region 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
@@ -630,15 +650,15 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาการรักษาข้อมูลที่เป็นความลับ.docx");
         }
-        public async Task OnGetWordContact_NDA_PDF(string ContractId = "3")
+        public async Task OnGetWordContact_NDA_PDF(string ContractId = "1")
         {
             var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId);
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
-            var filePath = Path.Combine(folderPath, "PDSA_" + ContractId + ".pdf");
+            var filePath = Path.Combine(folderPath, "NDA_" + ContractId + ".pdf");
 
             // Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
