@@ -115,7 +115,7 @@ namespace BatchAndReport.DAO
                     BusinessRegistrationCertDate = reader["BusinessRegistrationCertDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["BusinessRegistrationCertDate"]),
                     DeliveryNotifyLocation = reader["DeliveryNotifyLocation"] == DBNull.Value ? null : reader["DeliveryNotifyLocation"].ToString(),
                     PaymentSumAMT = reader["PaymentSumAMT"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(reader["PaymentSumAMT"]),
-                    Request_ID = reader["Request_ID"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["Request_ID"]),
+                    Request_ID = reader["Request_ID"] == DBNull.Value ? null : reader["Request_ID"].ToString(),
                     Contract_Status = reader["Contract_Status"] == DBNull.Value ? null : reader["Contract_Status"].ToString(),
                     PaymentGuaranteeTypeOther = reader["PaymentGuaranteeTypeOther"] == DBNull.Value ? null : reader["PaymentGuaranteeTypeOther"].ToString()
                 };

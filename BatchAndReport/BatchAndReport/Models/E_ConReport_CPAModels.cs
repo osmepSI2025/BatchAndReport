@@ -75,7 +75,7 @@
         public DateTime? BusinessRegistrationCertDate { get; set; }
         public string? DeliveryNotifyLocation { get; set; }
         public decimal? PaymentSumAMT { get; set; }
-        public int? Request_ID { get; set; }
+        public string? Request_ID { get; set; }
         public string? Contract_Status { get; set; }
         public string? PaymentGuaranteeTypeOther { get; set; }
         public string? CPAContractNumber { get; set; }
