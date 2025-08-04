@@ -79,7 +79,8 @@
         public string? Contract_Status { get; set; }
         public string? PaymentGuaranteeTypeOther { get; set; }
         public string? CPAContractNumber { get; set; }
+        public List<E_ConReport_SignatoryModels> Signatories { get; set; } = new();
 
     }
-    
+
 }

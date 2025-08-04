@@ -5,6 +5,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using iText.Layout.Element;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using System.Threading.Tasks;
 using Paragraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 
@@ -304,7 +305,24 @@ public class WordEContract_BuyOrSellComputerService
                           
             }
         }
+
         // Build HTML content
+        var signatoryHtml = new StringBuilder();
+        string[] roleLabels = { "ผู้ซื้อ", "ผู้ขาย", "พยาน SME", "พยานขาย" };
+
+        for (int i = 0; i < result.Signatories.Count && i < roleLabels.Length; i++)
+        {
+            var signer = result.Signatories[i];
+            var name = signer.Signatory_Name ?? "xxxxxxxxxx";
+            var role = roleLabels[i];
+
+            signatoryHtml.AppendLine($@"
+        <div class='contract text-center t-16'>
+            ลงชื่อ {name} {role}<br/>
+            ({name})<br/>
+        </div>");
+        }
+
         var htmlContent = $@"
 <div >
     <div class='text-center t-22'><b> แบบสัญญา</b></div>
@@ -462,17 +480,8 @@ public class WordEContract_BuyOrSellComputerService
     สัญญานี้ทำขึ้นสองฉบับ มีข้อความถูกต้องตรงกัน คู่สัญญาได้อ่านและเข้าใจข้อความโดยละเอียดตลอดแล้ว จึงได้ลงลายมือชื่อพร้อมทั้งประทับตรา (ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยานและคู่สัญญาต่างยึดถือไว้ฝ่ายละหนึ่งฉบับ
 </div>
 
-<!-- Signatures -->
-<div class='contract text-center t-16'>
-    ลงชื่อ {result.OSMEP_Signer ?? "xxxxxxxxxx"} ผู้ซื้อ<br/>
-    ({result.OSMEP_Signer})<br/>
-    ลงชื่อ {result.Contract_Signer} ผู้ขาย<br/>
-    ({result.Contract_Signer})<br/>
-    ลงชื่อ {result.OSMEP_Witness ?? "พยาน SME"} พยาน<br/>
-    ({result.OSMEP_Witness ?? "พยาน SME"})<br/>
-    ลงชื่อ {result.Contract_Witness ?? "พยานขาย"} พยาน<br/>
-    ({result.Contract_Witness ?? "พยานขาย"})
-</div>
+<!-- 🔹 รายชื่อผู้ลงนาม -->
+{signatoryHtml.ToString()}
 
 <!-- Next page: Appendix instructions -->
 <div style='page-break-before: always;'></div>

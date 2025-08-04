@@ -120,6 +120,30 @@ namespace BatchAndReport.DAO
                     PaymentGuaranteeTypeOther = reader["PaymentGuaranteeTypeOther"] == DBNull.Value ? null : reader["PaymentGuaranteeTypeOther"].ToString()
                 };
 
+                int conId = detail.CPA_ID;
+
+                await reader.CloseAsync();
+
+                // 🔹 Load Signatory list from SP_Preview_Signatory_List_Report
+                await using var signatoryCmd = new SqlCommand("SP_Preview_Signatory_List_Report", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                signatoryCmd.Parameters.AddWithValue("@con_id", conId);
+                signatoryCmd.Parameters.AddWithValue("@con_type", "CPA"); // ใช้ค่าตามที่ระบบระบุ
+
+                using var signatoryReader = await signatoryCmd.ExecuteReaderAsync();
+                while (await signatoryReader.ReadAsync())
+                {
+                    detail.Signatories.Add(new E_ConReport_SignatoryModels
+                    {
+                        Signatory_Name = signatoryReader["Signatory_Name"] as string,
+                        Position = signatoryReader["Position"] as string,
+                        BU_UNIT = signatoryReader["BU_UNIT"] as string,
+                        DS_FILE = signatoryReader["DS_FILE"] as string
+                    });
+                }
+
                 return detail;
             }
             catch (Exception ex)

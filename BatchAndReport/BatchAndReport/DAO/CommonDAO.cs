@@ -30,7 +30,7 @@ namespace BatchAndReport.DAO
         public static string NumberToThaiText(decimal amount)
         {
             string[] numText = { "ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า" };
-            string[] rankText = { "", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน" };
+            string[] rankText = { "", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน", "สิบล้าน", "ร้อยล้าน", "พันล้าน", "หมื่นล้าน", "แสนล้าน", "ล้านล้าน" };
 
             string bahtText = "";
             string satangText = "";
