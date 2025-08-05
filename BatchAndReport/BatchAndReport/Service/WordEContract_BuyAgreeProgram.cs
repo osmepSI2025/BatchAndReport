@@ -10,6 +10,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using iText.Layout.Element;
 using Microsoft.AspNetCore.Mvc;
 using Spire.Doc.Documents;
+using System.Text;
 using System.Threading.Tasks;
 
 
@@ -19,18 +20,21 @@ public class WordEContract_BuyAgreeProgram
     private readonly Econtract_Report_SLADAO _e;
     private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
     private readonly EContractDAO _eContractDAO;
+    private readonly E_ContractReportDAO _eContractReportDAO;
     public WordEContract_BuyAgreeProgram(WordServiceSetting ws
         
         , Econtract_Report_SLADAO e
         , IConverter pdfConverter
         ,
 EContractDAO eContractDAO
+        , E_ContractReportDAO eContractReportDAO
         )
     {
         _w = ws;
         _e = e;
         _pdfConverter = pdfConverter;
         _eContractDAO = eContractDAO;
+        _eContractReportDAO = eContractReportDAO;
     }
     #region 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60
     public async Task<byte[]> OnGetWordContact_BuyAgreeProgram(string id)
@@ -306,7 +310,7 @@ EContractDAO eContractDAO
    
     }
 
-    public async Task<byte[]> OnGetWordContact_BuyAgreeProgram_ToPDF(string id)
+    public async Task<byte[]> OnGetWordContact_BuyAgreeProgram_ToPDF(string id,string typeContact)
     {
         try
         {
@@ -330,7 +334,7 @@ EContractDAO eContractDAO
                 var listDocAtt = await _eContractDAO.GetRelatedDocumentsAsync(id, "SPA30560");
                 var htmlDocAtt = listDocAtt != null
                     ? string.Join("", listDocAtt.Select(docItem =>
-                        $"<p class='tab3 t-16'>{docItem.DocumentTitle} จำนวน {docItem.PageAmount} หน้า</p>"))
+                        $"<div class='tab3 t-16'>{docItem.DocumentTitle} จำนวน {docItem.PageAmount} หน้า</div>"))
                     : "";
 
                 var slaInstall = await _e.GetSLAInstallmentAsync(id);
@@ -338,6 +342,80 @@ EContractDAO eContractDAO
                 string datestring = CommonDAO.ToThaiDateStringCovert(result.ContractSignDate ?? DateTime.Now);
                 string strTotalAmount = CommonDAO.NumberToThaiText(result.TotalAmount ?? 0);
                 string strVatAmount = CommonDAO.NumberToThaiText(result.VatAmount ?? 0);
+
+
+                #region  signlist
+                var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
+                var signatoryHtml = new StringBuilder();
+                var companySealHtml = new StringBuilder();
+
+                foreach (var signer in signlist)
+                {
+                    string signatureHtml;
+                    string companySeal = ""; // Initialize to avoid unassigned variable warning
+
+                    // Fix CS8602: Use null-conditional operator for Position and Company_Seal
+                    if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+                    {
+                        try
+                        {
+                            var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                            var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                            var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                            companySeal = $@"
+<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+
+                            companySealHtml.AppendLine($@"
+    <div class='text-center'>
+        {companySeal}      
+    </div>
+<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
+
+");
+                        }
+                        catch
+                        {
+                            companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+                    {
+                        try
+                        {
+                            var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                            var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                            var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                            signatureHtml = $@"<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+                        }
+                        catch
+                        {
+                            signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                        }
+                    }
+                    else
+                    {
+                        signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                    }
+
+                    signatoryHtml.AppendLine($@"
+    <div class='sign-single-right'>
+        {signatureHtml}
+        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+    </div>");
+
+                    signatoryHtml.Append(companySealHtml);
+                }
+
+                #endregion signlist
+
 
                 var htmlBody = $@"
 <div class='contract'>
@@ -503,14 +581,7 @@ $@"<div class='tab2 t-16'>
 
 </br>
 </br>
-<div class='text-center t-16'>ลงชื่อ {result.OSMEP_Signer} ผู้ซื้อ</div>
-    <div class='text-center t-16'>(................................................................................)</div>
-    <div class='text-center t-16'>ลงชื่อ {result.Contract_Signer} ผู้ขาย</div>
-    <div class='text-center t-16'>(................................................................................)</div>
-    <div class='text-center t-16'>ลงชื่อ {result.OSMEP_Witness} พยาน</div>
-    <div class='text-center t-16'>(...............................................................................)<br>
-    ลงชื่อ {result.OSMEP_Witness} พยาน</div>
-    <div class='text-center  t-16'>(...............................................................................)<br></div>
+{signatoryHtml}
     
 <div style='page-break-before: always;'></div>
 <div class='text-center t-22' style='font-weight:bold;'>วิธีปฏิบัติเกี่ยวกับสัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์</div>

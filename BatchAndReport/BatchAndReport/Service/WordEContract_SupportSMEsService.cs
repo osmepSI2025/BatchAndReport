@@ -3,19 +3,23 @@ using DinkToPdf;
 using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using iText.Signatures;
 using System.Globalization;
+using System.Text;
 public class WordEContract_SupportSMEsService
 {
     private readonly WordServiceSetting _w;
     private readonly Econtract_Report_GADAO _e;
     private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
+    private readonly E_ContractReportDAO _eContractReportDAO;
     public WordEContract_SupportSMEsService(WordServiceSetting ws, Econtract_Report_GADAO e
-        , IConverter pdfConverter
+        , IConverter pdfConverter, E_ContractReportDAO eContractReportDAO
         )
     {
         _w = ws;
         _e = e;
         _pdfConverter = pdfConverter; // กำหนดค่า DI สำหรับ PDF Converter
+        _eContractReportDAO = eContractReportDAO; // กำหนดค่า DI สำหรับ E_ContractReportDAO
     }
     #region  4.1.1.2.2.สัญญารับเงินอุดหนุน
 
@@ -194,9 +198,10 @@ public class WordEContract_SupportSMEsService
     }
     #endregion  4.1.1.2.2.สัญญารับเงินอุดหนุน
 
-    public async Task<byte[]> OnGetWordContact_SupportSMEsService_HtmlToPDF(string id)
+    public async Task<byte[]> OnGetWordContact_SupportSMEsService_HtmlToPDF(string id,string typeContact)
     {
         var result = await _e.GetGAAsync(id);
+   
         if (result == null)
             throw new Exception("ไม่พบข้อมูลสัญญารับเงินอุดหนุนสำหรับ SMEs ที่ระบุ");
 
@@ -217,6 +222,81 @@ public class WordEContract_SupportSMEsService
         string stringGrantAmount = CommonDAO.NumberToThaiText(result.GrantAmount ?? 0);
         string stringGrantStartDate = CommonDAO.ToThaiDateStringCovert(result.GrantStartDate ?? DateTime.Now);
         string stringGrantEndDate = CommonDAO.ToThaiDateStringCovert(result.GrantEndDate ?? DateTime.Now);
+
+
+
+        var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
+        var signatoryHtml = new StringBuilder();
+        var companySealHtml = new StringBuilder();
+
+        foreach (var signer in signlist)
+        {
+            string signatureHtml;
+            string companySeal = ""; // Initialize to avoid unassigned variable warning
+
+            // Fix CS8602: Use null-conditional operator for Position and Company_Seal
+            if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+            {
+                try
+                {
+                    var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                    var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                    companySeal = $@"
+<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+
+                    companySealHtml.AppendLine($@"
+    <div class='text-center'>
+        {companySeal}      
+    </div>
+<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
+
+");
+                }
+                catch
+                {
+                    companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
+                }
+            }
+
+            if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+            {
+                try
+                {
+                    var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                    var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                    signatureHtml = $@"<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+                }
+                catch
+                {
+                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ..........)</div>";
+                }
+            }
+            else
+            {
+                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ..........)</div>";
+            }
+
+            signatoryHtml.AppendLine($@"
+    <div class='sign-single-right'>
+        {signatureHtml}
+        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+    </div>");
+
+            signatoryHtml.Append(companySealHtml);
+        }
+
+
+        // สร้าง HTML สำหรับสัญญา 
+
 
         var html = $@"
 <html>
@@ -289,7 +369,7 @@ public class WordEContract_SupportSMEsService
 </head>
 <body>
 
-    <div class='logo'>
+    <div class='text-center'>
          <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
     </div>
 </br>
@@ -339,30 +419,7 @@ public class WordEContract_SupportSMEsService
 
 </br>
 </br>
-<div class='sign-single-right'>
-        <div class='w-50  text-center'> 
-           <div class=' t-16  '>(ลงชื่อ){result.OSMEP_Signer}ผู้ให้เงินอุดหนุน</div> 
-        <div class=' t-16  '>(นายวชิระ แก้วกอ)</div> 
-        <div class=' t-16  '>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
-       </div>
-         <div class='w-50 text-center '>  
-          <div class=' t-16  '>(ลงชื่อ){result.Contract_Signer}ผู้รับเงินอุดหนุน</div> 
-        <div class=' t-16  '>(....................................................)</div> 
-        <div class=' t-16  '> ผู้ประกอบการวิสาหกิจขนาดกลางและขนาดย่อม</div> 
- <div class=' t-16  '> ราย.................................................... </div> 
-      </div>
-   </div>
-<div class='sign-single-right'>
-        <div class='w-50  text-center'> 
-           <div class=' t-16  '>(ลงชื่อ){result.OSMEP_Witness}พยาน</div> 
-        <div class=' t-16  '>(นางสาวนิธิวดี  สมบูรณ)</div> 
-      
-       </div>
-         <div class='w-50 text-center '>  
-          <div class=' t-16  '>(ลงชื่อ){result.Contract_Witness}พยาน</div> 
-        <div class=' t-16  '>(....................................................)</div> 
-   </div>
-      </div>
+{signatoryHtml}
 </body>
 </html>
 ";

@@ -2,21 +2,37 @@
 using BatchAndReport.Entities;
 using BatchAndReport.Models;
 using BatchAndReport.Services;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
+using Spire.Doc.Documents;
+using System.Text;
 using System.Threading.Tasks;
+using Paragraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 
 
 public class WordEContract_HireEmployee
 {
     private readonly WordServiceSetting _w;
     private readonly Econtract_Report_ECDAO _e;
-    public WordEContract_HireEmployee(WordServiceSetting ws, Econtract_Report_ECDAO e)
+    private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
+    private readonly EContractDAO _eContractDAO;
+    private readonly E_ContractReportDAO _eContractReportDAO;
+    public WordEContract_HireEmployee(WordServiceSetting ws, Econtract_Report_ECDAO e
+         , IConverter pdfConverter
+        ,
+EContractDAO eContractDAO
+        , E_ContractReportDAO eContractReportDAO
+        )
     {
         _w = ws;
         _e = e;
+        _pdfConverter = pdfConverter;
+        _eContractDAO = eContractDAO;
+        _eContractReportDAO = eContractReportDAO;
     }
     #region   4.1.3.3. สัญญาจ้างลูกจ้าง
     public async Task<byte[]> OnGetWordContact_HireEmployee(string id)
@@ -215,7 +231,7 @@ public class WordEContract_HireEmployee
                 var sectionProps = new SectionProperties(
 
                     new FooterReference() { Type = HeaderFooterValues.Default, Id = footerPartId },
-                    new PageSize() { Width = 11906, Height = 16838 }, // A4 size
+                    new DocumentFormat.OpenXml.Wordprocessing.PageSize() { Width = 11906, Height = 16838 }, // A4 size
                     new PageMargin() { Top = 1440, Right = 1440, Bottom = 1440, Left = 1440, Header = 720, Footer = 720, Gutter = 0 }
                 );
                 body.AppendChild(sectionProps);
@@ -229,6 +245,307 @@ public class WordEContract_HireEmployee
         }
 
     
+    }
+    public async Task<byte[]> OnGetWordContact_HireEmployee_ToPDF(string id,string typeContact)
+    {
+        try
+        {
+
+            var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+            var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg").Replace("\\", "/");
+            var result = await _e.GetECAsync(id);
+
+            string strcontractsign = CommonDAO.ToThaiDateStringCovert(result.ContractSignDate ?? DateTime.Now);
+            string strHiringStart = CommonDAO.ToThaiDateStringCovert(result.HiringStartDate ?? DateTime.Now);
+            string strHiringEnd = CommonDAO.ToThaiDateStringCovert(result.HiringEndDate ?? DateTime.Now);
+            string strSalary = CommonDAO.NumberToThaiText(result.Salary ?? 0);
+            #region  signlist
+            var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
+            var signatoryHtml = new StringBuilder();
+            var companySealHtml = new StringBuilder();
+
+            foreach (var signer in signlist)
+            {
+                string signatureHtml;
+                string companySeal = ""; // Initialize to avoid unassigned variable warning
+
+                // Fix CS8602: Use null-conditional operator for Position and Company_Seal
+                if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+                {
+                    try
+                    {
+                        var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                        var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                        companySeal = $@"
+<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+
+                        companySealHtml.AppendLine($@"
+    <div class='text-center'>
+        {companySeal}      
+    </div>
+<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
+
+");
+                    }
+                    catch
+                    {
+                        companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+                {
+                    try
+                    {
+                        var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                        var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                        signatureHtml = $@"<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+                    }
+                    catch
+                    {
+                        signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                    }
+                }
+                else
+                {
+                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                }
+
+                signatoryHtml.AppendLine($@"
+    <div class='sign-single-right'>
+        {signatureHtml}
+        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+    </div>");
+
+                signatoryHtml.Append(companySealHtml);
+            }
+
+            #endregion signlist
+
+
+            var htmlBody = $@"
+
+<div style='margin-bottom: 24px; text-align: center;'>
+    {(System.IO.File.Exists(logoPath) ? $"<img src='file:///{logoPath}' style='width:240px;height:80px;margin-bottom:24px;' />" : "")}
+</div>
+<div class='text-center t-22'><b>สัญญาจ้างลูกจ้าง</b></div>
+<div class='tab3 t-16'>
+    สัญญาฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เลขที่ 21 ถนนวิภาวดีรังสิต เขตจตุจักร กรุงเทพมหานคร เมื่อ {strcontractsign}
+</div>
+<div class='tab3 t-16'>
+    ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย ผู้อำนวยการฝ่ายศูนย์ให้บริการ SMEs ครบวงจร สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ผู้รับมอบหมายตามคำสั่งสำนักงานฯ ที่ 629/2564 ลงวันที่ 30 กันยายน 2564 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้ว่าจ้าง”
+</div>
+<div class='tab3 t-16'>
+    ฝ่ายหนึ่ง กับ {result.SignatoryName} เลขประจำตัวประชาชน {result.IdenID} อยู่บ้านเลขที่ {result.EmpAddress}
+    ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ลูกจ้าง” อีกฝ่ายหนึ่ง โดยทั้งสองฝ่ายได้ตกลงทำร่วมกันดังมีรายละเอียดต่อไปนี้
+</div>
+<div class='tab3 t-16'>
+    1.ผู้ว่าจ้างตกลงจ้างลูกจ้างปฏิบัติงานกับผู้ว่าจ้าง โดยให้ปฏิบัติงานภายใต้งาน {result.WorkDetail} ในตำแหน่ง {result.WorkPosition} ปฏิบัติหน้าที่ ณ ศูนย์กลุ่มจังหวัดให้บริการ SME ครบวงจร ..... 
+    โดยมีรายละเอียดหน้าที่ความรับผิดชอบปรากฏตามเอกสารแนบท้ายสัญญาจ้าง ตั้งแต่ {strHiringStart} ถึง {strHiringEnd}
+</div>
+<div class='tab3 t-16'>
+    2.ผู้ว่าจ้างจะจ่ายค่าจ้างให้แก่ลูกจ้างในระหว่างระยะเวลาการปฏิบัติงานของลูกจ้างตามสัญญานี้ในอัตราเดือนละ {result.Salary} บาท ({strSalary})
+    โดยจะจ่ายให้ในวันทำการก่อนวันทำการสุดท้ายของธนาคารในเดือนนั้นสามวันทำการ และนำเข้าบัญชีเงินฝากของลูกจ้าง ณ ที่ทำการของผู้ว่าจ้าง หรือ ณ ที่อื่นใดตามที่ผู้ว่าจ้างกำหนด
+</div>
+ <div class='tab3 t-16'>
+    3.ในการจ่ายค่าจ้าง และ/หรือ เงินในลักษณะอื่นให้แก่ลูกจ้าง ลูกจ้างตกลงยินยอมให้ผู้ว่าจ้างหักภาษี ณ ที่จ่าย และ/หรือ เงินอื่นใดที่ต้องหักโดยชอบด้วยระเบียบ ข้อบังคับของผู้ว่าจ้างหรือตามกฎหมายที่เกี่ยวข้อง
+</div>
+<div class='tab3 t-16'>
+    4.ตลอดระยะเวลาการปฏิบัติงานตามสัญญานี้ ลูกจ้างมีสิทธิได้รับสิทธิประโยชน์อื่น ๆ ตามที่กำหนดไว้ใน ระเบียบ ข้อบังคับ คำสั่ง หรือประกาศใด ๆ ตามที่ผู้ว่าจ้างกำหนด
+</div>
+<div class='tab3 t-16'>
+    5.ผู้ว่าจ้างจะทำการประเมินผลการปฏิบัติงานอย่างน้อยปีละสองครั้ง ตามหลักเกณฑ์และวิธีการที่ผู้ว่าจ้างกำหนด ทั้งนี้ หากผลการประเมินไม่ผ่านตามหลักเกณฑ์ที่กำหนด ผู้ว่าจ้างมีสิทธิบอกเลิกสัญญาจ้างได้ และลูกจ้างไม่มีสิทธิเรียกร้องเงินชดเชยหรือเงินอื่นใด
+</div>
+<div class='tab3 t-16'>
+    6.ตลอดระยะเวลาการปฏิบัติงานตามสัญญานี้ ลูกจ้างจะต้องปฏิบัติตามกฎ ระเบียบ ข้อบังคับ คำสั่งหรือประกาศใด ๆ ของผู้ว่าจ้าง 
+    ตลอดจนมีหน้าที่ต้องรักษาวินัยและยอมรับการลงโทษทางวินัยของผู้ว่าจ้างโดยเคร่งครัด และยินยอมให้ถือว่า กฎหมาย ระเบียบ ข้อบังคับ หรือคำสั่งต่าง ๆ ของผู้ว่าจ้างเป็นส่วนหนึ่งของสัญญาจ้างนี้
+</div>
+<div class='tab3 t-16'>
+    ในกรณีลูกจ้างจงใจขัดคำสั่งโดยชอบของผู้ว่าจ้างหรือละเลยไม่นำพาต่อคำสั่งเช่นว่านั้นเป็นอาจิณ หรือประการอื่นใด อันไม่สมควรกับการปฏิบัติหน้าที่ของตนให้ลุล่วงไปโดยสุจริตและถูกต้อง ลูกจ้างยินยอมให้ผู้ว่าจ้างบอกเลิกสัญญาจ้างโดยมิต้องบอกกล่าวล่วงหน้า
+</div>
+<div class='tab3 t-16'>
+    7. ลูกจ้างต้องปฏิบัติงานให้กับผู้ว่าจ้าง ตามที่ได้รับมอบหมายด้วยความซื่อสัตย์ สุจริต และตั้งใจปฏิบัติงานอย่างเต็มกำลังความสามารถของตน โดยแสวงหาความรู้และทักษะเพิ่มเติมหรือกระทำการใด 
+    เพื่อให้ผลงานในหน้าที่มีคุณภาพดีขึ้น ทั้งนี้ ต้องรักษาผลประโยชน์และชื่อเสียงของผู้ว่าจ้าง และไม่เปิดเผยความลับหรือข้อมูลของทางราชการให้ผู้หนึ่งผู้ใดทราบ โดยมิได้รับอนุญาตจากผู้รับผิดชอบงานนั้น ๆ
+</div>
+<div class='tab3 t-16'>
+    8. สัญญานี้สิ้นสุดลงเมื่อเข้ากรณีใดกรณีหนึ่ง ดังต่อไปนี้
+</div>
+<div class='tab3 t-16'>8.1 สิ้นสุดระยะเวลาตามสัญญาจ้าง</div>
+<div class='tab3 t-16'>8.2 เมื่อผู้ว่าจ้างบอกเลิกสัญญาจ้าง หรือลูกจ้างบอกเลิกสัญญาจ้างตามข้อ 10</div>
+<div class='tab3 t-16'>8.3 ลูกจ้างกระทำการผิดวินัยร้ายแรง</div>
+<div class='tab3 t-16'>8.4 ลูกจ้างไม่ผ่านการประเมินผลการปฏิบัติงานของลูกจ้างตามข้อ 5</div>
+<div class='tab3 t-16'>
+    9. ในกรณีที่สัญญาสิ้นสุดตามข้อ 8.3 และ 8.4 ลูกจ้างยินยอมให้ผู้ว่าจ้างสั่งให้ลูกจ้างพ้นสภาพการเป็นลูกจ้างได้ทันที โดยไม่จำเป็นต้องมีหนังสือว่ากล่าวตักเตือน และผู้ว่าจ้างไม่ต้องจ่ายค่าชดเชยหรือเงินอื่นใดให้แก่ลูกจ้างทั้งสิ้น เว้นแต่ค่าจ้างที่ลูกจ้างจะพึงได้รับตามสิทธิ
+</div>
+<div class='tab3 t-16'>
+    10. ลูกจ้างมีสิทธิบอกเลิกสัญญาจ้างได้ก่อนสัญญาครบกำหนด โดยทำหนังสือแจ้งเป็นลายลักษณ์อักษรต่อผู้ว่าจ้างได้ทราบล่วงหน้าไม่น้อยกว่า 30 วัน เมื่อผู้ว่าจ้างได้อนุมัติแล้ว ให้ถือว่าสัญญาจ้างนี้ได้สิ้นสุดลง
+</div>
+<div class='tab3 t-16'>
+    11. ในกรณีที่ลูกจ้างกระทำการใดอันทำให้ผู้ว่าจ้างได้รับความเสียหาย ไม่ว่าเหตุนั้นผู้ว่าจ้างจะนำมาเป็นเหตุบอกเลิกสัญญาจ้างหรือไม่ก็ตาม ผู้ว่าจ้างมีสิทธิจะเรียกร้องค่าเสียหาย และลูกจ้างยินยอมชดใช้ค่าเสียหายตามที่ผู้ว่าจ้างเรียกร้องทุกประการ 
+</div>
+<div class='tab3 t-16'>
+    12. ลูกจ้างจะต้องไม่เปิดเผยหรือบอกกล่าวอัตราค่าจ้างของลูกจ้างให้แก่บุคคลใดทราบ ไม่ว่าจะโดยวิธีใดหรือเวลาใด เว้นแต่จะเป็นการกระทำตามกฎหมายหรือคำสั่งศาล
+</div>
+<div class='tab3 t-16'>
+    13. สัญญาฉบับนี้ได้จัดทำขึ้นเป็นสัญญาอิเล็กทรอนิกส์คู่สัญญาได้อ่านตรวจสอบและทำความเข้าใจ ข้อความในสัญญาฉบับนี้โดยละเอียดแล้วจึงได้ลงลายมือชื่ออิเล็กทรอนิกส์ไว้เป็นหลักฐาน ณ วัน เดือน ปี ดังกล่าวข้างต้น 
+และมีพยานรู้ถึงการลงนามของคู่สัญญา และคู่สัญญาต่างฝ่ายต่างเก็บรักษาไฟล์สัญญาอิเล็กทรอนิกส์ฉบับนี้ไว้เป็นหลักฐาน
+</div>
+<!--<div class='tab3 t-16'>
+    สัญญาฉบับนี้ได้จัดทำขึ้นเป็นสัญญาอิเล็กทรอนิกส์คู่สัญญาได้อ่านตรวจสอบและทำความเข้าใจข้อความในสัญญาฉบับนี้โดยละเอียดแล้ว จึงได้ลงลายมือชื่ออิเล็กทรอนิกส์ไว้เป็นหลักฐาน ณ วัน เดือน ปี ดังกล่าวข้างต้น 
+และมีพยานรู้ถึงการลงนามของคู่สัญญา และคู่สัญญาต่างฝ่ายต่างเก็บรักษาไฟล์สัญญาอิเล็กทรอนิกส์ฉบับนี้ไว้เป็นหลักฐาน
+</div> -->
+
+</br>
+</br>
+{signatoryHtml} 
+
+<div style='page-break-before: always;'></div>
+<div class='text-center t-22' style='font-weight:bold;'>เอกสารแนบท้ายสัญญาจ้างลูกจ้าง</div>
+<div class='text-center t-22' style='font-weight:bold;'>งานศูนย์ให้บริการ SMEs ครบวงจร</div>
+<div class='tab3 t-16'>หน้าที่ความรับผิดชอบ : เจ้าหน้าที่ศูนย์กลุ่มจังหวัดให้บริการ SMEs ครบวงจร และ</div>
+<div class='tab3 t-16'>เจ้าหน้าที่ศูนย์ให้บริการ SMEs ครบวงจร กรุงเทพมหานคร</div>
+<div class='tab3 t-16'>- การปรับปรุงข้อมูลผู้ประกอบการ SME (ไม่น้อยกว่า 30 ราย/เดือน)</div>
+<div class='tab3 t-16'>- การให้บริการคำปรึกษา แนะนำทางธุรกิจ อาทิเช่น ด้านบัญชี การเงิน การตลาด การบริหารจัดการ การผลิต กฎหมาย เทคโนโลยีสารสนเทศ และอื่น ๆ ที่เกี่ยวข้องทางธุรกิจ (ไม่น้อยกว่า 30 ราย/เดือน)</div>
+<div class='tab3 t-16'>- สนับสนุน เสนอแนะแนวทางการแก้ไขปัญหาให้ SME ได้รับประโยชน์ตามมาตรการของภาครัฐ</div>
+<div class='tab3 t-16'>- สนับสนุนการพัฒนาเครือข่ายหน่วยงานให้บริการส่งเสริม SME ให้บริการส่งต่อภายใต้หน่วยงานพันธมิตร การติดตามผลและประสานงานแก้ไขปัญหา</div>
+<div class='tab3 t-16'>- สนับสนุนนโยบาย มาตรการ และการทำงานของ สสว. ในการสร้าง ประสาน เชื่อมโยงเครือข่ายในพื้นที่ (รูปแบบ Online & Offline) เพื่อสนับสนุนการปฏิบัติงานตามภารกิจ</div>
+<div class='tab3 t-16'>- สนับสนุนจัดทำข้อมูล SME จังหวัด เพื่อนำข้อมูลมาใช้ประโยชน์ในการเสนอแนะทางธุรกิจแก่ SME และเชื่อมโยงไปสู่การแก้ปัญหาหรือการจัดทำมาตรการภาครัฐ</div>
+<div class='tab3 t-16'>- ปฏิบัติงานภายใต้การบังคับบัญชาของผู้จัดการศูนย์กลุ่มจังหวัดฯ หรือ ผู้จัดการศูนย์ให้บริการ SMEs ครบวงจร กรุงเทพมหานคร ตามประกาศ สสว. และเข้าร่วมกิจกรรมต่าง ๆ </div>
+<div class='tab3 t-16'>- กำกับดูแลข้อมูลตาม พ.ร.บ.การคุ้มครองข้อมูลส่วนบุคคล</div>
+<div class='tab3 t-16'>- งานอื่น ๆ ตามที่ได้รับมอบหมาย</div>
+";
+
+            var html = $@"<html>
+<head>
+    <meta charset='utf-8'>
+  
+     <style>
+        @font-face {{
+            font-family: 'THSarabunNew';
+            src: url('file:///{fontPath}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }}
+         body {{
+            font-size: 22px;
+            font-family: 'THSarabunNew', Arial, sans-serif;
+         
+        }}
+        .t-16 {{
+            font-size: 1.5em;
+        }}
+        .t-18 {{
+            font-size: 1.7em;
+        }}
+        .t-22 {{
+            font-size: 1.9em;
+        }}
+        .tab1 {{ text-indent: 48px;  overflow-wrap: break-word;  }}
+        .tab2 {{ text-indent: 96px; overflow-wrap: break-word; }}
+        .tab3 {{ text-indent: 144px;  overflow-wrap: break-word; }}
+        .tab4 {{ text-indent: 192px;  overflow-wrap: break-word;}}
+        .d-flex {{ display: flex; }}
+        .w-100 {{ width: 100%; }}
+        .w-40 {{ width: 40%; }}
+        .w-50 {{ width: 50%; }}
+        .w-60 {{ width: 60%; }}
+        .text-center {{ text-align: center; }}
+        .sign-single-right {{
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            left: 20%;
+        }}
+        .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
+        .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
+
+        .sign-double {{ display: flex; }}
+        .text-center-right-brake {{
+            margin-left: 50%;
+            word-break: break-all;
+        }}
+        .text-right {{ text-align: right; }}
+        .contract, . {{
+            margin: 12px 0;
+            line-height: 1.7;
+        }}
+        . {{
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: left;
+            margin-top: 24px;
+        }}
+        .signature-table {{
+            width: 100%;
+            margin-top: 32px;
+            border-collapse: collapse;
+        }}
+        .signature-table td {{
+            padding: 16px;
+            text-align: center;
+            vertical-align: top;
+            font-size: 1.1em;
+        }}
+     .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
+        .logo-table td {{ border: none; }}
+ 
+
+    </style>
+</head>
+<body>
+    {htmlBody}
+</body>
+</html>
+";
+
+            if (_pdfConverter == null)
+                throw new Exception("PDF service is not available.");
+
+            var doc = new HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new ObjectSettings() {
+                HtmlContent = html,
+                FooterSettings = new FooterSettings
+                {
+                    FontName = "THSarabunNew",
+                    FontSize = 6,
+                    Line = false,
+                    Center = "[page] / [toPage]"
+                }
+            }
+        }
+            };
+
+            var pdfBytes = _pdfConverter.Convert(doc);
+            return pdfBytes;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error in OnGetWordContact_HireEmployee: " + ex.Message, ex);
+        }
+
+
     }
     #endregion    4.1.3.3. สัญญาจ้างลูกจ้าง
 

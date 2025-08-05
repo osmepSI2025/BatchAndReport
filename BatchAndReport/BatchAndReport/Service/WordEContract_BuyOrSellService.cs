@@ -3,6 +3,7 @@ using DinkToPdf;
 using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using System.Text;
 using System.Threading.Tasks;
 
 
@@ -12,11 +13,16 @@ public class WordEContract_BuyOrSellService
     private readonly Econtract_Report_SPADAO _econtractReportSPADAO;
     private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
     private readonly EContractDAO _eContractDAO;
+    private readonly E_ContractReportDAO _eContractReportDAO;
     public WordEContract_BuyOrSellService(WordServiceSetting ws
          , Econtract_Report_SPADAO econtractReportSPADAO
          , IConverter pdfConverter
         ,
 EContractDAO eContractDAO
+        ,
+E_ContractReportDAO eContractReportDAO
+
+
 
         )
     {
@@ -24,6 +30,7 @@ EContractDAO eContractDAO
         _econtractReportSPADAO = econtractReportSPADAO;
         _pdfConverter = pdfConverter; // กำหนดค่า PDF Converter
         _eContractDAO = eContractDAO;
+        _eContractReportDAO = eContractReportDAO;
     }
     #region 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 SPA30560
     public async Task<byte[]> OnGetWordContact_BuyOrSellService(string id) 
@@ -241,7 +248,7 @@ EContractDAO eContractDAO
         }
  
     }
-    public async Task<byte[]> OnGetWordContact_BuyOrSellService_ToPDF(string id)
+    public async Task<byte[]> OnGetWordContact_BuyOrSellService_ToPDF(string id,string typeContact)
     {
         var result = await _econtractReportSPADAO.GetSPAAsync(id);
       
@@ -258,6 +265,79 @@ EContractDAO eContractDAO
             var bytes = System.IO.File.ReadAllBytes(logoPath);
             logoBase64 = Convert.ToBase64String(bytes);
         }
+        #region  signlist
+        var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
+        var signatoryHtml = new StringBuilder();
+        var companySealHtml = new StringBuilder();
+
+        foreach (var signer in signlist)
+        {
+            string signatureHtml;
+            string companySeal = ""; // Initialize to avoid unassigned variable warning
+
+            // Fix CS8602: Use null-conditional operator for Position and Company_Seal
+            if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+            {
+                try
+                {
+                    var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                    var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                    companySeal = $@"
+<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+
+                    companySealHtml.AppendLine($@"
+    <div class='text-center'>
+        {companySeal}      
+    </div>
+<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
+
+");
+                }
+                catch
+                {
+                    companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
+                }
+            }
+
+            if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+            {
+                try
+                {
+                    var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                    var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                    signatureHtml = $@"<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+                }
+                catch
+                {
+                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                }
+            }
+            else
+            {
+                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+            }
+
+            signatoryHtml.AppendLine($@"
+    <div class='sign-single-right'>
+        {signatureHtml}
+        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+    </div>");
+
+            signatoryHtml.Append(companySealHtml);
+        }
+
+        #endregion signlist
+
+
 
         var strDateTH = CommonDAO.ToThaiDateString(result.ContractSignDate ?? DateTime.Now);
         //เอกสารแนบท้ายสัญญาผนวก 1-6
@@ -504,14 +584,11 @@ EContractDAO eContractDAO
 </div>
 
 <!-- Signature Block -->
-<div class='tab2 t-16'>ลงชื่อ......{result.OSMEP_Signer}......ผู้ซื้อ</div>
-<div class='tab2 t-16'>(................................................................................)</div>
-<div class='tab2 t-16'>ลงชื่อ......{result.Contract_Signer}..........................................ผู้ขาย</div>
-<div class='tab2 t-16'>(................................................................................)</div>
-<div class='tab2 t-16'>ลงชื่อ........{result.OSMEP_Witness}.........พยาน</div>
-<div class='tab2 t-16'>(...............................................................................)</div>
-<div class='tab2 t-16'>ลงชื่อ........{result.Contract_Witness}.........พยาน</div>
-<div class='tab2 t-16'>(...............................................................................)</div>
+
+
+</br>
+</br>
+{signatoryHtml}
     <!-- ... -->
     <!-- Add all other clauses and signature blocks as in your Word logic -->
 <div style='page-break-before: always;'></div>
@@ -548,6 +625,8 @@ EContractDAO eContractDAO
 <div class='tab2 t-16'>(๒๐)  กำหนดเวลาที่ผู้ซื้อจะซื้อสิ่งของจากแหล่งอื่นเมื่อบอกเลิกสัญญาและมีสิทธิเรียกเงินในส่วนที่เพิ่มขึ้นจากราคาที่กำหนดไว้ในสัญญานั้น ให้อยู่ในดุลพินิจของผู้ซื้อโดยตกลงกับผู้ขาย และโดยปกติแล้วไม่ควรเกิน ๓ เดือน</div>
 <div class='tab2 t-16'>(๒๑)  อัตราค่าปรับตามสัญญาข้อ 10 ให้กำหนดเป็นรายวันในอัตราระหว่างร้อยละ ๐.๑๐-๐.๒๐ ตามระเบียบกระทรวงการคลังว่าด้วยหลักเกณฑ์การจัดซื้อจัดจ้างและการบริหารพัสดุภาครัฐ พ.ศ. ๒๕๖๐ข้อ ๑๖๒ ส่วนกรณีจะปรับร้อยละเท่าใด ให้อยู่ในดุลพินิจของหน่วยงานของรัฐผู้ซื้อที่จะพิจารณา โดยคำนึงถึงราคาและลักษณะของพัสดุที่ซื้อ ซึ่งอาจมีผลกระทบต่อการที่ผู้ขายจะหลีกเลี่ยงไม่ปฏิบัติตามสัญญา แต่ทั้งนี้การที่จะกำหนดค่าปรับเป็นร้อยละเท่าใด จะต้องกำหนดไว้ในเอกสารเชิญชวนด้วย</div>
 <div class='tab2 t-16'>(๒๒)  เป็นข้อความหรือเงื่อนไขเพิ่มเติม ซึ่งหน่วยงานของรัฐผู้ทำสัญญาอาจเลือกใช้หรือตัดออกได้ตามข้อเท็จจริง</div>
+
+
 </body>
 </html>
 ";

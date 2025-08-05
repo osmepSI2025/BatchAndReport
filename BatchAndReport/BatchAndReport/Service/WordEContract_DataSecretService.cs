@@ -3,6 +3,7 @@ using DinkToPdf;
 using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using System.Text;
 
 public class WordEContract_DataSecretService
 {
@@ -271,7 +272,7 @@ public class WordEContract_DataSecretService
 
     }
 
-    public async Task<byte[]> OnGetWordContact_DataSecretService_ToPDF(string id) 
+    public async Task<byte[]> OnGetWordContact_DataSecretService_ToPDF(string id,string typeContact) 
     {
         var result = await _eContractReportDAO.GetNDAAsync(id);
         var conPurpose = await _eContractReportDAO.GetNDA_RequestPurposeAsync(id);
@@ -310,7 +311,80 @@ public class WordEContract_DataSecretService
         }
 
         var strDateTH = CommonDAO.ToThaiDateString(result.Sign_Date ?? DateTime.Now);
-       
+
+
+        #region  signlist
+        var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
+        var signatoryHtml = new StringBuilder();
+        var companySealHtml = new StringBuilder();
+
+        foreach (var signer in signlist)
+        {
+            string signatureHtml;
+            string companySeal = ""; // Initialize to avoid unassigned variable warning
+
+            // Fix CS8602: Use null-conditional operator for Position and Company_Seal
+            if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+            {
+                try
+                {
+                    var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                    var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                    companySeal = $@"
+<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+
+                    companySealHtml.AppendLine($@"
+    <div class='text-center'>
+        {companySeal}      
+    </div>
+<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
+
+");
+                }
+                catch
+                {
+                    companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
+                }
+            }
+
+            if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+            {
+                try
+                {
+                    var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                    var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                    signatureHtml = $@"<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+                }
+                catch
+                {
+                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                }
+            }
+            else
+            {
+                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+            }
+
+            signatoryHtml.AppendLine($@"
+    <div class='sign-single-right'>
+        {signatureHtml}
+        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+    </div>");
+
+            signatoryHtml.Append(companySealHtml);
+        }
+
+        #endregion signlist
+
 
         var html = $@"<html>
 <head>
@@ -329,13 +403,13 @@ public class WordEContract_DataSecretService
          
         }}
         .t-16 {{
-            font-size: 1.5em;
+            font-size: 1.8em;
         }}
         .t-18 {{
-            font-size: 1.7em;
+            font-size: 2.0em;
         }}
         .t-22 {{
-            font-size: 1.9em;
+            font-size: 2.2em;
         }}
         .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
         .tab2 {{ text-indent: 96px;  word-break: break-all; }}
@@ -390,7 +464,7 @@ public class WordEContract_DataSecretService
     </style>
 </head><body>
     <!-- Top Row: Logo left, Contract code box right -->
-    <table class='contract-table'>
+    <table >
         <tr>
             <td style='width:60%; text-align:left;'>
                 <img src='data:image/jpeg;base64,{logoBase64}' class='logo-img' />
@@ -479,28 +553,9 @@ public class WordEContract_DataSecretService
     <div class='tab3 t-16'>สัญญานี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน คู่สัญญาได้อ่าน และเข้าใจข้อความในสัญญาโดยละเอียดตลอดแล้ว เห็นว่าตรงตามเจตนารมณ์ทุกประการ จึงได้ลงลายมือชื่อพร้อมทั้งประทับตราสำคัญผูกพันนิติบุคคล (ถ้ามี) ไว้เป็นสำคัญ ณ วัน เดือน ปี ที่ระบุข้างต้น และคู่สัญญาต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับ</div>
 
     <!-- Signature Table -->
-    <table class='signature-table t-16'>
-        <tr>
-            <td>
-                ลงชื่อ............................................................ผู้ให้ข้อมูล<br/>
-                <span>(สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม)</span>
-            </td>
-            <td>
-                ลงชื่อ............................................................ผู้รับข้อมูล<br/>
-                <span style='font-weight:bold;'>({result.Contract_Party_Name})</span>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                ลงชื่อ............................................................พยาน<br/>
-                <span>(สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม)</span>
-            </td>
-            <td>
-                ลงชื่อ............................................................พยาน<br/>
-                <span style='font-weight:bold;'>({result.Contract_Party_Name})</span>
-            </td>
-        </tr>
-    </table>
+   </br>
+</br>
+{signatoryHtml}
 </body>
 </html>
 ";

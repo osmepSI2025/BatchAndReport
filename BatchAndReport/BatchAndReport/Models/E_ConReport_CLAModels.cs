@@ -30,7 +30,7 @@
         public string? SaleBankAccountName { get; set; }
         public string? SaleBankAccountNumber { get; set; }
         public string? DeliveryLocation { get; set; }
-        public DateTime? DeliveryDateIn { get; set; }
+        public int? DeliveryDateIn { get; set; }
         public string? NotiLocation { get; set; }
         public int? NotiDaysBeforeDelivery { get; set; }
         public int? LocationDesignDays { get; set; }
@@ -39,11 +39,11 @@
         public int? MaximumDownTimeHours { get; set; }
         public decimal? MaximumDownPercents { get; set; }
         public decimal? PenaltyPerHours { get; set; }
-        public int? NormalTimeFixDays { get; set; }
-        public int? OffTimeFixDays { get; set; }
+      //  public decimal? NormalTimeFixDays { get; set; }
+      //  public decimal? OffTimeFixDays { get; set; }
         public decimal? FixPenaltyPerHours { get; set; }
         public int? FixReplaceCompDays { get; set; }
-        public decimal? FixReplacePenaltyPerHours { get; set; }
+      //  public decimal? FixReplacePenaltyPerHours { get; set; }
         public int? TrainingPeriodDays { get; set; }
         public int? ComputerManualsCount { get; set; }
         public string? GuaranteeType { get; set; }
@@ -51,7 +51,7 @@
         public decimal? GuaranteePercent { get; set; }
         public int? NewGuaranteeDays { get; set; }
         public int? RespReplaceDays { get; set; }
-        public int? TeminationNewMonths { get; set; }
+        public string? TeminationNewMonths { get; set; }
         public decimal? FinePerDaysPercent { get; set; }
         public int? ComputerSendBackDays { get; set; }
         public int? EnforcementOfFineDays { get; set; }
@@ -75,9 +75,13 @@
         public DateTime? CitizenCardExpireDate { get; set; }
         public int? RespReplaceYears { get; set; }
         public int? RespReplaceMonth { get; set; }
-        public int? Request_ID { get; set; }
+        public string? Request_ID { get; set; }
         public string? Contract_Status { get; set; }
         public string? GuaranteeTypeOther { get; set; }
+        public bool? NeedAttachCuS { get; set; } // bit
+        public decimal? NormalTimeFixHours { get; set; }
+        public decimal? OffTimeFixHours { get; set; }
+        public decimal? FixReplacePenaltyPerDays { get; set; }
 
     }
     

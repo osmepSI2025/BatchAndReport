@@ -3,6 +3,7 @@ using DinkToPdf;
 using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using System.Text;
 using System.Threading.Tasks;
 
 
@@ -12,17 +13,21 @@ public class WordEContract_LoanComputerService
     private readonly Econtract_Report_CLADAO _e;
     private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
     private readonly EContractDAO _eContractDAO;
+    private readonly E_ContractReportDAO _eContractReportDAO;
     public WordEContract_LoanComputerService(WordServiceSetting ws
         , Econtract_Report_CLADAO e
             , IConverter pdfConverter
         ,
 EContractDAO eContractDAO
+        , E_ContractReportDAO eContractReportDAO
+
         )
     {
         _w = ws;
         _e = e;
         _pdfConverter = pdfConverter;
          _eContractDAO = eContractDAO;
+        _eContractReportDAO = eContractReportDAO;
     }
 # region 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60
     public async Task<byte[]> OnGetWordContact_LoanComputer(string id)
@@ -354,7 +359,7 @@ EContractDAO eContractDAO
         }
   
     }
-    public async Task<byte[]> OnGetWordContact_LoanComputer_ToPDF(string id)
+    public async Task<byte[]> OnGetWordContact_LoanComputer_ToPDF(string id,string typeContact)
     {
         try
         {
@@ -376,15 +381,89 @@ EContractDAO eContractDAO
                     logoBase64 = Convert.ToBase64String(bytes);
                 }
 
-                var listDocAtt = await _eContractDAO.GetRelatedDocumentsAsync(id, "SPA30960");
+                var listDocAtt = await _eContractDAO.GetRelatedDocumentsAsync(id, "CLA30960");
                 var htmlDocAtt = listDocAtt != null
                     ? string.Join("", listDocAtt.Select(docItem =>
-                        $"<p class='tab3 t-16'>{docItem.DocumentTitle} จำนวน {docItem.PageAmount} หน้า</p>"))
+                        $"<div class='tab3 t-16'>{docItem.DocumentTitle} จำนวน {docItem.PageAmount} หน้า</div>"))
                     : "";
 
                string strGuaranteeAmount =CommonDAO.NumberToThaiText(result.GuaranteeAmount ?? 0);
               string  stringFixPenaltyPerHours = CommonDAO.NumberToThaiText(result.FixPenaltyPerHours ?? 0);
                 string datestring = CommonDAO.ToThaiDateStringCovert(result.ContractSignDate ?? DateTime.Now);
+
+
+                #region  signlist
+                var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
+                var signatoryHtml = new StringBuilder();
+                var companySealHtml = new StringBuilder();
+
+                foreach (var signer in signlist)
+                {
+                    string signatureHtml;
+                    string companySeal = ""; // Initialize to avoid unassigned variable warning
+
+                    // Fix CS8602: Use null-conditional operator for Position and Company_Seal
+                    if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+                    {
+                        try
+                        {
+                            var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                            var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                            var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                            companySeal = $@"
+<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+
+                            companySealHtml.AppendLine($@"
+    <div class='text-center'>
+        {companySeal}      
+    </div>
+<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
+
+");
+                        }
+                        catch
+                        {
+                            companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+                    {
+                        try
+                        {
+                            var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                            var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                            var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                            signatureHtml = $@"<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+                        }
+                        catch
+                        {
+                            signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                        }
+                    }
+                    else
+                    {
+                        signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                    }
+
+                    signatoryHtml.AppendLine($@"
+    <div class='sign-single-right'>
+        {signatureHtml}
+        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+    </div>");
+
+                    signatoryHtml.Append(companySealHtml);
+                }
+
+                #endregion signlist
+
 
 
                 var htmlBody = $@"
@@ -418,7 +497,7 @@ EContractDAO eContractDAO
                 ผู้ถือบัตรประจำตัวประชาชนเลขที่ {result.CitizenId} ดังปรากฏตามสำเนาบัตรประจำตัวประชาชนแนบท้ายสัญญานี้) ซึ่งต่อไปในสัญญานี้เรียกว่า “ผู้ให้เช่า” อีกฝ่ายหนึ่ง
             </div>")}
     <div class='tab2 t-16'>คู่สัญญาได้ตกลงกันมีข้อความดังต่อไปนี้</div>
-    <div class='tab2 t-16'><b>ข้อ1 คำนิยาม</b></div>
+    <div class='tab2 t-16'><b>ข้อ ๑ คำนิยาม</b></div>
     <div class='tab3 t-16'>“ค่าเช่า” หมายความรวมถึง ค่าบำรุงรักษาด้วย</div>
     <div class='tab3 t-16'>“ค่าบำรุงรักษา” หมายความรวมถึง ค่าใช้จ่ายทั้งสิ้นในการบำรุงรักษาและซ่อมแซมแก้ไข</div>
       <div class='tab3 t-16'>“ค่าบำรุงรักษา” หมายความรวมถึง ค่าใช้จ่ายทั้งสิ้นในการบำรุงรักษาและซ่อมแซมแก้ไข</div>
@@ -437,7 +516,9 @@ EContractDAO eContractDAO
     <div class='tab2 t-16'><b>ข้อ ๓ เอกสารอันเป็นส่วนหนึ่งของสัญญา</b></div>
 
 <div class='tab3 t-16'>เอกสารแนบท้ายสัญญาต่อไปนี้ ให้ถือเป็นส่วนหนึ่งของสัญญานี้</div>
-    {listDocAtt}
+
+    {htmlDocAtt}
+
     <div class='tab3 t-16'>ความใดในเอกสารแนบท้ายสัญญาที่ขัดหรือแย้งกับข้อความในสัญญานี้ ให้ใช้ข้อความ ในสัญญานี้บังคับ และในกรณีที่เอกสารแนบท้ายสัญญาขัดแย้งกันเอง ผู้ให้เช่าจะต้องปฏิบัติตามคำวินิจฉัยของผู้เช่า คำวินิจฉัยของผู้เช่าให้ถือเป็นที่สุด และผู้ให้เช่าไม่มีสิทธิเรียกร้องค่าเช่า ค่าเสียหาย หรือค่าใช้จ่ายใดๆ เพิ่มเติม  จากผู้เช่าทั้งสิ้น</div>
 
 <div class='tab2 t-16'><b>ข้อ ๔ ระยะเวลาการเช่า</b></div>
@@ -600,15 +681,7 @@ EContractDAO eContractDAO
 
 </br>
 </br>
-<div class=' t-16 text-center'>ลงชื่อ........................................................................ผู้เช่า</div>
-<div class=' t-16 text-center'>(................................................................................)</div>
-<div class=' t-16 text-center'>ลงชื่อ........................................................................ผู้ให้เช่า</div>
-<div class=' t-16 text-center'>(................................................................................)</div>
-<div class=' t-16 text-center'>ลงชื่อ......................................................................พยาน</div>
-<div class=' t-16 text-center'>(...............................................................................)</div>
-<div class=' t-16 text-center'>ลงชื่อ......................................................................พยาน</div>
-<div class=' t-16 text-center'>(...............................................................................)</div>
-
+{signatoryHtml}
 
 
 

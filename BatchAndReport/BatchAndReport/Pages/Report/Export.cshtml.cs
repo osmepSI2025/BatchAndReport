@@ -531,6 +531,26 @@ namespace BatchAndReport.Pages.Report
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างลูกจ้าง.docx");
 
         }
+
+        public async Task OnGetWordContact_EC_PDF(string ContractId = "1")
+        {
+            var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "EC_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
+        }
         #endregion 4.1.3.3. สัญญาจ้างลูกจ้าง
 
         #region 4.1.1.2.15.สัญญาจ้างทำของ CWA
@@ -538,8 +558,26 @@ namespace BatchAndReport.Pages.Report
         {
             var wordBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างทำของ.docx");
+        }
 
+        public async Task OnGetWordContact_CWA_PDF(string ContractId = "1")
+        {
+            var wordBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "CWA_" + ContractId + ".pdf");
 
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
         #endregion 4.1.1.2.15.สัญญาจ้างทำของ CWA
 
@@ -549,7 +587,25 @@ namespace BatchAndReport.Pages.Report
             var wordBytes =await _ConsultantService.OnGetWordContact_ConsultantService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างที่ปรึกษา.docx");
         }
+        public async Task OnGetWordContact_CTR31760_PDF(string ContractId = "1")
+        {
+            var wordBytes = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CTR31760");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "CTR31760_" + ContractId + ".pdf");
 
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
+        }
         #endregion 4.1.1.2.14.สัญญาจ้างที่ปรึกษา CTR31760
 
         #region 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60 PML31460
@@ -558,6 +614,25 @@ namespace BatchAndReport.Pages.Report
         {
             var wordBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60.docx");
+        }
+        public async Task OnGetWordContact_PML31460_PDF(string ContractId = "1")
+        {
+            var wordBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "PML31460_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
 
         #endregion 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60 PML31460
@@ -568,6 +643,27 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _maintenanceComputerService.OnGetWordContact_MaintenanceComputer(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60.docx");
         }
+        public async Task OnGetWordContact_SMC31060_PDF(string ContractId = "1")
+        {
+            var wordBytes = await _maintenanceComputerService.OnGetWordContact_MaintenanceComputer_ToPDF(ContractId,"SMC31060");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SMC31060");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "SMC31060_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
+        }
+
+
         #endregion 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60 SMC31060
 
         #region 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
@@ -578,7 +674,7 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_CLA30960_PDF(string ContractId = "1")
         {
-            var wordBytes = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId);
+            var wordBytes = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960");
             if (!Directory.Exists(folderPath))
             {
@@ -605,7 +701,7 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_SLA30860_PDF(string ContractId = "1")
         {
-            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId);
+            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860");
             if (!Directory.Exists(folderPath))
             {
@@ -666,7 +762,7 @@ namespace BatchAndReport.Pages.Report
 
         public async Task OnGetWordContact_SPA30560_PDF(string ContractId = "1")
         {
-            var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId);
+            var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560");
             if (!Directory.Exists(folderPath))
             {
@@ -694,7 +790,7 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_NDA_PDF(string ContractId = "1")
         {
-            var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId);
+            var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId,"NDA");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
             if (!Directory.Exists(folderPath))
             {
@@ -722,7 +818,7 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_PDSA_PDF(string ContractId = "3")
         {
-            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId);
+            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId,"PDSA");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
             if (!Directory.Exists(folderPath))
             {
@@ -751,7 +847,7 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_JDCA_PDF(string ContractId = "1")
         {
-            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId);
+            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId,"JDCA");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA");
             if (!Directory.Exists(folderPath))
             {
@@ -778,7 +874,7 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_PDPA_PDF(string ContractId = "1")
         {
-            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId);
+            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
             if (!Directory.Exists(folderPath))
             {
@@ -802,9 +898,9 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือ.docx");
         }
-        public async Task OnGetWordContact_MOU_PDF(string ContractId = "2")
+        public async Task OnGetWordContact_MOU_PDF(string ContractId = "3")
         {
-            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId);
+            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId,"MOU");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
             if (!Directory.Exists(folderPath))
             {
@@ -830,7 +926,7 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_GA_PDF(string ContractId = "1")
         {
-            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId);
+            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId,"GA");
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
             if (!Directory.Exists(folderPath))
@@ -895,7 +991,7 @@ namespace BatchAndReport.Pages.Report
         #region Word to PDF using Interop
         public async Task<IActionResult> OnGetWordtoPDF(string ContractId = "1")
         {
-            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId);
+            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId,"68");
             return File(pdfBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
 

@@ -96,7 +96,9 @@ namespace BatchAndReport.DAO
                     Signatory_Name = signatoryReader["Signatory_Name"] as string,
                     Position = signatoryReader["Position"] as string,
                     BU_UNIT = signatoryReader["BU_UNIT"] as string,
-                    DS_FILE = signatoryReader["DS_FILE"] as string
+                    DS_FILE = signatoryReader["DS_FILE"] as string,
+                    Company_Seal = signatoryReader["Company_Seal"] as string,
+                       Signatory_Type = signatoryReader["Signatory_Type"] as string
                 });
             }
 
@@ -628,6 +630,42 @@ namespace BatchAndReport.DAO
                 return null;
             }
 
+        }
+
+        #endregion
+
+        #region sign  
+        public async Task<List<E_ConReport_SignatoryModels?>> GetSignNameAsync(string Id,string Type)
+        {
+            List<E_ConReport_SignatoryModels?> e_ConReport_SignatoryModels = new List<E_ConReport_SignatoryModels?>();
+            var conn = _k2context_EContract.Database.GetDbConnection();
+            await using var connection = new SqlConnection(conn.ConnectionString);
+            await connection.OpenAsync();
+
+    
+            // 🔹 Load Signatory list from SP_Preview_Signatory_List_Report
+            await using var signatoryCmd = new SqlCommand("SP_Preview_Signatory_List_Report", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+            signatoryCmd.Parameters.AddWithValue("@con_id", Id);
+            signatoryCmd.Parameters.AddWithValue("@con_type", Type); // ใช้ค่าตามที่ระบบระบุ
+
+            using var signatoryReader = await signatoryCmd.ExecuteReaderAsync();
+            while (await signatoryReader.ReadAsync())
+            {
+                e_ConReport_SignatoryModels.Add(new E_ConReport_SignatoryModels
+                {
+                    Signatory_Name = signatoryReader["Signatory_Name"] as string,
+                    Position = signatoryReader["Position"] as string,
+                    BU_UNIT = signatoryReader["BU_UNIT"] as string,
+                    DS_FILE = signatoryReader["DS_FILE"] as string,
+                     Company_Seal= signatoryReader["Company_Seal"] as string,
+                    Signatory_Type = signatoryReader["Signatory_Type"] as string
+                });
+            }
+
+            return e_ConReport_SignatoryModels;
         }
 
         #endregion

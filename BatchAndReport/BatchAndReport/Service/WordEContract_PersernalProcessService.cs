@@ -2,12 +2,13 @@
 using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using System.Text;
 using System.Threading.Tasks;
 
 public class WordEContract_PersernalProcessService
 {
     private readonly WordServiceSetting _w;
-    private readonly E_ContractReportDAO _eCon;
+    private readonly E_ContractReportDAO _eContractReportDAO;
 
     private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
     public WordEContract_PersernalProcessService(WordServiceSetting ws
@@ -17,14 +18,14 @@ public class WordEContract_PersernalProcessService
         )
     {
         _w = ws;
-        _eCon = eContractReportDAO;
+        _eContractReportDAO = eContractReportDAO;
         _pdfConverter = pdfConverter; // กำหนดค่า PDF Converter
 
     }
     #region 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล
     public async Task<byte[]> OnGetWordContact_PersernalProcessService(string id)
     {
-        var result = await _eCon.GetPDPAAsync(id);
+        var result = await _eContractReportDAO.GetPDPAAsync(id);
 
         if (result == null)
         {
@@ -133,7 +134,7 @@ public class WordEContract_PersernalProcessService
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สสว. ในฐานะผู้ควบคุมข้อมูลส่วนบุคคลเป็นผู้มีอำนาจตัดสินใจ กำหนดรูปแบบและกำหนดวัตถุประสงค์ในการประมวลผลข้อมูลส่วนบุคคล ได้.....(มอบหมาย/แต่งตั้ง/จ้าง/อื่น ๆ).....ให้ " + result.Contract_Organization + " ในฐานะผู้ประมวลผลข้อมูลส่วนบุคคล ดำเนินการเพื่อวัตถุประสงค์ดังต่อไปนี้", null, "32"));
 
 
-                var conPurpose = await _eCon.GetPDPA_ObjectivesAsync(id);
+                var conPurpose = await _eContractReportDAO.GetPDPA_ObjectivesAsync(id);
                 if (conPurpose != null && conPurpose.Count > 0)
                 {
                     int rowp = 1;
@@ -144,7 +145,7 @@ public class WordEContract_PersernalProcessService
                     }
                 }
 
-                var conAgreement = await _eCon.GetPDPA_AgreementListAsync(id);
+                var conAgreement = await _eContractReportDAO.GetPDPA_AgreementListAsync(id);
                 if (conAgreement != null && conAgreement.Count > 0)
                 {
                     int rowa = 1;
@@ -311,13 +312,13 @@ public class WordEContract_PersernalProcessService
       
     }
 
-    public async Task<byte[]> OnGetWordContact_PersernalProcessService_HtmlToPDF(string id)
+    public async Task<byte[]> OnGetWordContact_PersernalProcessService_HtmlToPDF(string id ,string typeContact)
     {
         try {
          
-            var result = await _eCon.GetPDPAAsync(id);
-            var conPurpose = await _eCon.GetPDPA_ObjectivesAsync(id);
-            var conAgreement = await _eCon.GetPDPA_AgreementListAsync(id);
+            var result = await _eContractReportDAO.GetPDPAAsync(id);
+            var conPurpose = await _eContractReportDAO.GetPDPA_ObjectivesAsync(id);
+            var conAgreement = await _eContractReportDAO.GetPDPA_AgreementListAsync(id);
 
             string strEndate = "";
 
@@ -340,6 +341,79 @@ public class WordEContract_PersernalProcessService
             // Font
             var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
             string signDate = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign_Date ?? DateTime.Now);
+
+            #region  signlist
+            var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
+            var signatoryHtml = new StringBuilder();
+            var companySealHtml = new StringBuilder();
+
+            foreach (var signer in signlist)
+            {
+                string signatureHtml;
+                string companySeal = ""; // Initialize to avoid unassigned variable warning
+
+                // Fix CS8602: Use null-conditional operator for Position and Company_Seal
+                if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+                {
+                    try
+                    {
+                        var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                        var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                        companySeal = $@"
+<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+
+                        companySealHtml.AppendLine($@"
+    <div class='text-center'>
+        {companySeal}      
+    </div>
+<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
+
+");
+                    }
+                    catch
+                    {
+                        companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+                {
+                    try
+                    {
+                        var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                        var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                        signatureHtml = $@"<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+                    }
+                    catch
+                    {
+                        signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                    }
+                }
+                else
+                {
+                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                }
+
+                signatoryHtml.AppendLine($@"
+    <div class='sign-single-right'>
+        {signatureHtml}
+        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+    </div>");
+
+                signatoryHtml.Append(companySealHtml);
+            }
+
+            #endregion signlist
+
             var html = $@"
 <html>
 <head>
@@ -411,7 +485,7 @@ public class WordEContract_PersernalProcessService
     </style>
 </head>
 <body>
-      <div class='logo'>
+      <div style=' text-align:center;'>
          <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
     </div>
     <div class='t-22 text-center'><b>ข้ออตกลงการประมวลผลข้อมูลส่วนบุคคล</b></div>
@@ -493,16 +567,9 @@ public class WordEContract_PersernalProcessService
 <div class='tab3 t-16'>
     ทั้งสองฝ่ายได้อ่านและเข้าใจข้อความโดยละเอียดตลอดแล้ว เพื่อเป็นหลักฐานแห่งการนี้ ทั้งสองฝ่ายจึงได้ลงนามไว้เป็นหลักฐานต่อหน้าพยาน ณ วัน เดือน ปี ที่ระบุข้างต้น
 </div>
-<table class='signature-table t-16' >
-    <tr>
-        <td>(ลงชื่อ)....................................................<br/>(....................................................)<br/>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</td>
-        <td>(ลงชื่อ)....................................................<br/>(....................................................)<br/>{result.Contract_Organization ?? "ชื่อคู่สัญญา"}</td>
-    </tr>
-    <tr>
-        <td>(ลงชื่อ)....................................................พยาน<br/>(....................................................)</td>
-        <td>(ลงชื่อ)....................................................พยาน<br/>(....................................................)</td>
-    </tr>
-</table>
+</br>
+</br>
+{signatoryHtml}
 </body>
 </html>
 ";

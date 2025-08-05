@@ -540,13 +540,13 @@ public class WordEContract_BuyOrSellComputerService
          
         }}
         .t-16 {{
-            font-size: 1.5em;
+            font-size: 1.8em;
         }}
         .t-18 {{
-            font-size: 1.7em;
+            font-size: 2.0em;
         }}
         .t-22 {{
-            font-size: 1.9em;
+            font-size: 2.2em;
         }}
         .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
         .tab2 {{ text-indent: 96px;  word-break: break-all; }}

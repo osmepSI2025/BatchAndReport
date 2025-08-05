@@ -4,6 +4,7 @@ using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Spire.Doc.Documents;
+using System.Text;
 using System.Threading.Tasks;
 
 public class WordEContract_ControlDataService
@@ -384,20 +385,99 @@ public class WordEContract_ControlDataService
         }
        
     }
-    public async Task<byte[]> OnGetWordContact_ControlDataServiceHtmlToPdf(string id)
+    public async Task<byte[]> OnGetWordContact_ControlDataServiceHtmlToPdf(string id,string typeContact)
     {
         var result = await _eContractReportDAO.GetJDCAAsync(id);
         if (result == null)
         {
             throw new Exception("ไม่พบข้อมูลสัญญา");
         }
-
+        // Logo
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+        string logoBase64 = "";
+        if (System.IO.File.Exists(logoPath))
+        {
+            var bytes = System.IO.File.ReadAllBytes(logoPath);
+            logoBase64 = Convert.ToBase64String(bytes);
+        }
         var purplist = await _eContractReportDAO.GetJDCA_JointPurpAsync(id);
         var dtActivitySME = await _eContractReportDAO.GetJDCA_SubProcessActivitiesAsync(id);
 
         var activityListOSMEP = dtActivitySME?.Where(x => x.Owner == "OSMEP").ToList() ?? new List<E_ConReport_JDCA_SubProcessActivitiesModels>();
         var activityListCP = dtActivitySME?.Where(x => x.Owner == "CP").ToList() ?? new List<E_ConReport_JDCA_SubProcessActivitiesModels>();
         var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+
+        #region  signlist
+        var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
+        var signatoryHtml = new StringBuilder();
+        var companySealHtml = new StringBuilder();
+
+        foreach (var signer in signlist)
+        {
+            string signatureHtml;
+            string companySeal = ""; // Initialize to avoid unassigned variable warning
+
+            // Fix CS8602: Use null-conditional operator for Position and Company_Seal
+            if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+            {
+                try
+                {
+                    var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                    var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                    companySeal = $@"
+<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+
+                    companySealHtml.AppendLine($@"
+    <div class='text-center'>
+        {companySeal}      
+    </div>
+<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
+
+");
+                }
+                catch
+                {
+                    companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
+                }
+            }
+
+            if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+            {
+                try
+                {
+                    var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                    var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                    signatureHtml = $@"<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+                }
+                catch
+                {
+                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                }
+            }
+            else
+            {
+                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+            }
+
+            signatoryHtml.AppendLine($@"
+    <div class='sign-single-right'>
+        {signatureHtml}
+        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+    </div>");
+
+            signatoryHtml.Append(companySealHtml);
+        }
+
+        #endregion signlist
 
         var html = $@"
 <html>
@@ -474,6 +554,18 @@ public class WordEContract_ControlDataService
     </style>
 </head>
 <body>
+
+      <table class='contract-table'>
+        <tr>
+            <td style='width:60%; text-align:left;'>
+                <img src='data:image/jpeg;base64,{logoBase64}' class='logo-img' />
+            </td>
+            <td style='width:40%; text-align:center;'>
+                <img src='data:image/jpeg;base64,{logoBase64}' class='logo-img' />
+            </td>
+        </tr>
+    </table>
+</br>
     <div class='t-22 text-center'><b>ข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม</b></div>
     <div class='t-18 text-center'><b>(Joint Controller Agreement)</b></div>
     <div class='t-18 text-center'><b>ระหว่าง</b></div>
@@ -574,16 +666,8 @@ public class WordEContract_ControlDataService
 
 </br>
 </br>
-    <table class='t-16'>
-        <tr>
-            <td>ลงชื่อ.................................................................ผู้ให้ข้อมูล<br/>(สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม)</td>
-            <td>ลงชื่อ.................................................................ผู้รับข้อมูล<br/>({result.Contract_Party_Name ?? ""})</td>
-        </tr>
-        <tr>
-            <td>ลงชื่อ.................................................................พยาน<br/>(สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม)</td>
-            <td>ลงชื่อ.................................................................พยาน<br/>({result.Contract_Party_Name ?? ""})</td>
-        </tr>
-    </table>
+{signatoryHtml}
+
 </body>
 </html>
 ";

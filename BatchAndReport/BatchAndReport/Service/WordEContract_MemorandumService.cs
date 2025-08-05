@@ -2,6 +2,8 @@
 using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.Win32;
+using System.Text;
 using System.Threading.Tasks;
 
 public class WordEContract_MemorandumService
@@ -200,7 +202,7 @@ public class WordEContract_MemorandumService
 
     }
 
-    public async Task<byte[]> OnGetWordContact_MemorandumService_HtmlToPDF(string id)
+    public async Task<byte[]> OnGetWordContact_MemorandumService_HtmlToPDF(string id,string typeContact)
     {
         var result = await _eContractReportDAO.GetMOUAsync(id);
 
@@ -224,6 +226,79 @@ public class WordEContract_MemorandumService
         // Purpose list
         var purposeList = await _eContractReportDAO.GetMOUPoposeAsync(id);
 
+
+        #region  signlist
+        var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
+        var signatoryHtml = new StringBuilder();
+        var companySealHtml = new StringBuilder();
+
+        foreach (var signer in signlist)
+        {
+            string signatureHtml;
+            string companySeal = ""; // Initialize to avoid unassigned variable warning
+
+            // Fix CS8602: Use null-conditional operator for Position and Company_Seal
+            if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+            {
+                try
+                {
+                    var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                    var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                    companySeal = $@"
+<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+
+                    companySealHtml.AppendLine($@"
+    <div class='text-center'>
+        {companySeal}      
+    </div>
+<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
+
+");
+                }
+                catch
+                {
+                    companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
+                }
+            }
+
+            if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+            {
+                try
+                {
+                    var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                    var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                    signatureHtml = $@"<div class='t-16 text-center tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+                }
+                catch
+                {
+                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                }
+            }
+            else
+            {
+                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+            }
+
+            signatoryHtml.AppendLine($@"
+    <div class='sign-single-right'>
+        {signatureHtml}
+        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+    </div>");
+
+            signatoryHtml.Append(companySealHtml);
+        }
+
+        #endregion signlist
+
         var html = $@"
 <html>
 <head>
@@ -240,13 +315,13 @@ public class WordEContract_MemorandumService
             font-family: 'THSarabunNew', Arial, sans-serif;
         }}
         .t-16 {{
-            font-size: 2.0em;
+            font-size: 1.5em;
         }}
         .t-18 {{
-            font-size: 2.5em;
+            font-size: 1.7em;
         }}
         .t-22 {{
-            font-size: 3.0em;
+            font-size: 1.9em;
         }}
         .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
         .tab2 {{ text-indent: 96px;  word-break: break-all; }}
@@ -296,13 +371,13 @@ public class WordEContract_MemorandumService
     </style>
 </head>
 <body>
-    <table class='contract-table'>
+      <table class='contract-table'>
         <tr>
-            <td class='logo-cell'>
-                <img src='data:image/jpeg;base64,{logoBase64}' alt='Logo' style='height:80px;' />
+            <td style='width:60%; text-align:left;'>
+                <img src='data:image/jpeg;base64,{logoBase64}' class='logo-img' />
             </td>
-            <td class='code-cell'>
-                <!-- Contract code box, add code if needed -->
+            <td style='width:40%; text-align:center;'>
+                <img src='data:image/jpeg;base64,{logoBase64}' class='logo-img' />
             </td>
         </tr>
     </table>
@@ -338,20 +413,9 @@ public class WordEContract_MemorandumService
     <div class='t-16 tab4'>3.5 “ชื่อหน่วยร่วม” ต้องไม่ดำเนินการในลักษณะการจ้างเหมา กับหน่วยงาน องค์กร หรือบุคคลอื่น ๆ ยกเว้นกรณีการจัดหา จัดจ้าง เป็นกิจกรรมหรือเป็นเรื่อง ๆ</div>
     <div class='t-16 tab4'>3.6 ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับข้อมูลส่วนบุคคลและการคุ้มครองทรัพย์สินทางปัญญา “ชื่อหน่วยร่วม” จะต้องปฏิบัติตามกฎหมายว่าด้วยการคุ้มครองข้อมูลส่วนบุคคลและการคุ้มครองทรัพย์สินทางปัญญาอย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้องร้องใด ๆ “ชื่อหน่วยร่วม” จะต้องเป็นผู้รับผิดชอบต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าวแต่เพียงฝ่ายเดียวโดยสิ้นเชิง</div>
     <div class='t-16 tab4'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน ทั้งสองฝ่ายได้อ่านและเข้าใจข้อความโดยละเอียดแล้ว จึงได้ลงลายมือชื่อพร้อมประทับตรา (ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยานและยึดถือไว้ฝ่ายละฉบับ</div>
-    <br/>
-    <div class='center signature'>(ลงชื่อ)....................................................</div>
-    <div class='center signature'>({result.OSMEP_Signer ?? ""})</div>
-    <div class='center signature'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
-    <br/>
-    <div class='center signature'>(ลงชื่อ)....................................................</div>
-    <div class='center signature'>({result.OSMEP_Witness ?? ""})</div>
-    <div class='center signature'>ชื่อเต็มหน่วยงาน</div>
-    <br/>
-    <div class='center signature'>(ลงชื่อ)....................................................พยาน</div>
-    <div class='center signature'>({result.Contract_Signer ?? ""})</div>
-    <br/>
-    <div class='center signature'>(ลงชื่อ)....................................................พยาน</div>
-    <div class='center signature'>({result.Contract_Witness ?? ""})</div>
+</br>
+</br>
+{signatoryHtml}
 </body>
 </html>
 ";
