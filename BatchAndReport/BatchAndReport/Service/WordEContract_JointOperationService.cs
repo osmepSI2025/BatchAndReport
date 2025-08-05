@@ -24,7 +24,7 @@ public class WordEContract_JointOperationService
     {
         _w = ws;
         _eContractReportDAO = eContractReportDAO;
-       _pdfConverter = pdfConverter;
+        _pdfConverter = pdfConverter;
     }
     #region 4.1.1.2.1.สัญญาร่วมดำเนินการ
     public async Task<byte[]> OnGetWordContact_JointOperationService(string conId)
@@ -34,7 +34,7 @@ public class WordEContract_JointOperationService
         {
             throw new Exception("JOA data not found.");
         }
-        else 
+        else
         {
             var stream = new MemoryStream();
 
@@ -109,13 +109,13 @@ public class WordEContract_JointOperationService
                 // --- 2. Titles ---
                 body.AppendChild(WordServiceSetting.EmptyParagraph());
                 body.AppendChild(WordServiceSetting.CenteredBoldParagraph("สัญญาร่วมดำเนินการ", "44"));
-                body.AppendChild(WordServiceSetting.CenteredBoldParagraph("โครงการ "+ dataResult.Project_Name , "44"));
+                body.AppendChild(WordServiceSetting.CenteredBoldParagraph("โครงการ " + dataResult.Project_Name, "44"));
                 body.AppendChild(WordServiceSetting.EmptyParagraph());
                 body.AppendChild(WordServiceSetting.CenteredBoldParagraph("ระหว่าง", "32"));
                 body.AppendChild(WordServiceSetting.EmptyParagraph());
                 body.AppendChild(WordServiceSetting.CenteredBoldParagraph("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม", "32"));
                 body.AppendChild(WordServiceSetting.CenteredBoldParagraph("กับ", "36"));
-                body.AppendChild(WordServiceSetting.CenteredBoldParagraph(dataResult.Organization??"", "36"));
+                body.AppendChild(WordServiceSetting.CenteredBoldParagraph(dataResult.Organization ?? "", "36"));
 
 
                 // --- 3. Main contract body ---
@@ -123,11 +123,11 @@ public class WordEContract_JointOperationService
                 body.AppendChild(WordServiceSetting.EmptyParagraph());
                 body.AppendChild(WordServiceSetting.EmptyParagraph());
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สัญญาร่วมดำเนินการฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม " +
-                    "เมื่อวันที่ "+ strDateTH[0] + " เดือน "+ strDateTH[1] + "พ.ศ."+ strDateTH[2] + " ระหว่าง", null, "32"));
+                    "เมื่อวันที่ " + strDateTH[0] + " เดือน " + strDateTH[1] + "พ.ศ." + strDateTH[2] + " ระหว่าง", null, "32"));
 
-                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย "+ dataResult.Organization ?? "" +"สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ", null, "32"));
-                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs(" "+dataResult.OfficeLoc +" โดย "+ dataResult.IssueOwner + " ตำแหน่ง "+ dataResult.IssueOwnerPosition + " ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ " +
-                    "ฉบับลงวันที่ "+ strDateTH[0] + " เดือน"+ strDateTH[1] + "พ.ศ."+ strDateTH[2] + " ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “ชื่อหน่วยร่วม” อีกฝ่ายหนึ่ง", null, "32"));
+                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย " + dataResult.Organization ?? "" + "สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ", null, "32"));
+                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs(" " + dataResult.OfficeLoc + " โดย " + dataResult.IssueOwner + " ตำแหน่ง " + dataResult.IssueOwnerPosition + " ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ " +
+                    "ฉบับลงวันที่ " + strDateTH[0] + " เดือน" + strDateTH[1] + "พ.ศ." + strDateTH[2] + " ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “ชื่อหน่วยร่วม” อีกฝ่ายหนึ่ง", null, "32"));
                 body.AppendChild(WordServiceSetting.JustifiedParagraph("วัตถุประสงค์ตามสัญญาร่วมดำเนินการ", "32", true));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs(
                     "คู่สัญญาทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ " + dataResult.Project_Name +
@@ -140,19 +140,19 @@ public class WordEContract_JointOperationService
 
 
                 var purposeList = await _eContractReportDAO.GetJOAPoposeAsync(conId);
-                if (purposeList.Count !=0 && purposeList !=null)
+                if (purposeList.Count != 0 && purposeList != null)
                 {
                     int row = 1;
                     foreach (var purpose in purposeList)
                     {
-                        body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs(row.ToString()+ "• " + purpose.Detail, null, "32"));
+                        body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs(row.ToString() + "• " + purpose.Detail, null, "32"));
                         row++;
                     }
                 }
 
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ข้อ 1 ขอบเขตหน้าที่ของ “สสว.”", null, "32", true));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_3Tabs("1.1 ตกลงร่วมดำเนินการโครงการโดยสนับสนุนงบประมาณ " +
-                    "จำนวน "+dataResult.Contract_Value+" บาท ( "+CommonDAO.NumberToThaiText(dataResult.Contract_Value??0)+" ) " +
+                    "จำนวน " + dataResult.Contract_Value + " บาท ( " + CommonDAO.NumberToThaiText(dataResult.Contract_Value ?? 0) + " ) " +
                     "ซึ่งได้รวมภาษีมูลค่าเพิ่ม ตลอดจนค่าภาษีอากรอื่น ๆ แล้วให้กับ “ชื่อหน่วยร่วม” และการใช้จ่ายเงินให้เป็นไปตามแผนการจ่ายเงินตามเอกสารแนบท้ายสัญญา", null, "32"));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_3Tabs("1.2 ประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์", null, "32"));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_3Tabs("1.3 กำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ", null, "32"));
@@ -279,6 +279,7 @@ public class WordEContract_JointOperationService
          body {{
             font-size: 22px;
             font-family: 'THSarabunNew', Arial, sans-serif;
+            word-break: break-word; 
          
         }}
         .t-16 {{
@@ -290,10 +291,10 @@ public class WordEContract_JointOperationService
         .t-22 {{
             font-size: 1.9em;
         }}
-        .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
-        .tab2 {{ text-indent: 96px;  word-break: break-all; }}
-        .tab3 {{ text-indent: 144px;  word-break: break-all; }}
-        .tab4 {{ text-indent: 192px;  word-break: break-all;}}
+        .tab1 {{ text-indent: 48px;     }}
+        .tab2 {{ text-indent: 96px;    }}
+        .tab3 {{ text-indent: 144px;    }}
+        .tab4 {{ text-indent: 192px;   }}
         .d-flex {{ display: flex; }}
         .w-100 {{ width: 100%; }}
         .w-40 {{ width: 40%; }}
@@ -312,7 +313,7 @@ public class WordEContract_JointOperationService
         .sign-double {{ display: flex; }}
         .text-center-right-brake {{
             margin-left: 50%;
-            word-break: break-all;
+             
         }}
         .text-right {{ text-align: right; }}
         .contract, .section {{
@@ -338,8 +339,10 @@ public class WordEContract_JointOperationService
         }}
      .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
         .logo-table td {{ border: none; }}
- 
-
+        p {{
+            margin: 0;
+            padding: 0;
+        }}
     </style>
 </head><body>
 
@@ -363,47 +366,41 @@ public class WordEContract_JointOperationService
 </br>
     <div class='t-22 text-center'><b>สัญญาร่วมดำเนินการ</b></div>
     <div class='t-22 text-center'><b>โครงการ {dataResult.Project_Name}</b></div>
-</br>
     <div class='t-16 text-center'><b>ระหว่าง</b></div>
-</br>
     <div class='t-18 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</b></div>
     <div class='t-18 text-center'><b>กับ</b></div>
     <div class='t-18 text-center'><b>{dataResult.Organization ?? ""}</b></div>
-</br>
-</br>
-    <div class='t-16 tab3'>
+    <P class='t-16 tab3'>
         สัญญาร่วมดำเนินการฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม </br>เมื่อวันที่ {strDateTH[0]} เดือน {strDateTH[1]} พ.ศ.{strDateTH[2]} ระหว่าง
-    </div>
-    <div class='t-16 tab3'>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย {dataResult.Organization ?? ""} สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ
-</div>
-  
-    <div class='t-16 tab3'>
-        {dataResult.OfficeLoc} โดย {dataResult.IssueOwner} ตำแหน่ง {dataResult.IssueOwnerPosition} ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ {strDateTH[0]} เดือน{strDateTH[1]} พ.ศ.{strDateTH[2]} ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “ชื่อหน่วยร่วม” อีกฝ่ายหนึ่ง
-    </div>
-    <div class='t-16 tab3'><B>วัตถุประสงค์ตามสัญญาร่วมดำเนินการ</B></div>
-    <div class='t-16 tab3'>
-        คู่สัญญาทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ {dataResult.Project_Name} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการ แผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายสัญญาฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของสัญญาฉบับนี้ มีระยะเวลาตั้งแต่วันที่ {CommonDAO.ToThaiDateStringCovert(dataResult.Contract_Start_Date ?? DateTime.Now)} จนถึงวันที่ {CommonDAO.ToThaiDateStringCovert(dataResult.Contract_End_Date ?? DateTime.Now)} โดยมีวัตถุประสงค์ในการดำเนินโครงการ ดังนี้
-    </div>
+    สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม  โดย {dataResult.Organization ?? ""} สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ
+    </P>
+    <P class='t-16 tab3'>
+        {dataResult.OfficeLoc} โดย {dataResult.IssueOwner} ตำแหน่ง {dataResult.IssueOwnerPosition} ผู้มีอำนาจกระทำการ</br>แทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ {strDateTH[0]} เดือน{strDateTH[1]} พ.ศ.{strDateTH[2]} ซึ่งต่อไปใน</br>สัญญาฉบับนี้จะเรียกว่า “ชื่อหน่วยร่วม” อีกฝ่ายหนึ่ง
+    </P>
+    <P class='t-16 tab3'><B>วัตถุประสงค์ตามสัญญาร่วมดำเนินการ</B></P>
+    <P class='t-16 tab3'>
+        คู่สัญญาทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ </br> {dataResult.Project_Name} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการ แผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายสัญญาฉบับนี้ ซึ่งให้ถือ</br>เป็นส่วนหนึ่งของสัญญาฉบับนี้ มีระยะเวลาตั้งแต่วันที่ {CommonDAO.ToThaiDateStringCovert(dataResult.Contract_Start_Date ?? DateTime.Now)} จนถึงวันที่ {CommonDAO.ToThaiDateStringCovert(dataResult.Contract_End_Date ?? DateTime.Now)} โดยมีวัตถุประสงค์ในการดำเนินโครงการ ดังนี้
+    </P>
     {(purposeList != null && purposeList.Count != 0 ? $"<ul class='t-16 tab2'>{string.Join("", purposeList.Select((p, i) => $"<li> {p.Detail}</li>"))}</ul>" : "")}
-    <div class='t-16 tab3'><B>ข้อ 1 ขอบเขตหน้าที่ของ “สสว.”</B></div>
-    <div class='t-16 tab4'>
+    <P class='t-16 tab3'><B>ข้อ 1 ขอบเขตหน้าที่ของ “สสว.”</B></P>
+    <P class='t-16 tab4'>
         1.1 ตกลงร่วมดำเนินการโครงการโดยสนับสนุนงบประมาณ จำนวน {dataResult.Contract_Value} บาท ( {CommonDAO.NumberToThaiText(dataResult.Contract_Value ?? 0)} ) ซึ่งได้รวมภาษีมูลค่าเพิ่ม ตลอดจนค่าภาษีอากรอื่น ๆ แล้วให้กับ “ชื่อหน่วยร่วม” และการใช้จ่ายเงินให้เป็นไปตามแผนการจ่ายเงินตามเอกสารแนบท้ายสัญญา
-    </div>
-    <div class='t-18 tab4'>1.2 ประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์</div>
-    <div class='t-16 tab4'>1.3 กำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ</div>
-    <div class='t-16 tab3'><B>ข้อ 2 ขอบเขตหน้าที่ของ “ชื่อหน่วยร่วม”</B></div>
-    <div class='t-16 tab4'>2.1 ตกลงที่จะร่วมดำเนินการโครงการตามวัตถุประสงค์ของการโครงการและขอบเขตการดำเนินการ ตามรายละเอียดโครงการ แผนการดำเนินการ และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ที่แนบท้ายสัญญาฉบับนี้</div>
-    <div class='t-16 tab4'>2.2 ต้องดำเนินโครงการ ปฏิบัติตามแผนการดำเนินงาน แผนการใช้จ่ายเงิน (หรืออาจมีคู่มือการดำเนินโครงการก็ได้) อย่างเคร่งครัดและให้แล้วเสร็จภายในระยะเวลาโครงการหากไม่ดำเนินโครงการให้แล้วเสร็จตามที่กำหนดยินยอมชำระค่าปรับให้แก่ สสว. ในอัตราร้อยละ 0.1 ของจำนวนงบประมาณที่ได้รับการสนับสนุนทั้งหมดต่อวัน นับถัดจากวันที่กำหนด แล้วเสร็จ และถ้าหากเห็นว่า “ชื่อหน่วยร่วม” ไม่อาจปฏิบัติตามสัญญาต่อไปได้ “ชื่อหน่วยร่วม” ยินยอมให้ สสว. ใช้สิทธิบอกเลิกสัญญาได้ทันที</div>
-    <div class='t-16 tab4'>2.3 ต้องประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์</div>
-    <div class='t-16 tab4'>2.4 ต้องให้ความร่วมมือกับ สสว. ในการกำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ</div>
-    <div class='t-16 tab3'><B>ข้อ 3 อื่น ๆ</B></div>
-    <div class='t-16 tab4'>3.1 หากคู่สัญญาฝ่ายใดฝ่ายหนึ่งประสงค์จะขอแก้ไข เปลี่ยนแปลง ขยายระยะเวลาของโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษร และต้องได้รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และต้องทำเอกสารแก้ไข เปลี่ยนแปลง ขยายระยะเวลา เพื่อลงนามยินยอม ทั้งสองฝ่าย</div>
-    <div class='t-16 tab4'>3.2 หากคู่สัญญาฝ่ายใดฝ่ายหนึ่งประสงค์จะขอบอกเลิกสัญญาก่อนครบกำหนดระยะเวลาดำเนินโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษรไม่น้อยกว่า 30 วัน และต้องได้รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และ “ชื่อหน่วยร่วม” จะต้องคืนเงินในส่วนที่ยังไม่ได้ใช้จ่ายหรือส่วนที่เหลือทั้งหมดพร้อมดอกผล (ถ้ามี) ให้แก่ สสว. ภายใน 15 วัน นับจากวันที่ได้รับหนังสือของฝ่ายที่ยินยอมให้บอกเลิก</div>
-    <div class='t-16 tab4'>3.3 สสว. อาจบอกเลิกสัญญาได้ทันที หากตรวจสอบ หรือปรากฏข้อเท็จจริงว่า การใช้จ่ายเงินของ “ชื่อหน่วยร่วม” ไม่เป็นไปตามวัตถุประสงค์ของโครงการ แผนการดำเนินงาน และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ทั้งมีสิทธิเรียกเงินคงเหลือคืนทั้งหมดพร้อมดอกผล (ถ้ามี) ได้ทันที</div>
-    <div class='t-16 tab4'>3.4 ทรัพย์สินใด ๆ และ/หรือ สิทธิใด ๆ ที่ได้มาจากเงินสนับสนุนตามสัญญา ร่วมดำเนินการฉบับนี้ เมื่อสิ้นสุดโครงการให้ตกได้แก่ สสว. ทั้งสิ้น เว้นแต่ สสว. จะกำหนดให้เป็นอย่างอื่น</div>
-    <div class='t-16 tab4'>3.5 “ชื่อหน่วยร่วม” ต้องไม่ดำเนินการในลักษณะการจ้างเหมา กับหน่วยงาน องค์กร หรือบุคคลอื่น ๆ ยกเว้นกรณีการจัดหา จัดจ้าง เป็นกิจกรรมหรือเป็นเรื่อง ๆ</div>
-    <div class='t-16 tab4'>3.6 ในกรณีที่การดำเนินการตามสัญญาฉบับนี้ เกี่ยวข้องกับข้อมูลส่วนบุคคล และการคุ้มครองทรัพย์สินทางปัญญา “ชื่อหน่วยร่วม” จะต้องปฏิบัติตามกฎหมายว่าด้วยการคุ้มครอง ข้อมูลส่วนบุคคลและการคุ้มครองทรัพย์สินทางปัญญาอย่างเคร่งครัดและหากเกิดความเสียหายหรือมีการฟ้องร้องใด ๆ “ชื่อหน่วยร่วม” จะต้องเป็นผู้รับผิดชอบต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าวแต่เพียงฝ่ายเดียวโดยสิ้นเชิง</div>
-    <div class='t-16 tab3'>สัญญาฉบับนี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน ทั้งสองฝ่ายได้อ่านและเข้าใจข้อความโดยละเอียดแล้ว จึงได้ลงลายมือชื่อพร้อมประทับตรา (ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยานและยึดถือไว้ฝ่ายละฉบับ</div>
+    </P>
+    <P class='t-18 tab4'>1.2 ประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผล</br>ผลิตและผลลัพธ์</P>
+    <P class='t-16 tab4'>1.3 กำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ</P>
+    <P class='t-16 tab3'><B>ข้อ 2 ขอบเขตหน้าที่ของ “ชื่อหน่วยร่วม”</B></P>
+    <P class='t-16 tab4'>2.1 ตกลงที่จะร่วมดำเนินการโครงการตามวัตถุประสงค์ของการโครงการและ</br>ขอบเขตการดำเนินการ ตามรายละเอียดโครงการ แผนการดำเนินการ และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ที่แนบท้ายสัญญาฉบับนี้</P>
+    <P class='t-16 tab4'>2.2 ต้องดำเนินโครงการ ปฏิบัติตามแผนการดำเนินงาน แผนการใช้จ่ายเงิน (หรืออาจมี</br>คู่มือการดำเนินโครงการก็ได้) อย่างเคร่งครัดและให้แล้วเสร็จภายในระยะเวลาโครงการ</br>หากไม่ดำเนินโครงการให้แล้วเสร็จตามที่กำหนดยินยอมชำระค่าปรับให้แก่ สสว. ในอัตราร้อยละ 0.1 ของจำนวนงบประมาณที่ได้รับการสนับสนุนทั้งหมดต่อวัน นับถัดจากวันที่กำหนด แล้วเสร็จ และถ้าหากเห็นว่า “ชื่อหน่วยร่วม” ไม่อาจปฏิบัติตามสัญญาต่อไปได้ “ชื่อหน่วยร่วม” ยินยอมให้ สสว. ใช้สิทธิบอกเลิกสัญญาได้ทันที</P>
+    <P class='t-16 tab4'>2.3 ต้องประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผล</br>ผลิตและผลลัพธ์</P>
+    <P class='t-16 tab4'>2.4 ต้องให้ความร่วมมือกับ สสว. ในการกำกับ ติดตามและประเมินผลการดำเนิน</br>งานของโครงการ</P>
+    <P class='t-16 tab3'><B>ข้อ 3 อื่น ๆ</B></P>
+    <div class='t-16 tab4'>3.1 หากคู่สัญญาฝ่ายใดฝ่ายหนึ่งประสงค์จะขอแก้ไข เปลี่ยนแปลง ขยายระยะเวลา</br>ของโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษร และต้องได้รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และต้องทำเอกสารแก้ไข เปลี่ยนแปลง ขยายระยะเวลา เพื่อลงนามยินยอม ทั้งสองฝ่าย</div>
+    <P class='t-16 tab4'>3.2 หากคู่สัญญาฝ่ายใดฝ่ายหนึ่งประสงค์จะขอบอกเลิกสัญญาก่อนครบกำหนด</br>ระยะเวลาดำเนินโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษรไม่น้อยกว่า 30 วัน และต้องได้รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และ “ชื่อหน่วยร่วม” จะต้องคืนเงินในส่วนที่</br>ยังไม่ได้ใช้จ่ายหรือส่วนที่เหลือทั้งหมดพร้อมดอกผล (ถ้ามี) ให้แก่ สสว. ภายใน 15 วัน นับจากวันที่ได้รับ</br>หนังสือของฝ่ายที่ยินยอมให้บอกเลิก</P>
+    <P class='t-16 tab4'>3.3 สสว. อาจบอกเลิกสัญญาได้ทันที หากตรวจสอบ หรือปรากฏข้อเท็จจริงว่า การใช้จ่ายเงินของ “ชื่อหน่วยร่วม” ไม่เป็นไปตามวัตถุประสงค์ของโครงการ แผนการดำเนินงาน และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ทั้งมีสิทธิเรียกเงินคงเหลือคืนทั้งหมดพร้อมดอกผล (ถ้ามี) ได้ทันที</P>
+    <P class='t-16 tab4'>3.4 ทรัพย์สินใด ๆ และ/หรือ สิทธิใด ๆ ที่ได้มาจากเงินสนับสนุนตามสัญญา ร่วมดำเนินการฉบับนี้ เมื่อสิ้นสุดโครงการให้ตกได้แก่ สสว. ทั้งสิ้น เว้นแต่ สสว. จะกำหนดให้เป็นอย่างอื่น</P>
+    <p class='t-16 tab4'>3.5 “ชื่อหน่วยร่วม” ต้องไม่ดำเนินการในลักษณะการจ้างเหมา กับหน่วยงาน องค์กร หรือบุคคลอื่น ๆ ยกเว้นกรณีการจัดหา จัดจ้าง เป็นกิจกรรมหรือเป็นเรื่อง ๆ</p>
+    <p class='t-16 tab4'>3.6 ในกรณีที่การดำเนินการตามสัญญาฉบับนี้ เกี่ยวข้องกับข้อมูลส่วนบุคคล และการคุ้มครองทรัพย์สินทางปัญญา “ชื่อหน่วยร่วม” จะต้องปฏิบัติตามกฎหมายว่าด้วยการคุ้มครอง ข้อมูลส่วนบุคคลและการคุ้มครองทรัพย์สินทางปัญญาอย่างเคร่งครัดและหากเกิดความเสียหายหรือมีการฟ้องร้องใด ๆ “ชื่อหน่วยร่วม” จะต้องเป็นผู้รับผิดชอบต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าว</br>แต่เพียงฝ่ายเดียวโดยสิ้นเชิง</p>
+    <P class='t-16 tab3'>สัญญาฉบับนี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน ทั้งสองฝ่ายได้อ่านและเข้าใจ</br>ข้อความโดยละเอียดแล้ว จึงได้ลงลายมือชื่อพร้อมประทับตรา (ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยานและ</br>ยึดถือไว้ฝ่ายละฉบับ</P>
  
 </br>
 </br>
