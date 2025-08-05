@@ -893,12 +893,12 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
-        public async Task<IActionResult> OnGetWordContact_MOU(string ContractId = "2")
+        public async Task<IActionResult> OnGetWordContact_MOU(string ContractId = "5")
         {
             var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือ.docx");
         }
-        public async Task OnGetWordContact_MOU_PDF(string ContractId = "3")
+        public async Task OnGetWordContact_MOU_PDF(string ContractId = "5")
         {
             var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId,"MOU");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
