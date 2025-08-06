@@ -13,19 +13,22 @@ using Paragraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 public class WordEContract_BuyOrSellComputerService
 {
     private readonly WordServiceSetting _w;
-    Econtract_Report_CPADAO _eContractReportDAO;
+    private readonly Econtract_Report_CPADAO _eContractReportDAO;
+    private readonly E_ContractReportDAO _eContractXXReportDAO;
     private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
     private readonly EContractDAO _eContractDAO;
     public WordEContract_BuyOrSellComputerService(WordServiceSetting ws
         , Econtract_Report_CPADAO eContractReportDAO
          , IConverter pdfConverter
             , EContractDAO eContractDAO
+        , E_ContractReportDAO eContractXXReportDAO
         )
     {
         _w = ws;
         _eContractReportDAO = eContractReportDAO;
         _pdfConverter = pdfConverter;
         _eContractDAO = eContractDAO;
+        _eContractXXReportDAO = eContractXXReportDAO;
     }
 # region 4.1.1.2.9.สัญญาเช่าคอมพิวเตอร์ 
     public async Task<byte[]> OnGetWordContact_BuyOrSellComputerService(string id)
@@ -306,22 +309,98 @@ public class WordEContract_BuyOrSellComputerService
             }
         }
 
-        // Build HTML content
         var signatoryHtml = new StringBuilder();
-        string[] roleLabels = { "ผู้ซื้อ", "ผู้ขาย", "พยาน SME", "พยานขาย" };
 
-        for (int i = 0; i < result.Signatories.Count && i < roleLabels.Length; i++)
+        for (int i = 0; i < result.Signatories.Count; i++)
         {
             var signer = result.Signatories[i];
-            var name = signer.Signatory_Name ?? "xxxxxxxxxx";
-            var role = roleLabels[i];
+            var name = signer.Signatory_Name ?? "ชื่อ";
 
+            // 🔸 ถ้าตำแหน่งว่าง ให้ใช้ Signatory_Type แทน
+            string role;
+            if (!string.IsNullOrWhiteSpace(signer.Position))
+            {
+                role = signer.Position;
+            }
+            else
+            {
+                role = signer.Signatory_Type switch
+                {
+                    "CP_S" => "ลงนามฝ่ายคู่สัญญา",
+                    "CP_W" => "ลงนามพยานฝ่ายคู่สัญญา",
+                    _ => "ตำแหน่ง"
+                };
+            }
+
+            // 🔹 ลายเซ็น
+            string signatureHtml;
+            if (!string.IsNullOrEmpty(signer.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+            {
+                try
+                {
+                    var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                    var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                    signatureHtml = $@"<div class='t-16 text-right tab1'><img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' /></div>";
+                }
+                catch
+                {
+                    signatureHtml = "(ลงชื่อ)";
+                }
+            }
+            else
+            {
+                signatureHtml = "(ลงชื่อ)";
+            }
+
+            // 🔸 เพิ่มลงใน HTML
             signatoryHtml.AppendLine($@"
-        <div class='contract text-center t-16'>
-            ลงชื่อ {name} {role}<br/>
-            ({name})<br/>
+        <div style='margin-bottom: 40px; text-align: right;'>
+            {signatureHtml}<br />
+            ({name})<br />
+            {role}
         </div>");
         }
+
+        #region  signlist
+        var signlist = await _eContractXXReportDAO.GetSignNameAsync(id, "CPA");
+        var companySealHtml = new StringBuilder();
+
+        foreach (var signer in signlist)
+        {
+            string companySeal = ""; // Initialize to avoid unassigned variable warning
+
+            // Fix CS8602: Use null-conditional operator for Position and Company_Seal
+            if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+            {
+                try
+                {
+                    var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                    var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                    companySeal = $@"
+<div class='t-16 text-right tab1'>
+                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            </div>";
+
+                    companySealHtml.AppendLine($@"
+    <div class='text-right'>
+        {companySeal}      
+    </div>
+<div class='t-16 text-right tab1'>(ตราประทับ บริษัท)</div>
+
+");
+                }
+                catch
+                {
+                    companySeal = "<div class='t-16 text-right tab1'>(ตราประทับ บริษัท)</div>";
+                }
+            }
+        }
+        #endregion  signlist
+
 
         var htmlContent = $@"
 <div >
@@ -558,7 +637,7 @@ public class WordEContract_BuyOrSellComputerService
 </br>
 <!-- 🔹 รายชื่อผู้ลงนาม -->
 {signatoryHtml.ToString()}
-
+{companySealHtml.ToString()}
 <!-- Next page: Appendix instructions -->
 <div style='page-break-before: always;'></div>
 <p class='text-center t-22'><b>วิธีปฏิบัติเกี่ยวกับสัญญาซื้อขายคอมพิวเตอร์</b></p>

@@ -140,7 +140,9 @@ namespace BatchAndReport.DAO
                         Signatory_Name = signatoryReader["Signatory_Name"] as string,
                         Position = signatoryReader["Position"] as string,
                         BU_UNIT = signatoryReader["BU_UNIT"] as string,
-                        DS_FILE = signatoryReader["DS_FILE"] as string
+                        DS_FILE = signatoryReader["DS_FILE"] as string,
+                        Signatory_Type = signatoryReader["Signatory_Type"] as string,
+                        Company_Seal = signatoryReader["Company_Seal"] as string
                     });
                 }
 
