@@ -102,6 +102,10 @@ namespace BatchAndReport.DAO
                     Install_PayAMT = reader["Install_PayAMT"] == DBNull.Value ? null : Convert.ToDecimal(reader["Install_PayAMT"]),
                     Install_PayVat = reader["Install_PayVat"] == DBNull.Value ? null : Convert.ToDecimal(reader["Install_PayVat"]),
                     Install_Num = reader["Install_Num"] == DBNull.Value ? null : Convert.ToInt32(reader["Install_Num"])
+                    ,BankAccountName = reader["BankAccountName"] as string,
+                    BankAccountNumber = reader["BankAccountNum"] as string,
+                    BankName = reader["BankName"] as string,
+                    BankBranch = reader["BankBranch"] as string,
                 };
 
                 return detail;
