@@ -62,6 +62,10 @@ public class E_ConReport_CWAModels
     public decimal? Install_PayAMT { get; set; }
     public decimal? Install_PayVat { get; set; }
     public int? Install_Num { get; set; }
+    public string? BankName { get; set; }
+    public string? BankBranch { get; set; }
+    public string? BankAccountName { get; set; }
+    public string? BankAccountNumber { get; set; }
 }
 
 public class CWA_Installment
