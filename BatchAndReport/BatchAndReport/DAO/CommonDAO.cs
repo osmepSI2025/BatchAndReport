@@ -10,8 +10,9 @@ namespace BatchAndReport.DAO
         {
             int thaiYear = date.Year + 543;
             string thaiMonth = date.ToString("MMMM", new CultureInfo("th-TH"));
-            string day = date.Day.ToString();
-            return new string[] { day, thaiMonth, thaiYear.ToString() };
+            string day = ToThaiNumber(date.Day);
+            string year = ToThaiNumber(thaiYear);
+            return new string[] { day, thaiMonth, year };
         }
 
         public static string ToThaiDateStringCovert(DateTime date)
@@ -19,11 +20,30 @@ namespace BatchAndReport.DAO
             int thaiYear = date.Year + 543;
             string thaiMonth = date.ToString("MMMM", new CultureInfo("th-TH"));
             string day = date.Day.ToString();
-            if(thaiYear<2500)
-                {
-                thaiYear = thaiYear+ 543;
+            if (thaiYear < 2500)
+            {
+                thaiYear = thaiYear + 543;
             }
-            return $"วันที่ {date.Day} เดือน {thaiMonth} พ.ศ. {thaiYear}";
+            return $"วันที่ {ToThaiNumber(date.Day)} เดือน {thaiMonth} พ.ศ. {ToThaiNumber(thaiYear)}";
+        }
+
+        private static string ToThaiNumber(int number)
+        {
+            return ToThaiNumber(number.ToString());
+        }
+
+        private static string ToThaiNumber(string number)
+        {
+            char[] thaiDigits = { '๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙' };
+            var sb = new StringBuilder();
+            foreach (char c in number)
+            {
+                if (char.IsDigit(c))
+                    sb.Append(thaiDigits[c - '0']);
+                else
+                    sb.Append(c);
+            }
+            return sb.ToString();
         }
 
         // Function: Convert number to Thai text (Baht/Satang)

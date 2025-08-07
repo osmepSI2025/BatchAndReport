@@ -94,6 +94,8 @@ namespace BatchAndReport.Models
         public int? Request_ID { get; set; }
         public string? Contract_Status { get; set; }
         public string? GuaranteeTypeOther { get; set; }
+
+      
     }
 
     public class E_ConReport_SLAInstallmentModels

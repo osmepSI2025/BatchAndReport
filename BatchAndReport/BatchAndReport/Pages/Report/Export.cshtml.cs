@@ -525,14 +525,14 @@ namespace BatchAndReport.Pages.Report
         #endregion สสว. สัญญาเงินกู้ยืม โครงการพลิกฟื้นวิสาห 
 
         #region  4.1.3.3. สัญญาจ้างลูกจ้าง EC
-        public async Task<IActionResult> OnGetWordContact_EC(string ContractId="3")
+        public async Task<IActionResult> OnGetWordContact_EC(string ContractId="7")
         {
             var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างลูกจ้าง.docx");
 
         }
 
-        public async Task OnGetWordContact_EC_PDF(string ContractId = "1")
+        public async Task OnGetWordContact_EC_PDF(string ContractId = "8")
         {
             var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
@@ -723,7 +723,7 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60 SLA30860
 
         #region 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์ CPA
-        public async Task<IActionResult> OnGetWordContact_CPA(string ContractId ="1")
+        public async Task<IActionResult> OnGetWordContact_CPA(string ContractId ="13")
         {
             var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายคอมพิวเตอร์.docx");
@@ -954,7 +954,7 @@ namespace BatchAndReport.Pages.Report
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
         }
 
-        public async Task OnGetWordContact_JOA_PDF(string ContractId = "32")
+        public async Task OnGetWordContact_JOA_PDF(string ContractId = "69")
         {
             var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
 

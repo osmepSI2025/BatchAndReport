@@ -15,7 +15,7 @@ namespace BatchAndReport.Models
         public string? WorkPosition { get; set; }
         public DateTime? HiringStartDate { get; set; }
         public DateTime? HiringEndDate { get; set; }
-        public decimal? Salary { get; set; }
+        public decimal? Salary { get; set; } // decimal(12,2)
         public string? OSMEP_Signer { get; set; }
         public string? OSMEP_Witness { get; set; }
         public string? Contract_Signer { get; set; }
@@ -24,8 +24,11 @@ namespace BatchAndReport.Models
         public string? CreateBy { get; set; }
         public DateTime? UpdateDate { get; set; }
         public string? UpdateBy { get; set; }
-        public string? Flag_Delete { get; set; }
-        public int? Request_ID { get; set; }
-        public string? Contract_Status { get; set; }
+        public string? Flag_Delete { get; set; } // nvarchar(1)
+        public string? Request_ID { get; set; } // nvarchar(50)
+        public string? Contract_Status { get; set; } // nvarchar(10)
+        public bool? AttorneyFlag { get; set; }
+        public DateTime? AttorneyLetterDate { get; set; }
+        public string? AttorneyLetterNumber { get; set; } // nvarchar(50)
     }
 }
