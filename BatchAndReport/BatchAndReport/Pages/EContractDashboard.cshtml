@@ -1,0 +1,104 @@
+@page
+@model EContractDashboardModel
+@{
+    ViewData["Title"] = "E-Contract Dashboard";
+    Layout = "_Layout1"; // ensure this is set to your layout
+}
+
+<h2 class="fw-bold mb-4">E-Contract Dashboard</h2>
+
+<div class="container">
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 mb-3">
+                <h5 class="card-title">ประเภทสัญญา</h5>
+                <canvas id="contractTypeChart" height="250"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 mb-3">
+                <h5 class="card-title">สถานะเอกสาร</h5>
+                <canvas id="documentStatusChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 mb-3">
+                <h5 class="card-title">สถานะสัญญา</h5>
+                <canvas id="contractStatusChart" height="250"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 mb-3">
+                <h5 class="card-title">KPI ตรวจสอบกฎหมาย</h5>
+                <table class="table table-bordered text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>เจ้าหน้าที่</th>
+                            <th>รอตรวจสอบ</th>
+                            <th>ตรวจสอบเสร็จสิ้น</th>
+                            <th>รวมทั้งสิ้น</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.LegalKpiChart)
+                        {
+                            <tr>
+                                <td>@item.Owner</td>
+                                <td>@item.Pending</td>
+                                <td>@item.Completed</td>
+                                <td>@item.Total</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function renderDonutChart(chartId, labels, data, colors) {
+            if (!labels || !data || labels.length === 0 || data.length === 0) return;
+
+            new Chart(document.getElementById(chartId), {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        renderDonutChart("contractTypeChart",
+            @Html.Raw(Json.Serialize(Model.ContractTypeChart.Select(x => x.Label))),
+            @Html.Raw(Json.Serialize(Model.ContractTypeChart.Select(x => x.Value))),
+            ['#CCE5FF', '#99CCFF', '#6699CC', '#336699']
+        );
+
+        renderDonutChart("documentStatusChart",
+            @Html.Raw(Json.Serialize(Model.DocumentStatusChart.Select(x => x.Label))),
+            @Html.Raw(Json.Serialize(Model.DocumentStatusChart.Select(x => x.Value))),
+            ['#E6D4FF', '#C8A2C8', '#8A2BE2', '#4B0082']
+        );
+
+        renderDonutChart("contractStatusChart",
+            @Html.Raw(Json.Serialize(Model.ContractStatusChart.Select(x => x.Label))),
+            @Html.Raw(Json.Serialize(Model.ContractStatusChart.Select(x => x.Value))),
+            ['#C5F2D6', '#90EE90', '#2E8B57', '#006400']
+        );
+    </script>
+}
