@@ -73,7 +73,7 @@ public class CWA_Installment
     public int CWA_Inst_ID { get; set; }
     public int CWA_ID { get; set; }
     public int PayRound { get; set; }
-    public decimal TotalAmount { get; set; }
+    public decimal? TotalAmount { get; set; }
     public string? WorkName { get; set; }
     public DateTime? DeliverDate { get; set; }
     public bool Flag_Inst_Final { get; set; }
