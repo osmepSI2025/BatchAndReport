@@ -54,39 +54,39 @@ public class WordSME_ReportService
 
         // ------------------ Part 1: Summary ------------------
         htmlBody.Append($@"
-    <div class='t-16 text-center' class='t-16'><b>ภาพรวมโครงการและงบประมาณเพื่อการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (SME)</br>
-    ภายใต้แผนปฏิบัติการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ประจำปี พ.ศ. {year}</b></div>
-    <hr>
-    <table style='width: 100%; border:1px solid #000; border-collapse:collapse;'>
-        <tr style='font-weight:bold;background:#f0f0f0;' class='t-16'>
-            <th style='border:1px solid #000;'>ประเด็นการส่งเสริม SME</th>
-            <th style='border:1px solid #000;'>จำนวนโครงการ</th>
-            <th style='border:1px solid #000;'>งบประมาณ (ล้านบาท)</th>
-        </tr>
+<div style='font-size:18pt;' ><b>ภาพรวมโครงการและงบประมาณเพื่อการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (SME)</br>
+ภายใต้แผนปฏิบัติการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ประจำปี พ.ศ. {year}</b></div>
+<hr>
+<table style='width: 100%; border:1px solid #000; border-collapse:collapse; font-size:18pt;'>
+    <tr style='font-weight:bold;background:#f0f0f0; font-size:18pt;'>
+        <th style='border:1px solid #000; font-size:18pt;'>ประเด็นการส่งเสริม SME</th>
+        <th style='border:1px solid #000; font-size:18pt;'>จำนวนโครงการ</th>
+        <th style='border:1px solid #000; font-size:18pt;'>งบประมาณ (ล้านบาท)</th>
+    </tr>
 ");
 
         int i = 1;
         foreach (var row in projects)
         {
             htmlBody.Append($@"
-        <tr class='t-16'>
-            <td style='border:1px solid #000;' >ประเด็นที่{i} {row.IssueName ?? ""}</td>
-            <td style='border:1px solid #000;'>{row.ProjectCount?.ToString("N0", culture) ?? "0"}</td>
-            <td class='text-right' style='border:1px solid #000;'>{(row.Budget.GetValueOrDefault() / 1_000_000).ToString("N4", culture)}</td>
-        </tr>
-    ");
+    <tr style='font-size:18pt;'>
+        <td style='border:1px solid #000; font-size:18pt;' >ประเด็นที่{i} {row.IssueName ?? ""}</td>
+        <td style='border:1px solid #000; font-size:18pt;'>{row.ProjectCount?.ToString("N0", culture) ?? "0"}</td>
+        <td class='text-right' style='border:1px solid #000; font-size:18pt;'>{(row.Budget.GetValueOrDefault() / 1_000_000).ToString("N4", culture)}</td>
+    </tr>
+");
             i++;
         }
 
         htmlBody.Append($@"
-    <tr style='font-weight:bold;background:#f0f0f0;' class='t-16'>
-        <td style='border:1px solid #000;'>รวมทั้งหมด</td>
-        <td style='border:1px solid #000;'>{totalProjects.ToString("N0", culture)}</td>
+    <tr style='font-weight:bold;background:#f0f0f0;' >
+        <td style='border:1px solid #000; font-size:18pt;'>รวมทั้งหมด</td>
+        <td style='border:1px solid #000;font-size:18pt;'>{totalProjects.ToString("N0", culture)}</td>
         <td class='text-right' style='border:1px solid #000;'>{(totalBudget / 1_000_000).ToString("N4", culture)}</td>
     </tr>
 </table>
 <br>
-<div>โดยมีหน่วยงานทั้งหมด {strategyList.Where(p => !string.IsNullOrEmpty(p.Ministry_Id)).Select(p => p.Ministry_Id).Distinct().Count()} กระทรวง {strategyList.Where(p => !string.IsNullOrEmpty(p.DepartmentCode)).Select(p => p.DepartmentCode).Distinct().Count()} หน่วยงาน</div>
+<div style='font-size:18pt;>โดยมีหน่วยงานทั้งหมด {strategyList.Where(p => !string.IsNullOrEmpty(p.Ministry_Id)).Select(p => p.Ministry_Id).Distinct().Count()} กระทรวง {strategyList.Where(p => !string.IsNullOrEmpty(p.DepartmentCode)).Select(p => p.DepartmentCode).Distinct().Count()} หน่วยงาน</div>
 <br>
 ");
         // ------------------ Part 2: Strategy Detail ------------------
@@ -96,8 +96,8 @@ public class WordSME_ReportService
         {
             var TopictotalProject = topicGroup.Count();
             var TopicsumBudget = topicGroup.Sum(p => p.BudgetAmount);
-            htmlBody.Append($@"<div class='t-16'><b>ประเด็นการส่งเสริมที่ {topicIndex} {topicGroup.Key}</b></div>");
-            htmlBody.Append($@"<div class='t-16'>จำนวน {TopictotalProject} โครงการ งบประมาณ {TopicsumBudget:N2} ล้านบาท</div>");
+            htmlBody.Append($@"<div style='font-size:18pt;'><b>ประเด็นการส่งเสริมที่ {topicIndex} {topicGroup.Key}</b></div>");
+            htmlBody.Append($@"<div style='font-size:18pt;'>จำนวน {TopictotalProject} โครงการ งบประมาณ {TopicsumBudget:N2} ล้านบาท</div>");
             htmlBody.Append($@"</br>");
 
             var strategyGrouped = topicGroup.GroupBy(p => p.StrategyDesc).ToList();
@@ -109,15 +109,15 @@ public class WordSME_ReportService
               
            
 
-                htmlBody.Append($@"<div class='t-16'><b>กลยุทธ์ที่ {strategyIndex} {strategyGroup.Key}</b></div>");        
-                htmlBody.Append($@"<div  class='t-16'>จำนวน {totalProject} โครงการ งบประมาณ {sumBudget:N2} ล้านบาท</div>");
+                htmlBody.Append($@"<div style='font-size:18pt;'><b>กลยุทธ์ที่ {strategyIndex} {strategyGroup.Key}</b></div>");        
+                htmlBody.Append($@"<div style='font-size:18pt;'>จำนวน {totalProject} โครงการ งบประมาณ {sumBudget:N2} ล้านบาท</div>");
 
                 // Table
                 htmlBody.Append($@"
     <table style='width: 100%; border:1px solid #000; border-collapse:collapse;'>
         <tr>
-            <th style='border:1px solid #000;' class='t-16'>หน่วยงาน/โครงการ</th>
-            <th style='border:1px solid #000;' class='t-16'>งบประมาณ</th>
+            <th style='border:1px solid #000;font-size:18pt;' >หน่วยงาน/โครงการ</th>
+            <th style='border:1px solid #000;font-size:18pt;' >งบประมาณ</th>
         </tr>
 ");
 
@@ -128,16 +128,16 @@ public class WordSME_ReportService
                     var deptTotal = deptGroup.Sum(p => p.BudgetAmount);
                     htmlBody.Append($@"
         <tr style='font-weight:bold;background:#e0e0e0;'>
-            <td style='border:1px solid #000;' class='t-16'>{deptGroup.Key.Department}</td>
-            <td style='border:1px solid #000; text-align:right;' class='t-16'>{deptTotal:N2}</td>
+            <td style='border:1px solid #000;font-size:18pt;' >{deptGroup.Key.Department}</td>
+            <td style='border:1px solid #000;font-size:18pt; text-align:right;' >{deptTotal:N2}</td>
         </tr>
     ");
                     foreach (var proj in deptGroup)
                     {
                         htmlBody.Append($@"
             <tr>
-                <td style='border:1px solid #000; padding-left:32px;' class='t-16'>{projectIndex}. {proj.ProjectName}</td>
-                <td style='border:1px solid #000; text-align:right;' class='t-16'>{proj.BudgetAmount:N2}</td>
+                <td style='border:1px solid #000;font-size:18pt; padding-left:32px;' >{projectIndex}. {proj.ProjectName}</td>
+                <td style='border:1px solid #000;font-size:18pt; text-align:right;' >{proj.BudgetAmount:N2}</td>
             </tr>
         ");
                         projectIndex++;

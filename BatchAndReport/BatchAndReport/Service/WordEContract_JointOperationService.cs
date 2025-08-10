@@ -350,13 +350,13 @@ public class WordEContract_JointOperationService
     <tr>
         <!-- Left: SME logo -->
         <td style='width:60%; text-align:left; vertical-align:top;'>
-        <div style='display:inline-block; border:2px solid #333; padding:20px; font-size:32pt;'>
+        <div style='display:inline-block;  padding:20px; font-size:32pt;'>
              <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
             </div>
         </td>
         <!-- Right: Contract code box (replace with your actual contract code if needed) -->
         <td style='width:40%; text-align:center; vertical-align:top;'>
-            <div style='display:inline-block; border:2px solid #333; padding:20px; font-size:32pt;'>
+            <div style='display:inline-block; padding:20px; font-size:32pt;'>
              <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
             </div>
         </td>
@@ -380,7 +380,9 @@ public class WordEContract_JointOperationService
     </P>
     <P class='t-16 tab3'><B>วัตถุประสงค์ตามสัญญาร่วมดำเนินการ</B></P>
     <P class='t-16 tab3'>
-        คู่สัญญาทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ </br> {dataResult.Project_Name} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการ แผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่นๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายสัญญาฉบับนี้ ซึ่งให้ถือ</br>เป็นส่วนหนึ่งของสัญญาฉบับนี้ มีระยะเวลาตั้งแต่วันที่ {CommonDAO.ToThaiDateStringCovert(dataResult.Contract_Start_Date ?? DateTime.Now)} จนถึงวันที่ {CommonDAO.ToThaiDateStringCovert(dataResult.Contract_End_Date ?? DateTime.Now)} โดยมีวัตถุประสงค์ในการดำเนินโครงการ ดังนี้
+        คู่สัญญาทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ </br> {dataResult.Project_Name} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการ </br>
+ แผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่นๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสาร
+แนบท้าย</br>สัญญาฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของสัญญาฉบับนี้ มีระยะเวลาตั้งแต่วันที่ {CommonDAO.ToThaiDateStringCovert(dataResult.Contract_Start_Date ?? DateTime.Now)} จนถึงวันที่ {CommonDAO.ToThaiDateStringCovert(dataResult.Contract_End_Date ?? DateTime.Now)} โดยมีวัตถุประสงค์ในการดำเนินโครงการ ดังนี้
     </P>
 {(purposeList != null && purposeList.Count != 0
     ? $"<div class='t-16 tab2'>{string.Join("<br/>", purposeList.Select(p => p.Detail))}</div>"
