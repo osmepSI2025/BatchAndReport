@@ -6,6 +6,7 @@
         public string? Contract_Number { get; set; }
         public string? Project_Name { get; set; }
         public string? Organization { get; set; }
+        public string? Organization_Logo { get; set; }
         public DateTime? Contract_SignDate { get; set; }
         public string? IssueOwner { get; set; }
         public string? IssueOwnerPosition { get; set; }
@@ -13,6 +14,8 @@
         public string? JointOfficerPosition { get; set; }
         public string? Contract_Type { get; set; }
         public string? Contract_Type_Other { get; set; }
+        public bool? AttorneyFlag { get; set; }
+        public string? AttorneyLetterNumber { get; set; }
         public DateTime? Grant_Date { get; set; }
         public string? OfficeLoc { get; set; }
         public DateTime? Contract_Start_Date { get; set; }

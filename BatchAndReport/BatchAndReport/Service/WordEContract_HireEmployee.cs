@@ -5,6 +5,7 @@ using BatchAndReport.Services;
 using DinkToPdf;
 using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
@@ -72,15 +73,15 @@ EContractDAO eContractDAO
                 // 2. Document title and subtitle
 
                 body.AppendChild(WordServiceSetting.CenteredBoldColoredParagraph("สัญญาจ้างลูกจ้าง", "000000", "36"));
-                string strcontractsign = CommonDAO.ToThaiDateStringCovert(result.ContractSignDate ?? DateTime.Now);
+                string strcontractsign = CommonDAO.ToArabicDateStringCovert(result.ContractSignDate ?? DateTime.Now);
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สัญญาฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เลขที่ 21 ถนนวิภาวดีรังสิต เขตจตุจักร กรุงเทพมหานคร เมื่อ"+ strcontractsign + "", null, "32"));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย........................................." +
                     "ผู้อำนวยการฝ่ายศูนย์ให้บริการ SMEs ครบวงจร สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ผู้รับมอบหมายตามคำสั่งสำนักงานฯ ที่ 629/2564 ลงวันที่ 30 กันยายน 2564 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้ว่าจ้าง”", null, "32"));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ฝ่ายหนึ่ง กับ "+result.SignatoryName+" เลขประจำตัวประชาชน " + result.IdenID + " อยู่บ้านเลขที่ "+result.EmpAddress+" " +
                     "ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ลูกจ้าง” อีกฝ่ายหนึ่ง โดยทั้งสองฝ่ายได้ตกลงทำร่วมกัน</br>ดังมีรายละเอียดต่อไปนี้", null, "32"));
 
-                string strHiringStart = CommonDAO.ToThaiDateStringCovert(result.HiringStartDate??DateTime.Now);
-                string strHiringEnd = CommonDAO.ToThaiDateStringCovert(result.HiringEndDate ?? DateTime.Now);
+                string strHiringStart = CommonDAO.ToArabicDateStringCovert(result.HiringStartDate??DateTime.Now);
+                string strHiringEnd = CommonDAO.ToArabicDateStringCovert(result.HiringEndDate ?? DateTime.Now);
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("1.ผู้ว่าจ้างตกลงจ้างลูกจ้างปฏิบัติงานกับผู้ว่าจ้าง โดยให้ปฏิบัติงานภายใต้งาน "+result.WorkDetail+"  ในตำแหน่ง "+result.WorkPosition+" ปฏิบัติหน้าที่ ณ ศูนย์กลุ่มจังหวัดให้บริการ SME ครบวงจร ..... " +
                     "โดยมีรายละเอียดหน้าที่ความรับผิดชอบปรากฏตามเอกสารแนบท้ายสัญญาจ้าง ตั้งแต่"+ strHiringStart + " ถึง"+ strHiringEnd + "", null, "32"));
 
@@ -256,12 +257,12 @@ EContractDAO eContractDAO
             var result = await _e.GetECAsync(id);
 
             #region checkมอบอำนาจ
-            string strAttorneyLetterDate = CommonDAO.ToThaiDateStringCovert(result.AttorneyLetterDate ?? DateTime.Now);
+            string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(result.AttorneyLetterDate ?? DateTime.Now);
             string strAttorney= "";
             var HtmlAttorney = new StringBuilder();
             if (result.AttorneyFlag==true) 
             {
-                strAttorney = "รับมอบหมายตามคำสั่งสำนักงานฯ ที่ "+result.AttorneyLetterNumber+" ลง "+ strAttorneyLetterDate + "";
+                strAttorney = "ผู้รับมอบหมายตามคำสั่งสำนักงานฯ ที่ "+result.AttorneyLetterNumber+" ลง "+ strAttorneyLetterDate + "";
            
             }
             else
@@ -271,79 +272,140 @@ EContractDAO eContractDAO
             #endregion
 
 
-            string strcontractsign = CommonDAO.ToThaiDateStringCovert(result.ContractSignDate ?? DateTime.Now);
-            string strHiringStart = CommonDAO.ToThaiDateStringCovert(result.HiringStartDate ?? DateTime.Now);
-            string strHiringEnd = CommonDAO.ToThaiDateStringCovert(result.HiringEndDate ?? DateTime.Now);
+            string strcontractsign = CommonDAO.ToArabicDateStringCovert(result.ContractSignDate ?? DateTime.Now);
+            string strHiringStart = CommonDAO.ToArabicDateStringCovert(result.HiringStartDate ?? DateTime.Now);
+            string strHiringEnd = CommonDAO.ToArabicDateStringCovert(result.HiringEndDate ?? DateTime.Now);
             string strSalary = CommonDAO.NumberToThaiText(result.Salary ?? 0);
             #region  signlist
             var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
             var signatoryHtml = new StringBuilder();
-            var companySealHtml = new StringBuilder();
 
-            foreach (var signer in signlist)
+            // แปลงเป็นรายการที่เข้าถึงด้วย dynamic ได้ + กัน null
+            var safeList = (signlist ?? Enumerable.Empty<object>())
+                .Cast<object>()
+                .Where(s => s != null)
+                .ToList();
+
+            // แมพป้ายกำกับตาม Signatory_Type
+            var roleByType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
+                ["OSMEP_S"] = "ผู้ว่าจ้าง",
+                ["OSMEP_W"] = "พยาน",
+                ["CP_S"] = "ลูกจ้าง",
+                ["CP_W"] = "พยาน"
+            };
+
+            // เลือกคนลงนามซ้าย/ขวา + เรียงลำดับ S ก่อน W
+            var leftSigners = safeList
+                .Where(s => {
+                    var t = (s as dynamic)?.Signatory_Type as string;
+                    return t == "OSMEP_S" || t == "OSMEP_W";
+                })
+                .OrderBy(s => ((s as dynamic)?.Signatory_Type as string) == "OSMEP_S" ? 0 : 1)
+                .ToList();
+
+            var rightSigners = safeList
+                .Where(s => {
+                    var t = (s as dynamic)?.Signatory_Type as string;
+                    return t == "CP_S" || t == "CP_W";
+                })
+                .OrderBy(s => ((s as dynamic)?.Signatory_Type as string) == "CP_S" ? 0 : 1)
+                .ToList();
+
+            // ฟังก์ชันเรนเดอร์บล็อกลายเซ็น + ป้ายกำกับ
+            string RenderSignatureBlock(dynamic signer, bool isCompanySide)
+            {
+                string signType = signer?.Signatory_Type as string ?? "";
+                roleByType.TryGetValue(signType, out var roleLabel);
+                roleLabel ??= "";
+
+                // รูปลายเซ็นหรือ placeholder
                 string signatureHtml;
-                string companySeal = ""; // Initialize to avoid unassigned variable warning
-
-                // Fix CS8602: Use null-conditional operator for Position and Company_Seal
-                if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
+                if (!string.IsNullOrEmpty((string)signer?.DS_FILE) && ((string)signer.DS_FILE).Contains("<content>"))
                 {
                     try
                     {
-                        var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
-                        var contentEnd = signer.Company_Seal.IndexOf("</content>");
-                        var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+                        var ds = (string)signer.DS_FILE;
+                        var contentStart = ds.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = ds.IndexOf("</content>");
+                        var base64 = ds.Substring(contentStart, contentEnd - contentStart);
 
-                        companySeal = $@"
-<div class='t-16 text-center tab1'>
-                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
-            </div>";
-
-                        companySealHtml.AppendLine($@"
-    <div class='text-center'>
-        {companySeal}      
-    </div>
-<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
-
-");
+                        signatureHtml = $@"<div class='sign-img'>
+    <img src='data:image/png;base64,{base64}' alt='signature' />
+</div>";
                     }
                     catch
                     {
-                        companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
-                {
-                    try
-                    {
-                        var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
-                        var contentEnd = signer.DS_FILE.IndexOf("</content>");
-                        var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
-
-                        signatureHtml = $@"<div class='t-16 text-center tab1'>
-                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
-            </div>";
-                    }
-                    catch
-                    {
-                        signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                        signatureHtml = $@"<div class='sign-line'>ลงชื่อ....................{roleLabel}</div>";
                     }
                 }
                 else
                 {
-                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                    signatureHtml = $@"<div class='sign-line'>ลงชื่อ....................{roleLabel}</div>";
                 }
 
-                signatoryHtml.AppendLine($@"
-    <div class='sign-single-right'>
-        {signatureHtml}
-        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
-        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
-    </div>");
+                // ชื่อ/หน่วยงาน
+                var name = System.Net.WebUtility.HtmlEncode((string)signer?.Signatory_Name ?? "");
+                var unit = System.Net.WebUtility.HtmlEncode((string)signer?.BU_UNIT ?? "");
 
-                signatoryHtml.Append(companySealHtml);
+                // ตราประทับ (เฉพาะ CP_S ฝั่งขวา)
+                string sealBlock = "";
+                if (isCompanySide && string.Equals(signType, "CP_S", StringComparison.OrdinalIgnoreCase)
+                    && !string.IsNullOrEmpty((string)signer?.Company_Seal) && ((string)signer.Company_Seal).Contains("<content>"))
+                {
+                    try
+                    {
+                        var seal = (string)signer.Company_Seal;
+                        var s1 = seal.IndexOf("<content>") + "<content>".Length;
+                        var s2 = seal.IndexOf("</content>");
+                        var base64 = seal.Substring(s1, s2 - s1);
+
+                        sealBlock = $@"
+<div class='seal-img'>
+    <img src='data:image/png;base64,{base64}' alt='company-seal' />
+</div>
+<div class='seal-caption'>(ตราประทับ บริษัท)</div>";
+                    }
+                    catch
+                    {
+                        sealBlock = "<div class='seal-caption'>(ตราประทับ บริษัท)</div>";
+                    }
+                }
+
+                return $@"
+<div class='sign-block'>
+    {signatureHtml}
+    <div class='sign-name'>({name})</div>
+    <div class='sign-unit'>{unit}</div>
+    {sealBlock}
+</div>";
             }
+
+            // ประกอบคอลัมน์ซ้าย/ขวา
+            var leftColumnHtml = new StringBuilder();
+            foreach (dynamic s in leftSigners)
+                leftColumnHtml.Append(RenderSignatureBlock(s, isCompanySide: false));
+
+            var rightColumnHtml = new StringBuilder();
+            foreach (dynamic s in rightSigners)
+                rightColumnHtml.Append(RenderSignatureBlock(s, isCompanySide: true));
+
+            // กันคอลัมน์ว่างให้เว้นที่ไว้
+            if (leftColumnHtml.Length == 0) leftColumnHtml.Append("<div class='sign-block placeholder'></div>");
+            if (rightColumnHtml.Length == 0) rightColumnHtml.Append("<div class='sign-block placeholder'></div>");
+
+            // ตาราง 2 คอลัมน์ “กึ่งกลางหน้า”
+            signatoryHtml.Append($@"
+<table class='signature-2col'>
+  <tr>
+    <td class='sign-col left'>
+      {leftColumnHtml}
+    </td>
+    <td class='sign-col right'>
+      {rightColumnHtml}
+    </td>
+  </tr>
+</table>");
 
             #endregion signlist
 
@@ -355,83 +417,61 @@ EContractDAO eContractDAO
 </div>
 <div class='text-center t-22'><b>สัญญาจ้างลูกจ้าง</b></div>
 <p class='tab3 t-16'>
-    สัญญาฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.) 
-</br>ตำบล/แขวง ทุ่งสองห้อง อำเภอ/เขต หลักสี่ กรุงเทพมหานคร เมื่อ {strcontractsign}
+    สัญญาฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ตำบล/แขวง ทุ่งสองห้อง อำเภอ/เขต หลักสี่ กรุงเทพมหานคร เมื่อ {strcontractsign}
 </p>
 <p class='tab3 t-16'>
-    ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย {result.SignatoryName} <br>ผู้อำนวยการฝ่ายศูนย์ให้บริการ SMEs ครบวงจร สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม {strAttorney} ซึ่งต่อไปในสัญญานี้จะเรียกว่า <br>“ผู้ว่าจ้าง”
+    ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย {result.SignatoryName} ผู้อำนวยการฝ่ายศูนย์ให้บริการ SMEs ครบวงจร สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม {strAttorney} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้ว่าจ้าง”
 </p>
 <p class='tab3 t-16'>
-    ฝ่ายหนึ่ง กับ {result.EmploymentName} เลขประจำตัวประชาชน {result.IdenID} อยู่บ้านเลขที่ <br>{result.EmpAddress}
-    ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ลูกจ้าง” อีกฝ่ายหนึ่ง โดยทั้งสองฝ่ายได้ตกลงทำร่วมกัน<br>ดังมีรายละเอียดต่อไปนี้
+    ฝ่ายหนึ่ง กับ {result.EmploymentName} เลขประจำตัวประชาชน {result.IdenID} อยู่บ้านเลขที่ {result.EmpAddress} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ลูกจ้าง” อีกฝ่ายหนึ่ง โดยทั้งสองฝ่ายได้ตกลงทำร่วมกันดังมีรายละเอียดต่อไปนี้
 </p>
 <p class='tab3 t-16'>
-    1.ผู้ว่าจ้างตกลงจ้างลูกจ้างปฏิบัติงานกับผู้ว่าจ้าง โดยให้ปฏิบัติงานภายใต้งาน {result.WorkDetail} 
-</br>ในตำแหน่ง {result.WorkPosition} ปฏิบัติหน้าที่ ณ ศูนย์กลุ่มจังหวัดให้บริการ SME ครบวงจร
-    </br>โดยมีรายละเอียดหน้าที่ความรับผิดชอบปรากฏตามเอกสารแนบท้ายสัญญาจ้าง ตั้งแต่ {strHiringStart} ถึง {strHiringEnd}
+    1.ผู้ว่าจ้างตกลงจ้างลูกจ้างปฏิบัติงานกับผู้ว่าจ้าง โดยให้ปฏิบัติงานภายใต้งาน {result.WorkDetail} ในตำแหน่ง {result.WorkPosition} ปฏิบัติหน้าที่ ณ ศูนย์กลุ่มจังหวัดให้บริการ SME ครบวงจร โดยมีรายละเอียดหน้าที่ความรับผิดชอบปรากฏตามเอกสารแนบท้ายสัญญาจ้าง ตั้งแต่ {strHiringStart} ถึง {strHiringEnd}
 </p>
 <p class='tab3 t-16'>
-    2.ผู้ว่าจ้างจะจ่ายค่าจ้างให้แก่ลูกจ้างในระหว่างระยะเวลาการปฏิบัติงานของลูกจ้างตามสัญญานี้ในอัตราเดือนละ {result.Salary} บาท ({strSalary})
-    โดยจะจ่ายให้ในวันทำการก่อนวันทำการสุดท้าย
-</br>ของธนาคารในเดือนนั้นสามวันทำการ และนำเข้าบัญชีเงินฝากของลูกจ้าง ณ ที่ทำการของผู้ว่าจ้าง หรือ </br>ณ ที่อื่นใดตามที่ผู้ว่าจ้างกำหนด
+    2.ผู้ว่าจ้างจะจ่ายค่าจ้างให้แก่ลูกจ้างในระหว่างระยะเวลาการปฏิบัติงานของลูกจ้างตามสัญญานี้ในอัตราเดือนละ {result.Salary} บาท ({strSalary}) โดยจะจ่ายให้ในวันทำการก่อนวันทำการสุดท้ายของธนาคารในเดือนนั้นสามวันทำการ และนำเข้าบัญชีเงินฝากของลูกจ้าง ณ ที่ทำการของผู้ว่าจ้าง หรือ ณ ที่อื่นใดตามที่ผู้ว่าจ้างกำหนด
 </p>
  <p class='tab3 t-16'>
-    3.ในการจ่ายค่าจ้าง และ/หรือ เงินในลักษณะอื่นให้แก่ลูกจ้าง ลูกจ้างตกลงยินยอมให้ผู้ว่าจ้างหักภาษี ณ ที่จ่าย และ/หรือ เงินอื่นใดที่ต้องหักโดยชอบด้วยระเบียบ ข้อบังคับของผู้ว่าจ้างหรือตามกฎหมาย
-</br>ที่เกี่ยวข้อง
+    3.ในการจ่ายค่าจ้าง และ/หรือ เงินในลักษณะอื่นให้แก่ลูกจ้าง ลูกจ้างตกลงยินยอมให้ผู้ว่าจ้างหักภาษี ณ ที่จ่าย และ/หรือ เงินอื่นใดที่ต้องหักโดยชอบด้วยระเบียบ ข้อบังคับของผู้ว่าจ้างหรือตามกฎหมายที่เกี่ยวข้อง
 </p>
 <p class='tab3 t-16'>
-    4.ตลอดระยะเวลาการปฏิบัติงานตามสัญญานี้ ลูกจ้างมีสิทธิได้รับสิทธิประโยชน์อื่น ๆ ตามที่
-</br>กำหนดไว้ใน ระเบียบ ข้อบังคับ คำสั่ง หรือประกาศใด ๆ ตามที่ผู้ว่าจ้างกำหนด
+    4.ตลอดระยะเวลาการปฏิบัติงานตามสัญญานี้ ลูกจ้างมีสิทธิได้รับสิทธิประโยชน์อื่น ๆ ตามที่กำหนดไว้ใน ระเบียบ ข้อบังคับ คำสั่ง หรือประกาศใด ๆ ตามที่ผู้ว่าจ้างกำหนด
 </p>
 <p class='tab3 t-16'>
-    5.ผู้ว่าจ้างจะทำการประเมินผลการปฏิบัติงานอย่างน้อยปีละสองครั้ง ตามหลักเกณฑ์และ
-</br>วิธีการที่ผู้ว่าจ้างกำหนด ทั้งนี้ หากผลการประเมินไม่ผ่านตามหลักเกณฑ์ที่กำหนด ผู้ว่าจ้างมีสิทธิบอกเลิก
-</br>สัญญาจ้างได้ และลูกจ้างไม่มีสิทธิเรียกร้องเงินชดเชยหรือเงินอื่นใด
+    5.ผู้ว่าจ้างจะทำการประเมินผลการปฏิบัติงานอย่างน้อยปีละสองครั้ง ตามหลักเกณฑ์และวิธีการที่ผู้ว่าจ้างกำหนด ทั้งนี้ หากผลการประเมินไม่ผ่านตามหลักเกณฑ์ที่กำหนด ผู้ว่าจ้างมีสิทธิบอกเลิกสัญญาจ้างได้ และลูกจ้างไม่มีสิทธิเรียกร้องเงินชดเชยหรือเงินอื่นใด
 </p>
 <p class='tab3 t-16'>
-    6.ตลอดระยะเวลาการปฏิบัติงานตามสัญญานี้ ลูกจ้างจะต้องปฏิบัติตามกฎ ระเบียบ ข้อบังคับ คำสั่งหรือประกาศใด ๆ ของผู้ว่าจ้าง 
-    ตลอดจนมีหน้าที่ต้องรักษาวินัยและยอมรับการลงโทษทางวินัยของ
-</br>ผู้ว่าจ้างโดยเคร่งครัด และยินยอมให้ถือว่า กฎหมาย ระเบียบ ข้อบังคับ หรือคำสั่งต่าง ๆ ของผู้ว่าจ้างเป็นส่วนหนึ่งของสัญญาจ้างนี้
+    6.ตลอดระยะเวลาการปฏิบัติงานตามสัญญานี้ ลูกจ้างจะต้องปฏิบัติตามกฎ ระเบียบ ข้อบังคับ คำสั่งหรือประกาศใด ๆ ของผู้ว่าจ้าง ตลอดจนมีหน้าที่ต้องรักษาวินัยและยอมรับการลงโทษทางวินัยของผู้ว่าจ้างโดยเคร่งครัด และยินยอมให้ถือว่า กฎหมาย ระเบียบ ข้อบังคับ หรือคำสั่งต่าง ๆ ของผู้ว่าจ้างเป็นส่วนหนึ่งของสัญญาจ้างนี้
 </p>
 <p class='tab3 t-16'>
-    ในกรณีลูกจ้างจงใจขัดคำสั่งโดยชอบของผู้ว่าจ้างหรือละเลยไม่นำพาต่อคำสั่งเช่นว่านั้นเป็น
-</br>อาจิณ หรือประการอื่นใด อันไม่สมควรกับการปฏิบัติหน้าที่ของตนให้ลุล่วงไปโดยสุจริตและถูกต้อง ลูกจ้าง
-</br>ยินยอมให้ผู้ว่าจ้างบอกเลิกสัญญาจ้างโดยมิต้องบอกกล่าวล่วงหน้า
+    ในกรณีลูกจ้างจงใจขัดคำสั่งโดยชอบของผู้ว่าจ้างหรือละเลยไม่นำพาต่อคำสั่งเช่นว่านั้นเป็นอาจิณ หรือประการอื่นใด อันไม่สมควรกับการปฏิบัติหน้าที่ของตนให้ลุล่วงไปโดยสุจริตและถูกต้อง ลูกจ้างยินยอมให้ผู้ว่าจ้างบอกเลิกสัญญาจ้างโดยมิต้องบอกกล่าวล่วงหน้า
 </p>
 <p class='tab3 t-16'>
     7. ลูกจ้างต้องปฏิบัติงานให้กับผู้ว่าจ้าง ตามที่ได้รับมอบหมายด้วยความซื่อสัตย์ สุจริต และตั้งใจปฏิบัติงานอย่างเต็มกำลังความสามารถของตน โดยแสวงหาความรู้และทักษะเพิ่มเติมหรือกระทำการใด 
-    เพื่อให้ผลงานในหน้าที่มีคุณภาพดีขึ้น ทั้งนี้ ต้องรักษาผลประโยชน์และชื่อเสียงของผู้ว่าจ้าง และไม่เปิดเผย
-</br>ความลับหรือข้อมูลของทางราชการให้ผู้หนึ่งผู้ใดทราบ โดยมิได้รับอนุญาตจากผู้รับผิดชอบงานนั้น ๆ
+    เพื่อให้ผลงานในหน้าที่มีคุณภาพดีขึ้น ทั้งนี้ ต้องรักษาผลประโยชน์และชื่อเสียงของผู้ว่าจ้าง และไม่เปิดเผยความลับหรือข้อมูลของทางราชการให้ผู้หนึ่งผู้ใดทราบ โดยมิได้รับอนุญาตจากผู้รับผิดชอบงานนั้น ๆ
 </p>
 <p class='tab3 t-16'>
     8. สัญญานี้สิ้นสุดลงเมื่อเข้ากรณีใดกรณีหนึ่ง ดังต่อไปนี้
 </p>
-<p class='tab3 t-16'>8.1 สิ้นสุดระยะเวลาตามสัญญาจ้าง</p>
-<p class='tab3 t-16'>8.2 เมื่อผู้ว่าจ้างบอกเลิกสัญญาจ้าง หรือลูกจ้างบอกเลิกสัญญาจ้างตามข้อ 10</p>
-<p class='tab3 t-16'>8.3 ลูกจ้างกระทำการผิดวินัยร้ายแรง</p>
-<p class='tab3 t-16'>8.4 ลูกจ้างไม่ผ่านการประเมินผลการปฏิบัติงานของลูกจ้างตามข้อ 5</p>
+<p class='tab4 t-16'>8.1 สิ้นสุดระยะเวลาตามสัญญาจ้าง</p>
+<p class='tab4 t-16'>8.2 เมื่อผู้ว่าจ้างบอกเลิกสัญญาจ้าง หรือลูกจ้างบอกเลิกสัญญาจ้างตามข้อ 10</p>
+<p class='tab4 t-16'>8.3 ลูกจ้างกระทำการผิดวินัยร้ายแรง</p>
+<p class='tab4 t-16'>8.4 ลูกจ้างไม่ผ่านการประเมินผลการปฏิบัติงานของลูกจ้างตามข้อ 5</p>
 <p class='tab3 t-16'>
-    9. ในกรณีที่สัญญาสิ้นสุดตามข้อ 8.3 และ 8.4 ลูกจ้างยินยอมให้ผู้ว่าจ้างสั่งให้ลูกจ้างพ้นสภาพ
-</br>การเป็นลูกจ้างได้ทันที โดยไม่จำเป็นต้องมีหนังสือว่ากล่าวตักเตือน และผู้ว่าจ้างไม่ต้องจ่ายค่าชดเชย
-</br>หรือเงินอื่นใดให้แก่ลูกจ้างทั้งสิ้น เว้นแต่ค่าจ้างที่ลูกจ้างจะพึงได้รับตามสิทธิ
+    9. ในกรณีที่สัญญาสิ้นสุดตามข้อ 8.3 และ 8.4 ลูกจ้างยินยอมให้ผู้ว่าจ้างสั่งให้ลูกจ้างพ้นสภาพการเป็นลูกจ้างได้ทันที โดยไม่จำเป็นต้องมีหนังสือว่ากล่าวตักเตือน และผู้ว่าจ้างไม่ต้องจ่ายค่าชดเชยหรือเงินอื่นใดให้แก่ลูกจ้างทั้งสิ้น เว้นแต่ค่าจ้างที่ลูกจ้างจะพึงได้รับตามสิทธิ
 </p>
 <p class='tab3 t-16'>
-    10. ลูกจ้างมีสิทธิบอกเลิกสัญญาจ้างได้ก่อนสัญญาครบกำหนด โดยทำหนังสือแจ้งเป็น
-</br>ลายลักษณ์อักษรต่อผู้ว่าจ้างได้ทราบล่วงหน้าไม่น้อยกว่า 30 วัน เมื่อผู้ว่าจ้างได้อนุมัติแล้ว ให้ถือว่าสัญญาจ้างนี้ได้สิ้นสุดลง
+    10. ลูกจ้างมีสิทธิบอกเลิกสัญญาจ้างได้ก่อนสัญญาครบกำหนด โดยทำหนังสือแจ้งเป็นลายลักษณ์อักษรต่อผู้ว่าจ้างได้ทราบล่วงหน้าไม่น้อยกว่า 30 วัน เมื่อผู้ว่าจ้างได้อนุมัติแล้ว ให้ถือว่าสัญญาจ้างนี้ได้สิ้นสุดลง
 </p>
 <p class='tab3 t-16'>
-    11. ในกรณีที่ลูกจ้างกระทำการใดอันทำให้ผู้ว่าจ้างได้รับความเสียหาย ไม่ว่าเหตุนั้นผู้ว่าจ้าง
-</br>จะนำมาเป็นเหตุบอกเลิกสัญญาจ้างหรือไม่ก็ตาม ผู้ว่าจ้างมีสิทธิจะเรียกร้องค่าเสียหาย และลูกจ้างยินยอมชด
-</br>ใช้ค่าเสียหายตามที่ผู้ว่าจ้างเรียกร้องทุกประการ 
+    11. ในกรณีที่ลูกจ้างกระทำการใดอันทำให้ผู้ว่าจ้างได้รับความเสียหาย ไม่ว่าเหตุนั้นผู้ว่าจ้างจะนำมาเป็นเหตุบอกเลิกสัญญาจ้างหรือไม่ก็ตาม ผู้ว่าจ้างมีสิทธิจะเรียกร้องค่าเสียหาย และลูกจ้างยินยอมชดใช้ค่าเสียหายตามที่ผู้ว่าจ้างเรียกร้องทุกประการ 
 </p>
 <p class='tab3 t-16'>
     12. ลูกจ้างจะต้องไม่เปิดเผยหรือบอกกล่าวอัตราค่าจ้างของลูกจ้างให้แก่บุคคลใดทราบ ไม่ว่าจะโดยวิธีใดหรือเวลาใด เว้นแต่จะเป็นการกระทำตามกฎหมายหรือคำสั่งศาล
 </p>
 <p class='tab3 t-16'>
-    13. สัญญาฉบับนี้ได้จัดทำขึ้นเป็นสัญญาอิเล็กทรอนิกส์คู่สัญญาได้อ่านตรวจสอบและทำความ
-</br>เข้าใจ ข้อความในสัญญาฉบับนี้โดยละเอียดแล้วจึงได้ลงลายมือชื่ออิเล็กทรอนิกส์ไว้เป็นหลักฐาน ณ วัน เดือน ปี ดังกล่าวข้างต้น 
-และมีพยานรู้ถึงการลงนามของคู่สัญญา และคู่สัญญาต่างฝ่ายต่างเก็บรักษาไฟล์สัญญา
-</br>อิเล็กทรอนิกส์ฉบับนี้ไว้เป็นหลักฐาน
+    13. สัญญาฉบับนี้ได้จัดทำขึ้นเป็นสัญญาอิเล็กทรอนิกส์คู่สัญญาได้อ่านตรวจสอบและทำความเข้าใจ ข้อความในสัญญาฉบับนี้โดยละเอียดแล้วจึงได้ลงลายมือชื่ออิเล็กทรอนิกส์ไว้เป็นหลักฐาน ณ วัน เดือน ปี ดังกล่าวข้างต้น 
+และมีพยานรู้ถึงการลงนามของคู่สัญญา และคู่สัญญาต่างฝ่ายต่างเก็บรักษาไฟล์สัญญาอิเล็กทรอนิกส์ฉบับนี้ไว้เป็นหลักฐาน
 </p>
 <!--<p class='tab3 t-16'>
     สัญญาฉบับนี้ได้จัดทำขึ้นเป็นสัญญาอิเล็กทรอนิกส์คู่สัญญาได้อ่านตรวจสอบและทำความเข้าใจข้อความในสัญญาฉบับนี้โดยละเอียดแล้ว จึงได้ลงลายมือชื่ออิเล็กทรอนิกส์ไว้เป็นหลักฐาน ณ วัน เดือน ปี ดังกล่าวข้างต้น 
@@ -448,12 +488,12 @@ EContractDAO eContractDAO
 <p class='tab2 t-16'>หน้าที่ความรับผิดชอบ : เจ้าหน้าที่ศูนย์กลุ่มจังหวัดให้บริการ SMEs ครบวงจร และ</p>
 <p class='tab2 t-16'>เจ้าหน้าที่ศูนย์ให้บริการ SMEs ครบวงจร กรุงเทพมหานคร</p>
 <p class='tab2 t-16'>- การปรับปรุงข้อมูลผู้ประกอบการ SME (ไม่น้อยกว่า 30 ราย/เดือน)</p>
-<p class='tab2 t-16'>- การให้บริการคำปรึกษา แนะนำทางธุรกิจ อาทิเช่น ด้านบัญชี การเงิน การตลาด <br>การบริหารจัดการ การผลิต กฎหมาย เทคโนโลยีสารสนเทศ และอื่น ๆ ที่เกี่ยวข้องทางธุรกิจ (ไม่น้อยกว่า 30 <br>ราย/เดือน)</p>
+<p class='tab2 t-16'>- การให้บริการคำปรึกษา แนะนำทางธุรกิจ อาทิเช่น ด้านบัญชี การเงิน การตลาด การบริหารจัดการ การผลิต กฎหมาย เทคโนโลยีสารสนเทศ และอื่น ๆ ที่เกี่ยวข้องทางธุรกิจ (ไม่น้อยกว่า 30 ราย/เดือน)</p>
 <p class='tab2 t-16'>- สนับสนุน เสนอแนะแนวทางการแก้ไขปัญหาให้ SME ได้รับประโยชน์ตามมาตรการของภาครัฐ</p>
 <p class='tab2 t-16'>- สนับสนุนการพัฒนาเครือข่ายหน่วยงานให้บริการส่งเสริม SME ให้บริการส่งต่อภายใต้<br>หน่วยงานพันธมิตร การติดตามผลและประสานงานแก้ไขปัญหา</p>
-<p class='tab2 t-16'>- สนับสนุนนโยบาย มาตรการ และการทำงานของ สสว. ในการสร้าง ประสาน เชื่อมโยงเครือข่าย<br>ในพื้นที่ (รูปแบบ Online & Offline) เพื่อสนับสนุนการปฏิบัติงานตามภารกิจ</p>
-<p class='tab2 t-16'>- สนับสนุนจัดทำข้อมูล SME จังหวัด เพื่อนำข้อมูลมาใช้ประโยชน์ในการเสนอแนะทางธุรกิจแก่ <br>SME และเชื่อมโยงไปสู่การแก้ปัญหาหรือการจัดทำมาตรการภาครัฐ</p>
-<p class='tab2 t-16'>- ปฏิบัติงานภายใต้การบังคับบัญชาของผู้จัดการศูนย์กลุ่มจังหวัดฯ หรือ ผู้จัดการศูนย์ให้<br>บริการ SMEs ครบวงจร กรุงเทพมหานคร ตามประกาศ สสว. และเข้าร่วมกิจกรรมต่าง ๆ </p>
+<p class='tab2 t-16'>- สนับสนุนนโยบาย มาตรการ และการทำงานของ สสว. ในการสร้าง ประสาน เชื่อมโยงเครือข่ายในพื้นที่ (รูปแบบ Online & Offline) เพื่อสนับสนุนการปฏิบัติงานตามภารกิจ</p>
+<p class='tab2 t-16'>- สนับสนุนจัดทำข้อมูล SME จังหวัด เพื่อนำข้อมูลมาใช้ประโยชน์ในการเสนอแนะทางธุรกิจแก่ SME และเชื่อมโยงไปสู่การแก้ปัญหาหรือการจัดทำมาตรการภาครัฐ</p>
+<p class='tab2 t-16'>- ปฏิบัติงานภายใต้การบังคับบัญชาของผู้จัดการศูนย์กลุ่มจังหวัดฯ หรือ ผู้จัดการศูนย์ให้บริการ SMEs ครบวงจร กรุงเทพมหานคร ตามประกาศ สสว. และเข้าร่วมกิจกรรมต่าง ๆ </p>
 <p class='tab2 t-16'>- กำกับดูแลข้อมูลตาม พ.ร.บ.การคุ้มครองข้อมูลส่วนบุคคล</p>
 <p class='tab2 t-16'>- งานอื่น ๆ ตามที่ได้รับมอบหมาย</p>
 ";
@@ -474,6 +514,66 @@ EContractDAO eContractDAO
             font-family: 'THSarabunNew', Arial, sans-serif;
          
         }}
+        /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
+        body, p, div {{
+            word-break: keep-all;            /* ห้ามตัดกลางคำ */
+            overflow-wrap: break-word;       /* ตัดเฉพาะเมื่อจำเป็น (ยาวจนล้นบรรทัด) */
+            -webkit-line-break: after-white-space; /* ช่วย WebKit เก่าจัดบรรทัด */
+            hyphens: none;
+        }}
+        /* ตารางลายเซ็นแบบ 2 คอลัมน์ กึ่งกลางหน้า */
+        .signature-2col{{
+            width: 90%;
+            max-width: 800px;  /* A4 portrait ดูบาลานซ์ */
+            margin: 24px auto; /* กึ่งกลางหน้า */
+            table-layout: fixed;
+            border-collapse: separate;
+            font-size: 26px;
+            font-family: 'THSarabunNew', Arial, sans-serif;
+        }}
+        .signature-2col .sign-col{{
+            width: 50%;
+            vertical-align: top;
+            padding: 8px 12px;
+            text-align: center;         /* กึ่งกลางในคอลัมน์ */
+        }}
+        .sign-block{{
+            margin-top: 12px;
+            font-size: inherit;       /* ใช้ขนาดฟอนต์จาก .signature-2col */
+            font-family: inherit;     /* ใช้ฟอนต์จาก .signature-2col */
+            page-break-inside: avoid;   /* กันบล็อกถูกตัดครึ่งหน้า */
+        }}
+        .sign-block.placeholder{{
+            height: 120px;
+        }}
+
+        .sign-img img{{
+            max-height: 80px;
+            display: inline-block;
+        }}
+        .seal-img img{{
+            max-height: 80px;
+            display: inline-block;
+            margin-top: 6px;
+        }}
+        .seal-caption{{
+            margin-top: 4px; 
+            font-size: inherit;       /* ใช้ขนาดฟอนต์จาก .signature-2col */
+            font-family: inherit;     /* ใช้ฟอนต์จาก .signature-2col */
+        }}
+
+        .sign-line{{
+            font-size: inherit;       /* ใช้ขนาดฟอนต์จาก .signature-2col */
+            font-family: inherit;     /* ใช้ฟอนต์จาก .signature-2col */
+            text-align: center;
+        }}
+        .sign-name, .sign-unit{{
+            margin-top: 4px;
+            text-align: center;
+            font-size: inherit;       /* ใช้ขนาดฟอนต์จาก .signature-2col */
+            font-family: inherit;     /* ใช้ฟอนต์จาก .signature-2col */
+        }}
+
         .t-16 {{
             font-size: 1.5em;
         }}
@@ -483,10 +583,10 @@ EContractDAO eContractDAO
         .t-22 {{
             font-size: 1.9em;
         }}
-        .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
-        .tab2 {{ text-indent: 96px; word-break: break-all; }}
-        .tab3 {{ text-indent: 144px;  word-break: break-all; }}
-        .tab4 {{ text-indent: 192px;  word-break: break-all;}}
+        .tab1 {{ text-indent: 48px;}}
+        .tab2 {{ text-indent: 96px;}}
+        .tab3 {{ text-indent: 144px;}}
+        .tab4 {{ text-indent: 192px;}}
         .d-flex {{ display: flex; }}
         .w-100 {{ width: 100%; }}
         .w-40 {{ width: 40%; }}

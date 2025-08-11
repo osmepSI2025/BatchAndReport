@@ -27,6 +27,18 @@ namespace BatchAndReport.DAO
             return $"วันที่ {ToThaiNumber(date.Day)} เดือน {thaiMonth} พ.ศ. {ToThaiNumber(thaiYear)}";
         }
 
+        public static string ToArabicDateStringCovert(DateTime date)
+        {
+            int thaiYear = date.Year + 543;
+            string thaiMonth = date.ToString("MMMM", new CultureInfo("th-TH"));
+            string day = date.Day.ToString();
+            if (thaiYear < 2500)
+            {
+                thaiYear = thaiYear + 543;
+            }
+            return $"วันที่ {date.Day} {thaiMonth} {thaiYear}";
+        }
+
         private static string ToThaiNumber(int number)
         {
             return ToThaiNumber(number.ToString());
