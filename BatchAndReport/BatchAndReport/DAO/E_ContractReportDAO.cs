@@ -71,6 +71,8 @@ namespace BatchAndReport.DAO
                 Flag_Delete = reader["Flag_Delete"] as bool?,
                 Request_ID = reader["Request_ID"] as string,
                 Contract_Status = reader["Contract_Status"] as string,
+                Organization_Logo = reader["Organization_Logo"] as string,
+                AttorneyFlag = reader["AttorneyFlag"] as bool?,
                 Signatories = new List<E_ConReport_SignatoryModels>()
             };
 
@@ -186,7 +188,10 @@ namespace BatchAndReport.DAO
                 UpdateBy = reader["UpdateBy"] as string,
                 Flag_Delete = reader["Flag_Delete"] as bool?,
                 Request_ID = reader["Request_ID"] as string,
-                Contract_Status = reader["Contract_Status"] as string
+                Contract_Status = reader["Contract_Status"] as string,
+                Organization_Logo = reader["Organization_Logo"] as string,
+                AttorneyFlag = reader["AttorneyFlag"] as bool?,
+                AttorneyLetterNumber = reader["AttorneyLetterNumber"] as string
             };
 
             return detail;
