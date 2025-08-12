@@ -143,7 +143,7 @@ namespace BatchAndReport.Pages.Report
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_EC_PDF_Preview(string ContractId = "8")
+        public async Task<IActionResult> OnGetWordContact_EC_PDF_Preview(string ContractId = "8", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
@@ -162,6 +162,33 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
+
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
                 securitySettings.OwnerPassword = userPassword;
@@ -177,7 +204,7 @@ namespace BatchAndReport.Pages.Report
 
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
-        }
+        }   
         #endregion 4.1.3.3. สัญญาจ้างลูกจ้าง
 
         #region 4.1.1.2.15.สัญญาจ้างทำของ CWA
@@ -206,7 +233,7 @@ namespace BatchAndReport.Pages.Report
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_CWA_PDF_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_CWA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA");
@@ -225,6 +252,33 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
+
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
                 securitySettings.OwnerPassword = userPassword;
@@ -240,7 +294,7 @@ namespace BatchAndReport.Pages.Report
 
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
-        }
+        }    
         #endregion 4.1.1.2.15.สัญญาจ้างทำของ CWA
 
         #region 4.1.1.2.14.สัญญาจ้างผู้เชี่ยวชาญรายบุคคลหรือจ้างบริษัทที่ปรึกษา ร.317-60 CTR31760
@@ -268,7 +322,7 @@ namespace BatchAndReport.Pages.Report
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_CTR31760_PDF_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_CTR31760_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CTR31760");
@@ -285,7 +339,34 @@ namespace BatchAndReport.Pages.Report
             using (var inputStream = new MemoryStream(wordBytes))
             using (var outputStream = new MemoryStream())
             {
-                var document = PdfReader.Open(inputStream, PdfDocumentOpenMode.Modify);
+                var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
+
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
 
                 // Set up security settings
                 var securitySettings = document.SecuritySettings;
@@ -302,7 +383,7 @@ namespace BatchAndReport.Pages.Report
                 // await System.IO.File.WriteAllBytesAsync(filePath, outputStream.ToArray());
 
                 // Return the password-protected PDF to the user
-                return File(outputStream.ToArray(), "application/pdf", "CTR31760_" + ContractId + "_Preview.pdf");
+                return File(outputStream.ToArray(), "application/pdf", $"CTR31760_{ContractId}_Preview.pdf");
             }
         }
         #endregion 4.1.1.2.14.สัญญาจ้างที่ปรึกษา CTR31760
@@ -333,7 +414,7 @@ namespace BatchAndReport.Pages.Report
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_PML31460_PDF_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_PML31460_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460");
@@ -350,7 +431,34 @@ namespace BatchAndReport.Pages.Report
             using (var inputStream = new MemoryStream(wordBytes))
             using (var outputStream = new MemoryStream())
             {
-                var document = PdfReader.Open(inputStream, PdfDocumentOpenMode.Modify);
+                var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
+
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
 
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
@@ -396,7 +504,7 @@ namespace BatchAndReport.Pages.Report
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
 
-        public async Task<IActionResult> OnGetWordContact_SMC31060_PDF_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_SMC31060_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _maintenanceComputerService.OnGetWordContact_MaintenanceComputer_ToPDF(ContractId, "SMC31060");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SMC31060");
@@ -415,6 +523,33 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
+
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
                 securitySettings.OwnerPassword = userPassword;
@@ -430,7 +565,7 @@ namespace BatchAndReport.Pages.Report
 
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
-        }
+        }  
         #endregion 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60 SMC31060
 
         #region 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
@@ -522,7 +657,7 @@ namespace BatchAndReport.Pages.Report
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
 
-        public async Task<IActionResult> OnGetWordContact_SLA30860_PDF_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_SLA30860_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860");
@@ -540,6 +675,33 @@ namespace BatchAndReport.Pages.Report
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
+
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
 
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
@@ -586,7 +748,7 @@ namespace BatchAndReport.Pages.Report
             //return File(wordBytes, "application/pdf", "CPA_" + ContractId + ".pdf");
         }
 
-        public async Task<IActionResult> OnGetWordContact_CPA_PDF_Preview(string ContractId = "14")
+        public async Task<IActionResult> OnGetWordContact_CPA_PDF_Preview(string ContractId = "14", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
 
@@ -606,6 +768,33 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
+
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
                 securitySettings.OwnerPassword = userPassword;
@@ -621,7 +810,7 @@ namespace BatchAndReport.Pages.Report
 
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
-        }
+        }    
         #endregion 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์ CPA
 
         #region 4.1.1.2.8.สัญญาซื้อขาย ร.305-60 SPA30560
@@ -651,7 +840,7 @@ namespace BatchAndReport.Pages.Report
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_SPA30560_PDF_Preview(string ContractId = "4")
+        public async Task<IActionResult> OnGetWordContact_SPA30560_PDF_Preview(string ContractId = "4", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560");
@@ -670,6 +859,33 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
+
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
                 securitySettings.OwnerPassword = userPassword;
@@ -685,7 +901,7 @@ namespace BatchAndReport.Pages.Report
 
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
-        }
+        }   
         #endregion 4.1.1.2.8.สัญญาซื้อขาย ร.305-60 SPA30560
 
         #region 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
@@ -713,7 +929,7 @@ namespace BatchAndReport.Pages.Report
 
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_NDA_PDF_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_NDA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
@@ -732,6 +948,33 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
+
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
                 securitySettings.OwnerPassword = userPassword;
@@ -748,7 +991,6 @@ namespace BatchAndReport.Pages.Report
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
         }
-
         #endregion 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
 
         #region 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
@@ -777,7 +1019,7 @@ namespace BatchAndReport.Pages.Report
            // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
 
-        public async Task<IActionResult> OnGetWordContact_PDSA_PDF_Preview(string ContractId = "3")
+        public async Task<IActionResult> OnGetWordContact_PDSA_PDF_Preview(string ContractId = "3", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
@@ -796,6 +1038,33 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
+
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
                 securitySettings.OwnerPassword = userPassword;
@@ -811,7 +1080,7 @@ namespace BatchAndReport.Pages.Report
 
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
-        }
+        }      
         # endregion 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
 
         #region 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA
@@ -840,7 +1109,7 @@ namespace BatchAndReport.Pages.Report
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_JDCA_PDF_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_JDCA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA");
@@ -859,6 +1128,33 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
+
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
                 securitySettings.OwnerPassword = userPassword;
@@ -874,7 +1170,7 @@ namespace BatchAndReport.Pages.Report
 
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
-        }
+        }       
         #endregion 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA
 
 
@@ -903,7 +1199,7 @@ namespace BatchAndReport.Pages.Report
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.pdf");
         }
 
-        public async Task<IActionResult> OnGetWordContact_PDPA_PDF_Preview(string ContractId = "4")
+        public async Task<IActionResult> OnGetWordContact_PDPA_PDF_Preview(string ContractId = "4", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
@@ -922,6 +1218,33 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
+
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
                 securitySettings.OwnerPassword = userPassword;
@@ -937,7 +1260,7 @@ namespace BatchAndReport.Pages.Report
 
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
-        }
+        }       
         #endregion 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
@@ -965,7 +1288,7 @@ namespace BatchAndReport.Pages.Report
             //   return File(wordBytes, "application/pdf", "MOU_" + ContractId + ".pdf");
         }
 
-        public async Task<IActionResult> OnGetWordContact_MOU_PDF_Preview(string ContractId = "7")
+        public async Task<IActionResult> OnGetWordContact_MOU_PDF_Preview(string ContractId = "7", string Name = "สมใจ ทดสอบ")
         {
             var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
@@ -983,6 +1306,33 @@ namespace BatchAndReport.Pages.Report
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
+
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
 
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
@@ -1028,7 +1378,7 @@ namespace BatchAndReport.Pages.Report
            // return File(pdfBytes, "application/pdf", "GA_"+ContractId+".pdf");
         }
 
-        public async Task<IActionResult> OnGetWordContact_GA_PDF_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_GA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
@@ -1046,6 +1396,33 @@ namespace BatchAndReport.Pages.Report
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
+
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สำเนา โดย {Name}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
 
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
@@ -1093,7 +1470,7 @@ namespace BatchAndReport.Pages.Report
           //  return File(wordBytes, "application/pdf", "JOA_" + ContractId + ".pdf");
         }
 
-        public async Task<IActionResult> OnGetWordContact_JOA_PDF_Preview(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_JOA_PDF_Preview(string ContractId = "70",string Name ="สมใจ ทดสอบ")
         {
             var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
@@ -1111,6 +1488,33 @@ namespace BatchAndReport.Pages.Report
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
+
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = "สำเนา โดย"+ Name;
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
 
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
