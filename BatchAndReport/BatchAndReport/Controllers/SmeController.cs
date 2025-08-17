@@ -145,14 +145,31 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var wordBytes = _serviceWord.GenerateWord(detail);
+            // Option 1: If you want to generate Word from HTML (recommended for rich formatting)
+            var html = await _wordSME_ReportService.ExportSMEProjectDetail_HTML(detail);
+            var wordBytes = _wordSME_ReportService.ConvertHtmlToWord(html);
 
-            return File(
-                wordBytes,
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                $"SME_Project_{projectCode}.docx"
-            );
+            // Option 2: If your _serviceWord.GenerateWord(detail) already works, keep using it
+            // var wordBytes = _serviceWord.GenerateWord(detail);
+
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SMEDocument", "SME_Detail", "SME_" + projectCode);
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, $"SME_{projectCode}.docx");
+
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"SME_{projectCode}.docx");
         }
+
+
         [HttpGet("ExportProjectDetailPDF")]
         public async Task<IActionResult> ExportProjectDetailPDF([FromQuery] string projectCode)
         {
