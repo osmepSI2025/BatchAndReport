@@ -4491,7 +4491,7 @@ namespace BatchAndReport.Pages.Report
         public async Task OnGetWordContact_JOA_PDF(string ContractId = "70")
         {
             var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", "JOA_" + ContractId);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
 
 
             if (!Directory.Exists(folderPath))

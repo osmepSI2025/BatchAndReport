@@ -480,14 +480,16 @@ SMEProjectDetailModels model
         <div  class='tab1'>{model.ProjectObjective ?? ""}</div>
         <div  class='tab1'><b>กลุ่มเป้าหมาย</b></div>");
 
-        if (model.TargetGroup!=null) 
+        if (model.TargetGroup != null)
         {
-            var docx = XDocument.Parse(model.TargetGroup);
-            var lookupCodes = docx.Descendants("field")
-                .Where(f => (string)f.Attribute("name") == "LookupCode")
-                .Select(f => (string)f.Element("value"))
-                .ToList();
 
+            //var docx = XDocument.Parse(model.TargetGroup);
+            //// var docx = XDocument.Parse("G01");
+            // var lookupCodes = docx.Descendants("field")
+            //     .Where(f => (string)f.Attribute("name") == "LookupCode")
+            //     .Select(f => (string)f.Element("value"))
+            //     .ToList();
+            var lookupCodes = model.TargetGroup?.Split(';', StringSplitOptions.RemoveEmptyEntries);
             foreach (var code in lookupCodes)
             {
                 var lookup = await _smeDao.GetLookupAsync("TARGET_GROUP", code);
@@ -500,7 +502,7 @@ SMEProjectDetailModels model
         }
 
 
-               htmlBody.Append($@"<div  class='tab1'><b>รายละเอียดแผนการดำเนินงาน/กิจกรรม...</b></div>
+        htmlBody.Append($@"<div  class='tab1'><b>รายละเอียดแผนการดำเนินงาน/กิจกรรม...</b></div>
         <div  class='tab1'>{model.Activities ?? ""}</div>
         <div  class='tab1'><b>จุดเด่นของโครงการ :</b></div>
         <div  class='tab1'>{model.ProjectFocus ?? ""}</div>

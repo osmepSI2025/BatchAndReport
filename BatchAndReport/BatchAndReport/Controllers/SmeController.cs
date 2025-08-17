@@ -5,7 +5,10 @@ using BatchAndReport.Repository;
 using BatchAndReport.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Syncfusion.Pdf.Graphics;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.IO.Compression;
 using System.Text.Json;
 
 namespace BatchAndReport.Controllers
@@ -124,7 +127,7 @@ namespace BatchAndReport.Controllers
             }
         }
 
-        [HttpGet("ExportProjectDetailPdf")]
+        [HttpGet("ExportProjectDetailPdf_old")]
         public async Task<IActionResult> ExportPdf([FromQuery] string projectCode)
         {
             var detail = await _smeDao.GetProjectDetailAsync(projectCode);
@@ -137,6 +140,22 @@ namespace BatchAndReport.Controllers
 
         [HttpGet("ExportProjectDetailWord")]
         public async Task<IActionResult> ExportProjectDetailWord([FromQuery] string projectCode)
+        {
+            var detail = await _smeDao.GetProjectDetailAsync(projectCode);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+
+            var pdfBytes = await _wordSME_ReportService.ExportSMEProjectDetail_ToPDF(detail);
+
+            return File(
+                pdfBytes,
+                "application/pdf",
+                 $"SME_Project_{projectCode}.pdf"
+            );
+        }
+        [HttpGet("ExportProjectDetailPDF")]
+        public async Task<IActionResult> ExportProjectDetailPDF([FromQuery] string projectCode)
         {
             var detail = await _smeDao.GetProjectDetailAsync(projectCode);
             if (detail == null)
@@ -162,26 +181,107 @@ namespace BatchAndReport.Controllers
             var projects = await _smeDao.GetSummaryProjectAsync(budYear);
             var strategies = await _smeDao.GetProjectStrategyAsync(budYear);
 
-           // var xdata = strategies.Distinct().ToList();
             // ตรวจสอบว่ามีข้อมูลหรือไม่
             if (projects == null || !projects.Any())
                 return NotFound("ไม่พบข้อมูลสำหรับปีงบประมาณที่ระบุ");
 
-          //  var bytes = _serviceWord.GenerateSummaryWord(projects, strategies, budYear); // Pass 'budYear' as the second argument
+            // Generate Word document
+            var wordBytes = _serviceWord.GenerateSummaryWord(projects, strategies, budYear);
 
-            //var pdfBytes = _serviceWord.ConvertWordToPdf(bytes);
-            //return File(
-            //    pdfBytes,
-            //    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            //    $"SME_Summary_{budYear}.pdf"
-            //);
+            return File(
+                wordBytes,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                $"SME_Summary_{budYear}.docx"
+            );
+        }
 
+        [HttpGet("ExportSMESummaryPDF")]
+        public async Task<IActionResult> ExportSMESummaryPDF([FromQuery] string budYear)
+        {
+            var projects = await _smeDao.GetSummaryProjectAsync(budYear);
+            var strategies = await _smeDao.GetProjectStrategyAsync(budYear);
+
+            // var xdata = strategies.Distinct().ToList();
+            // ตรวจสอบว่ามีข้อมูลหรือไม่
+            if (projects == null || !projects.Any())
+                return NotFound("ไม่พบข้อมูลสำหรับปีงบประมาณที่ระบุ");
+
+     
             var pdfBytes = await _wordSME_ReportService.GenerateSummarySME_Budget_ToPdf(projects, strategies, budYear);
             return File(
                 pdfBytes,
                 "application/pdf",
                 $"SME_Summary_{budYear}.pdf"
             );
+        }
+
+        [HttpGet("ExportSMESummaryJPEG")]
+        public async Task<IActionResult> ExportSMESummaryJPEG([FromQuery] string budYear)
+        {
+            var projects = await _smeDao.GetSummaryProjectAsync(budYear);
+            var strategies = await _smeDao.GetProjectStrategyAsync(budYear);
+            // ตรวจสอบว่ามีข้อมูลหรือไม่
+            if (projects == null || !projects.Any())
+                return NotFound("ไม่พบข้อมูลสำหรับปีงบประมาณที่ระบุ");
+
+            // You need to implement this method in your service
+            var jpegBytes = await _wordSME_ReportService.GenerateSummarySME_Budget_ToPdf(projects, strategies, budYear);
+
+            // 2. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SMEDocument", "Summary", "SME_" + budYear, "SME_" + budYear + "_JPEG");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var pdfPath = Path.Combine(folderPath, $"SME_{budYear}.pdf");
+
+            // 3. Save PDF to disk
+            if (System.IO.File.Exists(pdfPath))
+            {
+                System.IO.File.Delete(pdfPath);
+            }
+            await System.IO.File.WriteAllBytesAsync(pdfPath, jpegBytes);
+
+            // 4. Convert each PDF page to JPEG
+            using (var pdfStream = new MemoryStream(jpegBytes))
+            using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
+            {
+                for (int i = 0; i < document.PageCount; i++)
+                {
+                    using (var image = document.Render(i, 300, 300, true))
+                    {
+                        var jpegPath = Path.Combine(folderPath, $"EC_{budYear}_p{i + 1}.jpg");
+                        image.Save(jpegPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    }
+                }
+            }
+            // 5. Delete the PDF file after conversion
+            System.IO.File.Delete(pdfPath);
+
+            // 6. Create zip file of JPEGs
+            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SMEDocument", "Summary", "SME_" + budYear);
+            var zipPath = Path.Combine(folderPathZip, $"SME_{budYear}_JPEG.zip");
+            if (System.IO.File.Exists(zipPath))
+            {
+                System.IO.File.Delete(zipPath);
+            }
+            var jpegFiles = Directory.GetFiles(folderPath, $"SME_{budYear}_p*.jpg");
+            using (var zip = System.IO.Compression.ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            {
+                foreach (var file in jpegFiles)
+                {
+                    zip.CreateEntryFromFile(file, Path.GetFileName(file));
+                }
+            }
+            // 7. Delete JPEG files after zipping
+            foreach (var file in jpegFiles)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            // 8. Return the zip file as download
+            var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+            return File(zipBytes, "application/zip", $"SME_{budYear}_JPEG.zip");
         }
 
         [HttpPost("SyncFiscalYears")]

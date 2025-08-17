@@ -21,6 +21,7 @@ public class WorkflowProcessModel : PageModel
     public WFProcessDetailModels Detail { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int id_param)
+    
     {
         // Fetch related ProcessMasterDetails for idParam
         var all = await _k2context_workflow.TempProcessMasterDetails
