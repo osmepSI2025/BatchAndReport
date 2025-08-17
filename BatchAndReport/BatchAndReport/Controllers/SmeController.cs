@@ -145,13 +145,12 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-
-            var pdfBytes = await _wordSME_ReportService.ExportSMEProjectDetail_ToPDF(detail);
+            var wordBytes = _serviceWord.GenerateWord(detail);
 
             return File(
-                pdfBytes,
-                "application/pdf",
-                 $"SME_Project_{projectCode}.pdf"
+                wordBytes,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                $"SME_Project_{projectCode}.docx"
             );
         }
         [HttpGet("ExportProjectDetailPDF")]
@@ -174,7 +173,71 @@ namespace BatchAndReport.Controllers
                  $"SME_Project_{projectCode}.pdf"
             );
         }
+        [HttpGet("ExportProjectDetailJPEG")]
+        public async Task<IActionResult> ExportProjectDetailJPEG([FromQuery] string projectCode)
+        {
+            var detail = await _smeDao.GetProjectDetailAsync(projectCode);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
 
+            // Generate PDF first
+            var pdfBytes = await _wordSME_ReportService.ExportSMEProjectDetail_ToPDF(detail);
+
+            // Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SMEDocument", "Detail", $"SME_{projectCode}_JPEG");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var pdfPath = Path.Combine(folderPath, $"SME_{projectCode}.pdf");
+
+            // Save PDF to disk
+            if (System.IO.File.Exists(pdfPath))
+            {
+                System.IO.File.Delete(pdfPath);
+            }
+            await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes);
+
+            // Convert each PDF page to JPEG
+            using (var pdfStream = new MemoryStream(pdfBytes))
+            using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
+            {
+                for (int i = 0; i < document.PageCount; i++)
+                {
+                    using (var image = document.Render(i, 300, 300, true))
+                    {
+                        var jpegPath = Path.Combine(folderPath, $"SME_{projectCode}_p{i + 1}.jpg");
+                        image.Save(jpegPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    }
+                }
+            }
+            // Delete the PDF file after conversion
+            System.IO.File.Delete(pdfPath);
+
+            // Create zip file of JPEGs
+            var zipPath = Path.Combine(folderPath, $"SME_{projectCode}_JPEG.zip");
+            if (System.IO.File.Exists(zipPath))
+            {
+                System.IO.File.Delete(zipPath);
+            }
+            var jpegFiles = Directory.GetFiles(folderPath, $"SME_{projectCode}_p*.jpg");
+            using (var zip = System.IO.Compression.ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            {
+                foreach (var file in jpegFiles)
+                {
+                    zip.CreateEntryFromFile(file, Path.GetFileName(file));
+                }
+            }
+            // Delete JPEG files after zipping
+            foreach (var file in jpegFiles)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            // Return the zip file as download
+            var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+            return File(zipBytes, "application/zip", $"SME_{projectCode}_JPEG.zip");
+        }
         [HttpGet("ExportSMESummaryWord")]
         public async Task<IActionResult> ExportSMESummaryWord([FromQuery] string budYear)
         {
