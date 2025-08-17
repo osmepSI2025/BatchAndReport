@@ -243,7 +243,35 @@ namespace BatchAndReport.Controllers
             var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenExportWorkProcesses_HtmlToPDF(detail);
             return File(pdfBytes, "application/pdf", "ExportWorkProcesses.pdf");
         }
+        [HttpGet("ExportWorkflowProcessTXT")]
+        public async Task<IActionResult> ExportWorkflowProcessTXT([FromQuery] int idParam)
+        {
+            var detail = await _workflowDao.GetWFProcessDetailAsync(idParam);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
 
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("=== Core Processes ===");
+            if (detail.CoreProcesses != null)
+            {
+                foreach (var item in detail.CoreProcesses)
+                {
+                    sb.AppendLine($"- {item.ProcessGroupCode+":"+ item.ProcessGroupName}");
+                }
+            }
+            sb.AppendLine();
+            sb.AppendLine("=== Support Processes ===");
+            if (detail.SupportProcesses != null)
+            {
+                foreach (var item in detail.SupportProcesses)
+                {
+                    sb.AppendLine($"- {item.ProcessGroupCode + ":" + item.ProcessGroupName}");
+                }
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            return File(bytes, "text/plain", "ExportWorkProcesses.txt");
+        }
         [HttpGet("ExportWorkflowProcessJPEG")]
         public async Task<IActionResult> ExportWorkflowProcessJPEG([FromQuery] int idParam)
         {
