@@ -8,6 +8,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using System.Globalization;
 using System.Text;
 using System.Xml.Linq;
+using HtmlToOpenXml;
 public class WordSME_ReportService
 {
     private readonly WordServiceSetting _w;
@@ -681,5 +682,414 @@ SMEProjectDetailModels model
 
         var pdfBytes = _pdfConverter.Convert(doc);
         return pdfBytes;
+    }
+
+    public async Task<string> ExportSMEProjectDetail_HTML(
+SMEProjectDetailModels model
+)
+    {
+        // Read logo and convert to Base64 (if needed in HTML)
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+        string logoBase64 = "";
+        if (System.IO.File.Exists(logoPath))
+        {
+            var bytes = await System.IO.File.ReadAllBytesAsync(logoPath);
+            logoBase64 = Convert.ToBase64String(bytes);
+        }
+
+        // Absolute font path for PDF rendering
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+
+        // Build HTML content
+        var htmlBody = new StringBuilder();
+
+
+
+        // Heading
+        htmlBody.Append($@"
+        <div class='t-22 text-center'><b>แบบฟอร์มการจัดทำข้อเสนอ ประจำปีงบประมาณ {model.FiscalYearDesc}</b></div>
+        <br>
+        <div>กระทรวง : {model.MinistryName}</div>
+        <div>หน่วยงาน : {model.DepartmentName}</div>
+        <div>ชื่อกิจกรรม : {model.ProjectName}</div>
+        <div>งบประมาณ : {model.BudgetAmount:N0}</div>
+     
+
+    
+    ");
+
+        if (model.IS_BUDGET_USED_FLAG == "Y")
+        {
+            htmlBody.Append($@"
+       <div>  ใช้งบประมาณ :  {model.BUDGET_SOURCE_NAME}</div>
+     
+    ");
+        }
+        else
+        {
+            htmlBody.Append($@"
+  
+        <div>  ไม่ใช้งบประมาณ</div>
+   
+   
+    ");
+        }
+        if (model.ProjectStatus == "01")
+        {
+            htmlBody.Append(@" 
+        <div>สถานภาพโครงการ : โครงการใหม่ </div>
+    ");
+
+        }
+        else if (model.ProjectStatus == "02")
+        {
+            htmlBody.Append(@" 
+        <div>สถานภาพโครงการ :โครงการต่อเนื่อง </div>
+    ");
+        }
+        else if (model.ProjectStatus == "03")
+        {
+            htmlBody.Append(@" 
+        <div>สถานภาพโครงการ :โครงการเดิม </div>
+    ");
+        }
+        else if (model.ProjectStatus == "04")
+        {
+
+            htmlBody.Append(@" 
+        <div>สถานภาพโครงการ : โครงการ Flagship</div>
+    ");
+        }
+
+
+        var OwnerModel = await _smeDao.GetOwnerAndContactAsync(model.ProjectCode);
+        // Responsible Table
+        htmlBody.Append($@"
+<table style='width:100%; border-collapse:collapse; border:1px solid #000;'>
+    <tr style='background:#e0e0e0; font-weight:bold;'>
+                <td style='border:1px solid #000;'></td>
+                <td style='border:1px solid #000;text-align:center;'>ผู้รับผิดชอบโครงการ</td>
+                <td style='border:1px solid #000;text-align:center;'>ผู้ประสานงาน</td>
+            </tr>
+            <tr>
+                <td style='border:1px solid #000;text-align:center;'>ชื่อ-นามสกุล</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerName ?? ""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactName ?? ""}</td>
+            </tr>
+            <tr>
+                <td style='border:1px solid #000;text-align:center;'>ตำแหน่ง</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerPosition}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactPosition ?? ""}</td>
+            </tr>
+            <tr>
+                <td style='border:1px solid #000;text-align:center;'>โทรศัพท์</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerPhone ?? ""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactPhone ?? ""}</td>
+            </tr>
+            <tr>
+                <td style='border:1px solid #000;text-align:center;'>มือถือ</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerMobile ?? ""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactMobile ?? ""}</td>
+            </tr>
+            <tr>
+                <td style='border:1px solid #000;text-align:center;'>Email</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerEmail ?? ""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactEmail ?? ""}</td>
+            </tr>
+            <tr>
+                <td style='border:1px solid #000;text-align:center;'>Line ID</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerLineId ?? ""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactLineId ?? ""}</td>
+            </tr>
+        </table>
+        <br>
+    ");
+
+        if (model.SME_ISSUE_CODE == "SI01")
+        {
+            htmlBody.Append(@" 
+           <div  class='tab1'><b>X Digital □ Environment/Green □ Social □ Governance □ Soft power</b></div>
+    ");
+
+        }
+        else if (model.ProjectStatus == "SI02")
+        {
+            htmlBody.Append(@" 
+          <div  class='tab1'><b>□ Digital X Environment/Green □ Social □ Governance □ Soft power</b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI03")
+        {
+            htmlBody.Append(@" 
+         <div  class='tab1'><b>□ Digital □ Environment/Green X Social □ Governance □ Soft power</b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI04")
+        {
+
+            htmlBody.Append(@" 
+          <div  class='tab1'><b>□ Digital □ Environment/Green □ Social X Governance □ Soft power</b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI054")
+        {
+
+            htmlBody.Append(@" 
+          <div  class='tab1'><b>□ Digital □ Environment/Green □ Social □ Governance X Soft power</b></div>
+    ");
+        }
+
+        htmlBody.Append($@"
+        <div  class='tab1'><b>ประเด็นสำคัญในการส่งเสริม SME ปี พ.ศ.{model.FiscalYearDesc}</b></div>  ");
+        if (model.SME_ISSUE_CODE == "SI01")
+        {
+            htmlBody.Append(@" 
+           <div  class='tab1'><b> Digital </b></div>
+    ");
+
+        }
+        else if (model.ProjectStatus == "SI02")
+        {
+            htmlBody.Append(@" 
+          <div  class='tab1'><b> Environment/Green </b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI03")
+        {
+            htmlBody.Append(@" 
+         <div  class='tab1'><b> Social</b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI04")
+        {
+
+            htmlBody.Append(@" 
+          <div  class='tab1'><b>Governance </b></div>
+    ");
+        }
+        else if (model.ProjectStatus == "SI054")
+        {
+
+            htmlBody.Append(@" 
+          <div  class='tab1'><b> Soft power</b></div>
+    ");
+        }
+        htmlBody.Append($@"<div  class='tab1'>ประเด็นสำคัญในการส่งเสริม SME ปี พ.ศ.{model.FiscalYearDesc} ประเด็นการส่งเสริม/กลยุทธ์ที่สอดคล้องกับแผนปฎิบัติการส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อมประจำปีงบประมาณ (เลือกเพียง 1 ประเด็นการส่งเสริม 1 กลยุทธ์ ต่อ 1 โครงการ)</div>
+    ");
+
+        // Strategy Table
+        htmlBody.Append($@"
+        <table style='width:100%; border-collapse:collapse;'>
+            <tr style='background:#e0e0e0; font-weight:bold;'>
+                <td style='border:1px solid #000;text-align:center;'>ประเด็นการส่งเสริม</td>
+                <td style='border:1px solid #000;text-align:center;'>กลยุทธ์</td>
+            </tr>
+            <tr >
+                <td style='border:1px solid #000;text-align:center;'>{model.Topic}</td>
+                <td style='border:1px solid #000;text-align:center;'>{model.STRATEGY_DESC}</td>
+            </tr>
+    ");
+
+        htmlBody.Append("</table><br>");
+
+        htmlBody.Append($@"
+        <div  class='tab1'><b>ความสำคัญของโครงการ/หลักการและเหตุผล :</b></div>
+        <div  class='tab1'>{model.ProjectRationale ?? ""}</div>
+        <div  class='tab1'><b>วัตถุประสงค์ของโครงการ :</b></div>
+        <div  class='tab1'>{model.ProjectObjective ?? ""}</div>
+        <div  class='tab1'><b>กลุ่มเป้าหมาย</b></div>");
+
+        if (model.TargetGroup != null)
+        {
+
+            //var docx = XDocument.Parse(model.TargetGroup);
+            //// var docx = XDocument.Parse("G01");
+            // var lookupCodes = docx.Descendants("field")
+            //     .Where(f => (string)f.Attribute("name") == "LookupCode")
+            //     .Select(f => (string)f.Element("value"))
+            //     .ToList();
+            var lookupCodes = model.TargetGroup?.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var code in lookupCodes)
+            {
+                var lookup = await _smeDao.GetLookupAsync("TARGET_GROUP", code);
+                if (lookup != null && !string.IsNullOrEmpty(lookup.LookupValue))
+                {
+                    htmlBody.Append($@"<div class='tab2'> {lookup.LookupValue}</div>");
+                }
+            }
+
+        }
+
+
+        htmlBody.Append($@"<div  class='tab1'><b>รายละเอียดแผนการดำเนินงาน/กิจกรรม...</b></div>
+        <div  class='tab1'>{model.Activities ?? ""}</div>
+        <div  class='tab1'><b>จุดเด่นของโครงการ :</b></div>
+        <div  class='tab1'>{model.ProjectFocus ?? ""}</div>
+        <div  class='tab1'><b>พื้นที่ดำเนินการ :</b></div>
+        <div  class='tab1'>{string.Join(", ", model.OperationArea ?? new List<string>())}</div>
+        <div  class='tab1'><b>สาขาเป้าหมาย :{model.TARGET_BRANCH_LIST}</b></div>
+        <div  class='tab1'>{string.Join(", ", model.IndustrySector ?? new List<string>())}</div>
+        <div  class='tab1'><b>การพัฒนา 11 อุตสาหกรรม Soft Power :</b></div>
+
+        <div  class='tab1'><b>ระยะเวลาในการดำเนินโครงการ :{model.DaysDiff ?? ""} วัน</b></div>
+ 
+        <div  class='tab1'><b>หน่วยงานที่ร่วมบูรณาการ...</b></div>
+        <div  class='tab1'>{model.Partner_Name} ทำหน้าที่ {model.RoleDescription}</div>
+        <div  class='tab1'><b>ตัวชี้วัดที่สำคัญ...</b></div>
+    ");
+
+
+
+
+        // Output Indicators Table
+        htmlBody.Append($@"
+   <table style='width:100%; border-collapse:collapse;'>
+            <tr style='background:#e0e0e0; font-weight:bold;'>
+               <td style='border:1px solid #000;text-align:center;'>ตัวชี้วัดผลผลิต</td>
+               <td style='border:1px solid #000;text-align:center;'>จำนวนเป้าหมาย</td>
+               <td style='border:1px solid #000;text-align:center;'>หน่วยนับ</td>
+               <td style='border:1px solid #000;text-align:center;'>วิธีการวัดผล</td>
+            </tr>
+    ");
+        if (model.OutputIndicators != null)
+        {
+            foreach (var item in model.OutputIndicators)
+            {
+                htmlBody.Append($@"
+                <tr>
+                   <td style='border:1px solid #000;'>{item.Name}</td>
+                   <td style='border:1px solid #000;'>{item.Target}</td>
+                   <td style='border:1px solid #000;'>{item.Unit}</td>
+                   <td style='border:1px solid #000;'>{item.Method}</td>
+                </tr>
+            ");
+            }
+        }
+        htmlBody.Append("</table><br>");
+
+        // Outcome Indicators Table
+        htmlBody.Append($@"
+        <table style='width:100%; border-collapse:collapse;'>
+            <tr style='background:#e0e0e0; font-weight:bold;'>
+               <td style='border:1px solid #000;text-align:center;'>ตัวชี้วัดผลลัพธ์</td>
+               <td style='border:1px solid #000;text-align:center;'>จำนวนเป้าหมาย</td>
+               <td style='border:1px solid #000;text-align:center;'>หน่วยนับ</td>
+               <td style='border:1px solid #000;text-align:center;'>วิธีการวัดผล</td>
+            </tr>
+    ");
+        if (model.OutcomeIndicators != null)
+        {
+            foreach (var item in model.OutcomeIndicators)
+            {
+                htmlBody.Append($@"
+                <tr>
+                   <td style='border:1px solid #000;'>{item.Name}</td>
+                   <td style='border:1px solid #000;'>{item.Target}</td>
+                   <td style='border:1px solid #000;'>{item.Unit}</td>
+                   <td style='border:1px solid #000;'>{item.Method}</td>
+                </tr>
+            ");
+            }
+        }
+        htmlBody.Append("</table><br>");
+
+        htmlBody.Append($@"
+        <div>ข้อมูลอื่นๆ เพิ่มเติม...</div>
+        <div>{model.AdditionalNotes ?? ""}</div>
+    ");
+
+
+        var html = $@"
+    <html>
+    <head>
+        <meta charset='utf-8'>
+        <style>
+            @font-face {{
+                font-family: 'THSarabunNew';
+                src: url('file:///{fontPath}') format('truetype');
+                font-weight: normal;
+                font-style: normal;
+            }}
+            body {{
+                font-size: 22px;
+                font-family: 'THSarabunNew', Arial, sans-serif;
+            }}
+            .t-18 {{ font-size: 1.5em; }}
+            .t-18 {{ font-size: 1.7em; }}
+            .t-22 {{ font-size: 1.9em; }}
+                 .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
+        .tab2 {{ text-indent: 96px;  word-break: break-all; }}
+        .tab3 {{ text-indent: 144px;  word-break: break-all; }}
+        .tab4 {{ text-indent: 192px;  word-break: break-all;}}
+            .d-flex {{ display: flex; }}
+            .w-100 {{ width: 100%; }}
+            .w-40 {{ width: 40%; }}
+            .w-50 {{ width: 50%; }}
+            .w-60 {{ width: 60%; }}
+            .text-center {{ text-align: center; }}
+            .sign-single-right {{
+                display: flex;
+                flex-direction: column;
+                position: relative;
+                left: 20%;
+            }}
+            .sign-double {{ display: flex; }}
+            .text-center-right-brake {{
+                margin-left: 50%;
+                word-break: break-all;
+            }}
+            .text-right {{ text-align: right; }}
+            .contract, .section {{
+                margin: 12px 0;
+                line-height: 1.7;
+            }}
+            .section {{
+                font-weight: bold;
+                font-size: 1.2em;
+                text-align: left;
+                margin-top: 24px;
+            }}
+            .signature-table {{
+                width: 100%;
+                margin-top: 32px;
+                border-collapse: collapse;
+            }}
+            .signature-table td {{
+                padding: 16px;
+                text-align: center;
+                vertical-align: top;
+                font-size: 1.1em;
+            }}
+   .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
+        .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
+
+        </style>
+    </head>
+    <body>
+        {htmlBody}
+    </body>
+    </html>
+    ";
+
+        return html;
+    }
+    public byte[] ConvertHtmlToWord(string html)
+    {
+        using (var mem = new MemoryStream())
+        {
+            using (var wordDoc = WordprocessingDocument.Create(mem, WordprocessingDocumentType.Document, true))
+            {
+                MainDocumentPart mainPart = wordDoc.AddMainDocumentPart();
+                mainPart.Document = new Document(new Body());
+
+                // Use HtmlToOpenXml to convert HTML to OpenXML
+                var converter = new HtmlToOpenXml.HtmlConverter(mainPart);
+                var paragraphs = converter.Parse(html);
+                mainPart.Document.Body.Append(paragraphs);
+
+                // wordDoc.Close(); // Remove this line, not needed
+            }
+            return mem.ToArray();
+        }
     }
 }
