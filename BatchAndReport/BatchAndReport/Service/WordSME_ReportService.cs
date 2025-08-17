@@ -5,10 +5,11 @@ using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using HtmlToOpenXml;
+using Microsoft.AspNetCore.Components.Web;
 using System.Globalization;
 using System.Text;
 using System.Xml.Linq;
-using HtmlToOpenXml;
 public class WordSME_ReportService
 {
     private readonly WordServiceSetting _w;
@@ -1092,4 +1093,6 @@ SMEProjectDetailModels model
             return mem.ToArray();
         }
     }
+
+    
 }

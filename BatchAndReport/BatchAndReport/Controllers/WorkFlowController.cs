@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.IO.Compression;
 using System.Text.Json;
 
 namespace BatchAndReport.Controllers
@@ -21,12 +22,14 @@ namespace BatchAndReport.Controllers
         private readonly IPdfService _servicePdf;
         private readonly IWordWFService _serviceWFWord;
         private readonly WordWorkFlow_annualProcessReviewService _wordWorkFlow_AnnualProcessReviewService;
+       private readonly WordSME_ReportService _ReportService;
         public WorkflowController(
             WorkflowDAO workflowDao,
             IApiInformationRepository repositoryApi,
             ICallAPIService serviceApi,
             IPdfService servicePdf,
             IWordWFService serviceWFWord,
+            WordSME_ReportService reportService,
             WordWorkFlow_annualProcessReviewService wordWorkFlow_AnnualProcessReviewService)
         {
             _workflowDao = workflowDao;
@@ -35,6 +38,7 @@ namespace BatchAndReport.Controllers
             _servicePdf = servicePdf;
             _serviceWFWord = serviceWFWord;
             this._wordWorkFlow_AnnualProcessReviewService = wordWorkFlow_AnnualProcessReviewService;
+      _ReportService = reportService;
         }
 
         [HttpGet("ExportAnnualWorkProcesses")]
@@ -42,17 +46,97 @@ namespace BatchAndReport.Controllers
         {
             var detail = await _workflowDao.GetProcessDetailAsync(annualProcessReviewId);
             if (detail == null)
-                return NotFound("ไม่พบข้อมูลโครงการ");
-
-            //var wordBytes = _serviceWFWord.GenAnnualWorkProcesses(detail);
-            //var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
-            //return File(pdfBytes,
-            //    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            //    $"AnnualWorkProcesses.pdf");
+                return NotFound("ไม่พบข้อมูลโครงการ");     
 
             var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_HtmlToPDF(detail);
             return File(pdfBytes, "application/pdf", "AnnualWorkProcesses.pdf");
         }
+
+        [HttpGet("ExportAnnualWorkProcessesWord")]
+        public async Task<IActionResult> ExportAnnualWorkProcessesWord([FromQuery] int annualProcessReviewId)
+        {
+            var detail = await _workflowDao.GetProcessDetailAsync(annualProcessReviewId);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+            var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
+
+            // 2. Convert HTML to Word document (byte array)
+            var wordBytes = _ReportService.ConvertHtmlToWord(pdfBytes);
+
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "AnnualWorkProcesses.docx");
+        }
+
+        [HttpGet("ExportAnnualWorkProcessesJPEG")]
+        public async Task<IActionResult> ExportAnnualWorkProcessesJPEG([FromQuery] int annualProcessReviewId)
+        {
+            var detail = await _workflowDao.GetProcessDetailAsync(annualProcessReviewId);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+            var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_HtmlToPDF(detail);
+
+            // Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "WorkflowDocument", "AnnualWorkProcesses", "AnnualWorkProcesses_JPEG");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var pdfPath = Path.Combine(folderPath, $"AnnualWorkProcesses.pdf");
+
+            // Save PDF to disk
+            if (System.IO.File.Exists(pdfPath))
+            {
+                System.IO.File.Delete(pdfPath);
+            }
+            await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes);
+
+            // Convert each PDF page to JPEG
+            var jpegPaths = new List<string>();
+            using (var pdfStream = new MemoryStream(pdfBytes))
+            using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
+            {
+                for (int i = 0; i < document.PageCount; i++)
+                {
+                    using (var image = document.Render(i, 300, 300, true))
+                    {
+                        var jpegPath = Path.Combine(folderPath, $"AnnualWorkProcesses_p{i + 1}.jpg");
+                        using (var fs = new FileStream(jpegPath, FileMode.Create, FileAccess.Write))
+                        {
+                            image.Save(fs, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        }
+                        jpegPaths.Add(jpegPath);
+                    }
+                }
+            }
+            // Delete the PDF file after conversion
+            System.IO.File.Delete(pdfPath);
+
+            // Create zip file of JPEGs
+            var folderPathzip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "WorkflowDocument", "AnnualWorkProcesses");
+            var zipPath = Path.Combine(folderPathzip, $"AnnualWorkProcesses_JPEG.zip");
+            if (System.IO.File.Exists(zipPath))
+            {
+                System.IO.File.Delete(zipPath);
+            }
+            using (var zip = System.IO.Compression.ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            {
+                foreach (var file in jpegPaths)
+                {
+                    zip.CreateEntryFromFile(file, Path.GetFileName(file));
+                }
+            }
+            // Delete JPEG files after zipping
+            foreach (var file in jpegPaths)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            // Return the zip file as download
+            var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+            return File(zipBytes, "application/zip", $"AnnualWorkProcesses_JPEG.zip");
+        }
+
 
         [HttpGet("ExportWorkSystem")]
         public async Task<IActionResult> ExportWorkSystem(
@@ -158,6 +242,93 @@ namespace BatchAndReport.Controllers
             //var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
             var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenExportWorkProcesses_HtmlToPDF(detail);
             return File(pdfBytes, "application/pdf", "ExportWorkProcesses.pdf");
+        }
+
+        [HttpGet("ExportWorkflowProcessJPEG")]
+        public async Task<IActionResult> ExportWorkflowProcessJPEG([FromQuery] int idParam)
+        {
+            var detail = await _workflowDao.GetWFProcessDetailAsync(idParam);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+            // 1. Generate HTML from the detail
+            var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenExportWorkProcesses_HtmlToPDF(detail);
+            // Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "WorkflowDocument", "WorkProcesses", "WorkProcesses_JPEG");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var pdfPath = Path.Combine(folderPath, $"WorkProcesses.pdf");
+
+            // Save PDF to disk
+            if (System.IO.File.Exists(pdfPath))
+            {
+                System.IO.File.Delete(pdfPath);
+            }
+            await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes);
+
+            // Convert each PDF page to JPEG
+            var jpegPaths = new List<string>();
+            using (var pdfStream = new MemoryStream(pdfBytes))
+            using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
+            {
+                for (int i = 0; i < document.PageCount; i++)
+                {
+                    using (var image = document.Render(i, 300, 300, true))
+                    {
+                        var jpegPath = Path.Combine(folderPath, $"ExportWorkProcesses_p{i + 1}.jpg");
+                        using (var fs = new FileStream(jpegPath, FileMode.Create, FileAccess.Write))
+                        {
+                            image.Save(fs, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        }
+                        jpegPaths.Add(jpegPath);
+                    }
+                }
+            }
+            // Delete the PDF file after conversion
+            System.IO.File.Delete(pdfPath);
+
+            // Create zip file of JPEGs
+            var folderPathzip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "WorkflowDocument", "WorkProcesses");
+            var zipPath = Path.Combine(folderPathzip, $"WorkProcesses_JPEG.zip");
+            if (System.IO.File.Exists(zipPath))
+            {
+                System.IO.File.Delete(zipPath);
+            }
+            using (var zip = System.IO.Compression.ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            {
+                foreach (var file in jpegPaths)
+                {
+                    zip.CreateEntryFromFile(file, Path.GetFileName(file));
+                }
+            }
+            // Delete JPEG files after zipping
+            foreach (var file in jpegPaths)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            // Return the zip file as download
+            var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+            return File(zipBytes, "application/zip", $"WorkProcesses_JPEG.zip");
+        }
+
+
+        [HttpGet("ExportWorkflowProcessWord")]
+        public async Task<IActionResult> ExportWorkflowProcessWord([FromQuery] int idParam)
+        {
+            var detail = await _workflowDao.GetWFProcessDetailAsync(idParam);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+     
+            var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenExportWorkProcesses_Html(detail);
+            // Convert HTML to Word document (byte array)
+            var wordBytes = _ReportService.ConvertHtmlToWord(pdfBytes);
+
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "ExportWorkProcesses.docx");
+        
         }
         [HttpGet("ExportCreateWFStatus")]
         public async Task<IActionResult> ExportCreateWFStatus(
