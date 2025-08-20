@@ -23,6 +23,7 @@ namespace BatchAndReport.Controllers
         private readonly IWordWFService _serviceWFWord;
         private readonly WordWorkFlow_annualProcessReviewService _wordWorkFlow_AnnualProcessReviewService;
        private readonly WordSME_ReportService _ReportService;
+        private readonly IConfiguration _configuration; // Add this line
         public WorkflowController(
             WorkflowDAO workflowDao,
             IApiInformationRepository repositoryApi,
@@ -30,7 +31,8 @@ namespace BatchAndReport.Controllers
             IPdfService servicePdf,
             IWordWFService serviceWFWord,
             WordSME_ReportService reportService,
-            WordWorkFlow_annualProcessReviewService wordWorkFlow_AnnualProcessReviewService)
+            WordWorkFlow_annualProcessReviewService wordWorkFlow_AnnualProcessReviewService,
+            IConfiguration configuration)
         {
             _workflowDao = workflowDao;
             _repositoryApi = repositoryApi;
@@ -38,7 +40,8 @@ namespace BatchAndReport.Controllers
             _servicePdf = servicePdf;
             _serviceWFWord = serviceWFWord;
             this._wordWorkFlow_AnnualProcessReviewService = wordWorkFlow_AnnualProcessReviewService;
-      _ReportService = reportService;
+            _ReportService = reportService;
+            _configuration = configuration;
         }
 
         [HttpGet("ExportAnnualWorkProcesses")]
@@ -192,6 +195,53 @@ namespace BatchAndReport.Controllers
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "InternalControl.xlsx");
         }
+
+        [HttpGet("ExportInternalControlEncypt")]
+        public async Task<IActionResult> ExportInternalControlEncypt(
+       [FromQuery] int? fiscalYear = null,
+       [FromQuery] string? businessUnitId = null,
+       [FromQuery] string? processTypeCode = null,
+       [FromQuery] string? processGroupCode = null,
+       [FromQuery] string? processCode = null,
+       [FromQuery] int? processCategory = null)
+        {
+            var detail = await _workflowDao.GetInternalControlProcessesAsync(fiscalYear,
+                businessUnitId,
+                processTypeCode,
+                processGroupCode,
+                processCode,
+                processCategory);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+            var generator = _serviceWFWord.GenInternalControlSystem(detail);
+            var excelBytes = generator; // Assuming this is a valid Excel file (byte[])
+
+            // Get password from appsettings.json
+            var password = _configuration["Password:PaswordPDF"];
+
+            if (!string.IsNullOrEmpty(password))
+            {
+                using var inputStream = new MemoryStream(excelBytes);
+                using var package = new OfficeOpenXml.ExcelPackage(inputStream);
+                package.Encryption.IsEncrypted = true;
+                package.Encryption.Password = password;
+
+                using var outputStream = new MemoryStream();
+                package.SaveAs(outputStream);
+                outputStream.Position = 0;
+                return File(outputStream.ToArray(),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "InternalControl_ProtectedEncypt.xlsx");
+            }
+            else
+            {
+                return File(excelBytes,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "InternalControlEncypt.xlsx");
+            }
+        }
+
 
         [HttpGet("ExportInternalControlDoc")]
         public async Task<IActionResult> ExportInternalControlDoc(
