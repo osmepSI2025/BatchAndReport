@@ -1,9 +1,12 @@
 ﻿using BatchAndReport.Entities;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 using System.Collections.Generic;
 using System.Data;
+using System.Text;
 using System.Threading.Tasks;
 
 public class EContractDashboardModel : PageModel
@@ -96,5 +99,70 @@ public class EContractDashboardModel : PageModel
         }
 
         return result;
+    }
+    // TXT Export
+    public async Task<IActionResult> OnGetExportTxtAsync(string type)
+    {
+        if (LegalKpiChart == null || LegalKpiChart.Count == 0)
+            LegalKpiChart = await GetLegalKpiChartAsync();
+
+        var sb = new StringBuilder();
+        sb.AppendLine("เจ้าหน้าที่\tรอตรวจสอบ\tตรวจสอบเสร็จสิ้น\tรวมทั้งสิ้น");
+        foreach (var item in LegalKpiChart)
+            sb.AppendLine($"{item.Owner}\t{item.Pending}\t{item.Completed}\t{item.Total}");
+
+        var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+        return File(bytes, "text/plain", "LegalKPI.txt");
+    }
+
+
+    // XLS Export (stub)
+    public async Task<IActionResult> OnGetExportXlsAsync()
+    {
+        if (LegalKpiChart == null || LegalKpiChart.Count == 0)
+            LegalKpiChart = await GetLegalKpiChartAsync();
+
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Set license context
+
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("Legal KPI");
+
+        // Header
+        worksheet.Cells[1, 1].Value = "เจ้าหน้าที่";
+        worksheet.Cells[1, 2].Value = "รอตรวจสอบ";
+        worksheet.Cells[1, 3].Value = "ตรวจสอบเสร็จสิ้น";
+        worksheet.Cells[1, 4].Value = "รวมทั้งสิ้น";
+
+        // Data
+        int row = 2;
+        foreach (var item in LegalKpiChart)
+        {
+            worksheet.Cells[row, 1].Value = item.Owner;
+            worksheet.Cells[row, 2].Value = item.Pending;
+            worksheet.Cells[row, 3].Value = item.Completed;
+            worksheet.Cells[row, 4].Value = item.Total;
+            row++;
+        }
+
+        var bytes = package.GetAsByteArray();
+        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "LegalKPI.xlsx");
+    }
+
+    // PDF Export (stub)
+    //public async Task<IActionResult> OnGetExportPdfAsync()
+    //{
+    //    // TODO: Implement PDF export logic
+    //    // For now, return a placeholder file
+    //    var bytes = Encoding.UTF8.GetBytes("PDF export not implemented yet.");
+    //    return File(bytes, "application/pdf", "LegalKPI.pdf");
+    //}
+
+    // JPEG Export (stub)
+    public async Task<IActionResult> OnGetExportJpegAsync()
+    {
+        // TODO: Implement JPEG export logic
+        // For now, return a placeholder file
+        var bytes = Encoding.UTF8.GetBytes("JPEG export not implemented yet.");
+        return File(bytes, "image/jpeg", "LegalKPI.jpg");
     }
 }
