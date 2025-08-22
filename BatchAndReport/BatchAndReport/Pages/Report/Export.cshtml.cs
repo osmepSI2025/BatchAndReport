@@ -165,7 +165,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -461,7 +461,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -753,7 +753,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -1047,7 +1047,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -1338,7 +1338,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -1896,7 +1896,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -2190,7 +2190,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -2484,7 +2484,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -2777,7 +2777,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -3072,7 +3072,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -3363,7 +3363,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -3656,7 +3656,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -3947,7 +3947,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -4239,7 +4239,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"สำเนา โดย {Name}";
+                        var text = $"พิมพ์โดย โดย {Name}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
