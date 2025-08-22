@@ -36,6 +36,7 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
+        // ===== 1) Data from Model =====
         const dashboardData = {
             BudgetChart: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BudgetChart)),
             SupportChart: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SupportChart)),
@@ -43,6 +44,48 @@
             RegionChart: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RegionChart))
         };
 
+        // ===== 2) Color helpers =====
+        // ชุดสีคนละ "โทน" อย่างชัดเจนต่อชุดข้อมูล
+        const PALETTES = {
+            support: [
+                '#2563EB', '#F59E0B', '#10B981', '#EF4444', '#8B5CF6', '#14B8A6',
+                '#DC2626', '#F97316', '#22C55E', '#6366F1', '#06B6D4', '#A855F7'
+            ],
+            type: [
+                '#F43F5E', '#3B82F6', '#84CC16', '#A855F7', '#06B6D4', '#F59E0B',
+                '#E11D48', '#0EA5E9', '#22C55E', '#7C3AED', '#0891B2', '#D97706'
+            ],
+            region: [
+                '#059669', '#DC2626', '#1D4ED8', '#EA580C', '#7C3AED', '#047857',
+                '#B91C1C', '#0EA5E9', '#16A34A', '#9333EA', '#0D9488', '#D946EF'
+            ]
+        };
+
+        // เลือกสีตามจำนวน label โดยวน palette ให้พอ
+        function pickColors(labels, palette) {
+            const colors = [];
+            for (let i = 0; i < labels.length; i++) {
+                colors.push(palette[i % palette.length]);
+            }
+            return colors;
+        }
+
+        // ทำเส้นขอบให้เด่นขึ้น (เข้มขึ้นเล็กน้อย)
+        function toBorder(colors) {
+            // ลดความสว่างเฉย ๆ แบบง่าย ๆ
+            return colors.map(hex => {
+                const c = hex.replace('#', '');
+                const r = Math.max(0, parseInt(c.substring(0,2),16) - 30);
+                const g = Math.max(0, parseInt(c.substring(2,4),16) - 30);
+                const b = Math.max(0, parseInt(c.substring(4,6),16) - 30);
+                const h = (v)=> v.toString(16).padStart(2,'0');
+                return `#${h(r)}${h(g)}${h(b)}`;
+            });
+        }
+
+        // ===== 3) Charts =====
+
+        // 3.1 งบประมาณ: ชุดละหนึ่งสี (โทนฟ้าเข้ม/อ่อนต่างกันชัด)
         new Chart(document.getElementById('budgetChart').getContext('2d'), {
             type: 'bar',
             data: {
@@ -51,59 +94,107 @@
                     {
                         label: 'งบประมาณที่ขอ',
                         data: dashboardData.BudgetChart.map(x => x.RequestBudget),
-                        backgroundColor: '#D4ECFD'
+                        backgroundColor: '#93C5FD', // ฟ้าอ่อน
+                        borderColor: '#1D4ED8',
+                        borderWidth: 1.5
                     },
                     {
                         label: 'งบประมาณที่ผ่านการพิจารณา',
                         data: dashboardData.BudgetChart.map(x => x.ApproveBudget),
-                        backgroundColor: '#247CB3'
+                        backgroundColor: '#1D4ED8', // ฟ้าเข้ม
+                        borderColor: '#1E3A8A',
+                        borderWidth: 1.5
                     }
                 ]
-            }
-        });
-
-        new Chart(document.getElementById('supportChart').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: dashboardData.SupportChart.map(x => x.Issue),
-                datasets: [{
-                    label: 'จำนวนโครงการ',
-                    data: dashboardData.SupportChart.map(x => x.Count),
-                    backgroundColor: ['#D4ECFD', '#B7DCF6', '#9ACCEC', '#70AFDC', '#4A94CB', '#247CB3']
-                }]
             },
             options: {
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, max: 100 } }
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: { y: { beginAtZero: true } }
             }
         });
 
-        new Chart(document.getElementById('typeChart').getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                labels: dashboardData.TypeChart.map(x => x.Type),
-                datasets: [{
-                    label: 'ประเภทโครงการ',
-                    data: dashboardData.TypeChart.map(x => x.Percent),
-                    backgroundColor: ['#D4ECFD', '#9ACCEC', '#4A94CB', '#247CB3']
-                }]
-            }
-        });
+        // 3.2 ประเด็นการส่งเสริม: สี “ต่างโทนกันทุกแท่ง”
+        (function(){
+            const labels = dashboardData.SupportChart.map(x => x.Issue);
+            const bg = pickColors(labels, PALETTES.support);
+            const border = toBorder(bg);
+            new Chart(document.getElementById('supportChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'จำนวนโครงการ',
+                        data: dashboardData.SupportChart.map(x => x.Count),
+                        backgroundColor: bg,
+                        borderColor: border,
+                        borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        })();
 
-        new Chart(document.getElementById('regionChart').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: dashboardData.RegionChart.map(x => x.Region),
-                datasets: [{
-                    label: 'จำนวนโครงการ',
-                    data: dashboardData.RegionChart.map(x => x.Count),
-                    backgroundColor: ['#D4ECFD', '#B7DCF6', '#9ACCEC', '#70AFDC', '#4A94CB', '#247CB3']
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, max: 100 } }
-            }
-        });
+        // 3.3 ประเภทโครงการ (โดนัท): แต่ละประเภท “โทนไม่ซ้ำกัน”
+        (function(){
+            const labels = dashboardData.TypeChart.map(x => x.Type);
+            const bg = pickColors(labels, PALETTES.type);
+            const border = toBorder(bg);
+            new Chart(document.getElementById('typeChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'ประเภทโครงการ',
+                        data: dashboardData.TypeChart.map(x => x.Percent),
+                        backgroundColor: bg,
+                        borderColor: border,
+                        borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'right' },
+                        tooltip: { callbacks: {
+                            label: (ctx) => `${ctx.label}: ${ctx.parsed}%`
+                        }}
+                    },
+                    cutout: '60%'
+                }
+            });
+        })();
+
+        // 3.4 ภูมิภาค: สีต่างโทนต่อภูมิภาค
+        (function(){
+            const labels = dashboardData.RegionChart.map(x => x.Region);
+            const bg = pickColors(labels, PALETTES.region);
+            const border = toBorder(bg);
+            new Chart(document.getElementById('regionChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'จำนวนโครงการ',
+                        data: dashboardData.RegionChart.map(x => x.Count),
+                        backgroundColor: bg,
+                        borderColor: border,
+                        borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        })();
     </script>
 }

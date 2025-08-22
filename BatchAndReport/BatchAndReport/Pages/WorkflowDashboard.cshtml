@@ -103,53 +103,90 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
+        // ===== 1) Load data =====
         const donutProcessData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DonutProcessChart));
         const donutImproveData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DonutImproveChart));
-        const barChartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BarChartData));
+        const barChartData     = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BarChartData));
 
-        function generateBlueGradientColors(values) {
-            const max = Math.max(...values);
-            const min = Math.min(...values);
-            const range = max - min || 1;
+        // ===== 2) Color system: distinct & stable per label =====
+        // ชุดสีโทนต่างกันชัดเจน (มากพอสำหรับหลายประเภท)
+        const DISTINCT_PALETTE = [
+            '#2563EB','#F59E0B','#10B981','#EF4444','#8B5CF6','#14B8A6',
+            '#DC2626','#F97316','#22C55E','#6366F1','#06B6D4','#A855F7',
+            '#0EA5E9','#84CC16','#D946EF','#EA580C','#059669','#B91C1C',
+            '#7C3AED','#0D9488','#9333EA','#16A34A','#1D4ED8','#D97706'
+        ];
 
-            return values.map((v, i) => {
-                const ratio = (v - min) / range;
-                const offset = (i * 3) % 20; // เพิ่มความต่างแม้ตัวเลขจะเท่ากัน
-                const lightness = 85 - ratio * 45 - offset * 0.2;
-                return `hsl(210, 70%, ${Math.max(30, Math.min(85, lightness))}%)`;
-            });
+        // แปลง hex -> โทนเข้มขึ้นเล็กน้อยสำหรับเส้นขอบ
+        function darken(hex, d = 28) {
+            const c = hex.replace('#', '');
+            const r = Math.max(0, parseInt(c.slice(0,2),16) - d);
+            const g = Math.max(0, parseInt(c.slice(2,4),16) - d);
+            const b = Math.max(0, parseInt(c.slice(4,6),16) - d);
+            const h = v => v.toString(16).padStart(2,'0');
+            return `#${h(r)}${h(g)}${h(b)}`;
         }
 
-        new Chart(document.getElementById('donutProcessChart'), {
-            type: 'doughnut',
-            data: {
-                labels: donutProcessData.map(x => x.Label),
-                datasets: [{
-                    data: donutProcessData.map(x => x.Value),
-                    backgroundColor: generateBlueGradientColors(donutProcessData.map(x => x.Value))
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'bottom' } }
+        // สร้าง index แบบคงที่จากชื่อ (hash) เพื่อ map ไปยังสี
+        function labelToIndex(label) {
+            let h = 0;
+            for (let i = 0; i < String(label).length; i++) {
+                h = (h * 31 + String(label).charCodeAt(i)) >>> 0;
             }
-        });
+            return h % DISTINCT_PALETTE.length;
+        }
 
-        new Chart(document.getElementById('donutImproveChart'), {
-            type: 'doughnut',
-            data: {
-                labels: donutImproveData.map(x => x.Label),
-                datasets: [{
-                    data: donutImproveData.map(x => x.Value),
-                    backgroundColor: generateBlueGradientColors(donutImproveData.map(x => x.Value))
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
+        // ได้ชุดสีและเส้นขอบที่ "คงที่ตามชื่อ" และ “ต่างโทนกันแน่ๆ”
+        function colorsForLabels(labels) {
+            const bg = labels.map(l => DISTINCT_PALETTE[labelToIndex(l)]);
+            const border = bg.map(c => darken(c, 32));
+            return { bg, border };
+        }
 
+        // ===== 3) Charts =====
+
+        // 3.1 Donut: กระบวนการทำงานตามแผนงาน (สีแยกตามประเภท)
+        (function(){
+            const labels = donutProcessData.map(x => x.Label);
+            const values = donutProcessData.map(x => x.Value);
+            const { bg, border } = colorsForLabels(labels);
+
+            new Chart(document.getElementById('donutProcessChart'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: values, backgroundColor: bg, borderColor: border, borderWidth: 1.5 }] },
+                options: {
+                    responsive: true,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.parsed} รายการ` } }
+                    }
+                }
+            });
+        })();
+
+        // 3.2 Donut: ประเภทการปรับปรุงกระบวนการทำงาน (สีแยกตามประเภท)
+        (function(){
+            const labels = donutImproveData.map(x => x.Label);
+            const values = donutImproveData.map(x => x.Value);
+            const { bg, border } = colorsForLabels(labels);
+
+            new Chart(document.getElementById('donutImproveChart'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: values, backgroundColor: bg, borderColor: border, borderWidth: 1.5 }] },
+                options: {
+                    responsive: true,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.parsed} รายการ` } }
+                    }
+                }
+            });
+        })();
+
+        // 3.3 Bar: Top 10 การเปลี่ยนแปลงระยะเวลา
+        // คงคอนเซ็ปต์เปรียบเทียบ 2 ปีด้วยสีคู่ตัดกันชัด (ไม่ใช้ไล่เฉด)
         new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {
@@ -158,12 +195,16 @@
                     {
                         label: 'ปีก่อนหน้า',
                         data: barChartData.map(x => x.PreviousYear),
-                        backgroundColor: '#D4ECFD'
+                        backgroundColor: '#9CA3AF', // เทากลาง
+                        borderColor: darken('#9CA3AF', 35),
+                        borderWidth: 1.5
                     },
                     {
                         label: 'ปีปัจจุบัน',
                         data: barChartData.map(x => x.CurrentYear),
-                        backgroundColor: '#247CB3'
+                        backgroundColor: '#2563EB', // น้ำเงินเข้ม
+                        borderColor: darken('#2563EB', 35),
+                        borderWidth: 1.5
                     }
                 ]
             },
@@ -173,26 +214,22 @@
                     legend: { position: 'top' },
                     tooltip: {
                         callbacks: {
-                            afterBody: function (tooltipItems) {
-                                const index = tooltipItems[0].dataIndex;
-                                const item = barChartData[index];
+                            afterBody: function (items) {
+                                const i = items[0].dataIndex, it = barChartData[i];
                                 return [
-                                    `รหัส: ${item.Code}`,
-                                    `ชื่อกระบวนการ: ${item.Description}`,
-                                    `ปีก่อนหน้า: ${item.PreviousYear} วัน`,
-                                    `ปีปัจจุบัน: ${item.CurrentYear} วัน`,
-                                    `ส่วนต่าง: ${item.CurrentYear - item.PreviousYear} วัน`,
-                                    `ส่วนต่าง (%): ${item.PercentChange}%`
+                                    `รหัส: ${it.Code}`,
+                                    `ชื่อกระบวนการ: ${it.Description}`,
+                                    `ปีก่อนหน้า: ${it.PreviousYear} วัน`,
+                                    `ปีปัจจุบัน: ${it.CurrentYear} วัน`,
+                                    `ส่วนต่าง: ${it.CurrentYear - it.PreviousYear} วัน`,
+                                    `ส่วนต่าง (%): ${it.PercentChange}%`
                                 ];
                             }
                         }
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { precision: 0 }
-                    }
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
                 }
             }
         });

@@ -98,11 +98,55 @@
 </div>
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <script>
-        function renderDonutChart(chartId, labels, data, colors) {
+        // ===== 1) Load data =====
+        const contractTypeLabels   = @Html.Raw(Json.Serialize(Model.ContractTypeChart.Select(x => x.Label)));
+        const contractTypeValues   = @Html.Raw(Json.Serialize(Model.ContractTypeChart.Select(x => x.Value)));
+        const documentStatusLabels = @Html.Raw(Json.Serialize(Model.DocumentStatusChart.Select(x => x.Label)));
+        const documentStatusValues = @Html.Raw(Json.Serialize(Model.DocumentStatusChart.Select(x => x.Value)));
+        const contractStatusLabels = @Html.Raw(Json.Serialize(Model.ContractStatusChart.Select(x => x.Label)));
+        const contractStatusValues = @Html.Raw(Json.Serialize(Model.ContractStatusChart.Select(x => x.Value)));
+
+        // ===== 2) Distinct Color System (Stable per Label) =====
+        // สีต่างโทนชัดเจนจำนวนมากพอสำหรับหลายประเภท
+        const DISTINCT_PALETTE = [
+            '#2563EB','#F59E0B','#10B981','#EF4444','#8B5CF6','#14B8A6',
+            '#DC2626','#F97316','#22C55E','#6366F1','#06B6D4','#A855F7',
+            '#0EA5E9','#84CC16','#D946EF','#EA580C','#059669','#B91C1C',
+            '#7C3AED','#0D9488','#9333EA','#16A34A','#1D4ED8','#D97706'
+        ];
+
+        function darken(hex, d = 28) {
+            const c = hex.replace('#', '');
+            const r = Math.max(0, parseInt(c.slice(0,2),16) - d);
+            const g = Math.max(0, parseInt(c.slice(2,4),16) - d);
+            const b = Math.max(0, parseInt(c.slice(4,6),16) - d);
+            const h = v => v.toString(16).padStart(2,'0');
+            return `#${h(r)}${h(g)}${h(b)}`;
+        }
+
+        // สร้าง index แบบคงที่จากชื่อ label
+        function labelToIndex(label) {
+            let h = 0;
+            const s = String(label);
+            for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+            return h % DISTINCT_PALETTE.length;
+        }
+
+        function colorsForLabels(labels) {
+            const bg = labels.map(l => DISTINCT_PALETTE[labelToIndex(l)]);
+            const border = bg.map(c => darken(c, 32));
+            return { bg, border };
+        }
+
+        // ===== 3) Chart Helpers =====
+        function renderDonutChart(chartId, labels, data) {
             if (!labels || !data || labels.length === 0 || data.length === 0) return;
+            const { bg, border } = colorsForLabels(labels);
 
             new Chart(document.getElementById(chartId), {
                 type: 'doughnut',
@@ -110,43 +154,37 @@
                     labels: labels,
                     datasets: [{
                         data: data,
-                        backgroundColor: colors
+                        backgroundColor: bg,
+                        borderColor: border,
+                        borderWidth: 1.5
                     }]
                 },
                 options: {
                     responsive: true,
+                    cutout: '60%',
                     plugins: {
-                        legend: { position: 'bottom' }
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.label}: ${ctx.parsed}`
+                            }
+                        }
                     }
                 }
             });
         }
 
-        renderDonutChart("contractTypeChart",
-            @Html.Raw(Json.Serialize(Model.ContractTypeChart.Select(x => x.Label))),
-            @Html.Raw(Json.Serialize(Model.ContractTypeChart.Select(x => x.Value))),
-            ['#CCE5FF', '#99CCFF', '#6699CC', '#336699']
-        );
-
-        renderDonutChart("documentStatusChart",
-            @Html.Raw(Json.Serialize(Model.DocumentStatusChart.Select(x => x.Label))),
-            @Html.Raw(Json.Serialize(Model.DocumentStatusChart.Select(x => x.Value))),
-            ['#E6D4FF', '#C8A2C8', '#8A2BE2', '#4B0082']
-        );
-
-        renderDonutChart("contractStatusChart",
-            @Html.Raw(Json.Serialize(Model.ContractStatusChart.Select(x => x.Label))),
-            @Html.Raw(Json.Serialize(Model.ContractStatusChart.Select(x => x.Value))),
-            ['#C5F2D6', '#90EE90', '#2E8B57', '#006400']
-        );
+        // ===== 4) Render Donuts (สีต่างโทน/คงที่ตามชื่อ) =====
+        renderDonutChart("contractTypeChart",   contractTypeLabels,   contractTypeValues);
+        renderDonutChart("documentStatusChart", documentStatusLabels, documentStatusValues);
+        renderDonutChart("contractStatusChart", contractStatusLabels, contractStatusValues);
     </script>
 
-
     <script>
-        // Step 1: Export as JPEG (with optional callback)
+        // ===== Export JPEG =====
         function exportDashboardJpeg(callback) {
             var element = document.querySelector('.container');
-            html2canvas(element, {backgroundColor: '#fff', scale: 2}).then(function(canvas) {
+            html2canvas(element, { backgroundColor: '#fff', scale: 2 }).then(function (canvas) {
                 var imgData = canvas.toDataURL('image/jpeg', 0.98);
                 if (callback) {
                     callback(imgData);
@@ -159,40 +197,24 @@
             });
         }
 
-        // Step 2: Export as PDF (calls JPEG export, then inserts into PDF)
+        // ===== Export PDF =====
         function exportDashboardPdf() {
             var element = document.querySelector('.container');
-            html2canvas(element, {
-                backgroundColor: '#fff',
-                scale: 2
-            }).then(function(canvas) {
+            html2canvas(element, { backgroundColor: '#fff', scale: 2 }).then(function (canvas) {
                 var imgData = canvas.toDataURL('image/jpeg', 0.98);
 
-                // ขนาด pixel จริงของภาพ
-                var imgWidth = canvas.width;
-                var imgHeight = canvas.height;
-
-                // ขนาด A4 portrait (mm)
-                var pdf = new window.jspdf.jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
+                var imgWidth = canvas.width, imgHeight = canvas.height;
+                var pdf = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 var pageWidth = pdf.internal.pageSize.getWidth();
                 var pageHeight = pdf.internal.pageSize.getHeight();
 
-                // คำนวณอัตราส่วนให้ภาพไม่ยืด/ไม่หด
                 var ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
-                var printWidth = imgWidth * ratio;
-                var printHeight = imgHeight * ratio;
-                var marginX = (pageWidth - printWidth) / 2;
-                var marginY = (pageHeight - printHeight) / 2;
+                var printWidth = imgWidth * ratio, printHeight = imgHeight * ratio;
+                var marginX = (pageWidth - printWidth) / 2, marginY = (pageHeight - printHeight) / 2;
 
                 pdf.addImage(imgData, 'JPEG', marginX, marginY, printWidth, printHeight);
                 pdf.save('EContractDashboard.pdf');
             });
         }
     </script>
-
-
 }
