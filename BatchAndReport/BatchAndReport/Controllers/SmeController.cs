@@ -9,6 +9,7 @@ using Syncfusion.Pdf.Graphics;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO.Compression;
+using System.Text;
 using System.Text.Json;
 
 namespace BatchAndReport.Controllers
@@ -389,6 +390,42 @@ namespace BatchAndReport.Controllers
 
             // Return the details directly (StrategyResponse already contains responseCode, etc.)
             return Ok(details);
+        }
+
+        [HttpGet("SME_Project")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetSmeProject([FromQuery] string year)
+        {
+            if (string.IsNullOrWhiteSpace(year))
+            {
+                return BadRequest(new
+                {
+                    responseCode = "400",
+                    responseMsg = "Missing required query param 'year'",
+                    data = Array.Empty<object>()
+                });
+            }
+
+            string json;
+            try
+            {
+                json = await _smeDao.GetSmeProjectFlatByYearAsync(year);
+            }
+            catch (Exception ex)
+            {
+                var err = new { responseCode = "500", responseMsg = "Database error: " + ex.Message, data = Array.Empty<object>() };
+                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // sanity check แบบเบาๆ ว่าสตริงหน้าตาเป็น JSON
+            if (string.IsNullOrWhiteSpace(json) || !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
+            {
+                var err = new { responseCode = "500", responseMsg = "Stored procedure returned invalid JSON.", data = Array.Empty<object>() };
+                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // สำคัญ: ส่งเป็น application/json ตรง ๆ — ไม่ Ok(string) (จะถูก escape)
+            return Content(json, "application/json", Encoding.UTF8);
         }
     }
 }

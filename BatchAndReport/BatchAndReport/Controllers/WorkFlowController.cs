@@ -9,7 +9,9 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO.Compression;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace BatchAndReport.Controllers
 {
@@ -496,18 +498,67 @@ namespace BatchAndReport.Controllers
             catch (Exception ex)
             {
                 var err = new { responseCode = "500", responseMsg = "Database error: " + ex.Message, data = Array.Empty<object>() };
-                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
             }
 
-            // sanity check แบบเบาๆ ว่าสตริงหน้าตาเป็น JSON
-            if (string.IsNullOrWhiteSpace(json) || !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                var err = new { responseCode = "500", responseMsg = "Stored procedure returned empty JSON.", data = Array.Empty<object>() };
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // ✅ ตรวจว่าเป็น JSON และ “ซ่อม” activityDetails ถ้ายังมาเป็นสตริง
+            JsonNode? root;
+            try
+            {
+                root = JsonNode.Parse(json);
+            }
+            catch
             {
                 var err = new { responseCode = "500", responseMsg = "Stored procedure returned invalid JSON.", data = Array.Empty<object>() };
-                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
             }
 
-            // สำคัญ: ส่งเป็น application/json ตรง ๆ — ไม่ Ok(string) (จะถูก escape)
-            return Content(json, "application/json", Encoding.UTF8);
+            bool changed = false;
+
+            if (root is JsonObject obj && obj["data"] is JsonArray arr)
+            {
+                foreach (var item in arr)
+                {
+                    if (item is JsonObject row && row.TryGetPropertyValue("activityDetails", out var ad))
+                    {
+                        // ถ้า activityDetails เป็นสตริง ให้พยายาม parse เป็นอาเรย์
+                        if (ad is JsonValue val && val.TryGetValue<string>(out var s) && !string.IsNullOrWhiteSpace(s))
+                        {
+                            try
+                            {
+                                var parsed = JsonNode.Parse(s);
+                                if (parsed is JsonArray)
+                                {
+                                    row["activityDetails"] = parsed;
+                                    changed = true;
+                                }
+                            }
+                            catch
+                            {
+                                // ถ้า parse ไม่ได้ ปล่อยค่าเดิม (สตริง) ไว้
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ถ้าไม่ต้องซ่อม แค่ passthrough เพื่อคงรูปแบบ escape จาก SQL เดิม
+            if (!changed)
+                return Content(json, "application/json", Encoding.UTF8);
+
+            // ถ้าซ่อมแล้ว ต้อง serialize ใหม่ (หมายเหตุ: System.Text.Json จะไม่ escape '/' เป็น '\/')
+            var fixedJson = root!.ToJsonString(new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = false
+            });
+            return Content(fixedJson, "application/json", Encoding.UTF8);
         }
 
         [HttpGet("WorkflowActivity")]
@@ -522,18 +573,217 @@ namespace BatchAndReport.Controllers
             catch (Exception ex)
             {
                 var err = new { responseCode = "500", responseMsg = "Database error: " + ex.Message, data = Array.Empty<object>() };
-                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
             }
 
-            // sanity check แบบเบาๆ ว่าสตริงหน้าตาเป็น JSON
-            if (string.IsNullOrWhiteSpace(json) || !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                var err = new { responseCode = "500", responseMsg = "Stored procedure returned empty JSON.", data = Array.Empty<object>() };
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // ✅ ตรวจว่าเป็น JSON และ “ซ่อม” activityDetails ถ้ายังมาเป็นสตริง
+            JsonNode? root;
+            try
+            {
+                root = JsonNode.Parse(json);
+            }
+            catch
             {
                 var err = new { responseCode = "500", responseMsg = "Stored procedure returned invalid JSON.", data = Array.Empty<object>() };
-                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
             }
 
-            // สำคัญ: ส่งเป็น application/json ตรง ๆ — ไม่ Ok(string) (จะถูก escape)
-            return Content(json, "application/json", Encoding.UTF8);
+            bool changed = false;
+
+            if (root is JsonObject obj && obj["data"] is JsonArray arr)
+            {
+                foreach (var item in arr)
+                {
+                    if (item is JsonObject row && row.TryGetPropertyValue("activityDetails", out var ad))
+                    {
+                        // ถ้า activityDetails เป็นสตริง ให้พยายาม parse เป็นอาเรย์
+                        if (ad is JsonValue val && val.TryGetValue<string>(out var s) && !string.IsNullOrWhiteSpace(s))
+                        {
+                            try
+                            {
+                                var parsed = JsonNode.Parse(s);
+                                if (parsed is JsonArray)
+                                {
+                                    row["activityDetails"] = parsed;
+                                    changed = true;
+                                }
+                            }
+                            catch
+                            {
+                                // ถ้า parse ไม่ได้ ปล่อยค่าเดิม (สตริง) ไว้
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ถ้าไม่ต้องซ่อม แค่ passthrough เพื่อคงรูปแบบ escape จาก SQL เดิม
+            if (!changed)
+                return Content(json, "application/json", Encoding.UTF8);
+
+            // ถ้าซ่อมแล้ว ต้อง serialize ใหม่ (หมายเหตุ: System.Text.Json จะไม่ escape '/' เป็น '\/')
+            var fixedJson = root!.ToJsonString(new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = false
+            });
+            return Content(fixedJson, "application/json", Encoding.UTF8);
+        }
+
+        [HttpGet("WorkflowControlPoint")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetWorkflowControlPoint()
+        {
+            string json;
+            try
+            {
+                json = await _workflowDao.GetWorkflowActivityAsync();
+            }
+            catch (Exception ex)
+            {
+                var err = new { responseCode = "500", responseMsg = "Database error: " + ex.Message, data = Array.Empty<object>() };
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                var err = new { responseCode = "500", responseMsg = "Stored procedure returned empty JSON.", data = Array.Empty<object>() };
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // ✅ ตรวจว่าเป็น JSON และ “ซ่อม” activityDetails ถ้ายังมาเป็นสตริง
+            JsonNode? root;
+            try
+            {
+                root = JsonNode.Parse(json);
+            }
+            catch
+            {
+                var err = new { responseCode = "500", responseMsg = "Stored procedure returned invalid JSON.", data = Array.Empty<object>() };
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            bool changed = false;
+
+            if (root is JsonObject obj && obj["data"] is JsonArray arr)
+            {
+                foreach (var item in arr)
+                {
+                    if (item is JsonObject row && row.TryGetPropertyValue("activityDetails", out var ad))
+                    {
+                        // ถ้า activityDetails เป็นสตริง ให้พยายาม parse เป็นอาเรย์
+                        if (ad is JsonValue val && val.TryGetValue<string>(out var s) && !string.IsNullOrWhiteSpace(s))
+                        {
+                            try
+                            {
+                                var parsed = JsonNode.Parse(s);
+                                if (parsed is JsonArray)
+                                {
+                                    row["activityDetails"] = parsed;
+                                    changed = true;
+                                }
+                            }
+                            catch
+                            {
+                                // ถ้า parse ไม่ได้ ปล่อยค่าเดิม (สตริง) ไว้
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ถ้าไม่ต้องซ่อม แค่ passthrough เพื่อคงรูปแบบ escape จาก SQL เดิม
+            if (!changed)
+                return Content(json, "application/json", Encoding.UTF8);
+
+            // ถ้าซ่อมแล้ว ต้อง serialize ใหม่ (หมายเหตุ: System.Text.Json จะไม่ escape '/' เป็น '\/')
+            var fixedJson = root!.ToJsonString(new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = false
+            });
+            return Content(fixedJson, "application/json", Encoding.UTF8);
+        }
+
+        [HttpGet("WorkflowLeadingLagging")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetWorkflowLeadingLagging()
+        {
+            string json;
+            try
+            {
+                json = await _workflowDao.GetWorkflowLeadingLaggingAsync();
+            }
+            catch (Exception ex)
+            {
+                var err = new { responseCode = "500", responseMsg = "Database error: " + ex.Message, data = Array.Empty<object>() };
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                var err = new { responseCode = "500", responseMsg = "Stored procedure returned empty JSON.", data = Array.Empty<object>() };
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // ✅ ตรวจว่าเป็น JSON และ “ซ่อม” activityDetails ถ้ายังมาเป็นสตริง
+            JsonNode? root;
+            try
+            {
+                root = JsonNode.Parse(json);
+            }
+            catch
+            {
+                var err = new { responseCode = "500", responseMsg = "Stored procedure returned invalid JSON.", data = Array.Empty<object>() };
+                return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            bool changed = false;
+
+            if (root is JsonObject obj && obj["data"] is JsonArray arr)
+            {
+                foreach (var item in arr)
+                {
+                    if (item is JsonObject row && row.TryGetPropertyValue("activityDetails", out var ad))
+                    {
+                        // ถ้า activityDetails เป็นสตริง ให้พยายาม parse เป็นอาเรย์
+                        if (ad is JsonValue val && val.TryGetValue<string>(out var s) && !string.IsNullOrWhiteSpace(s))
+                        {
+                            try
+                            {
+                                var parsed = JsonNode.Parse(s);
+                                if (parsed is JsonArray)
+                                {
+                                    row["activityDetails"] = parsed;
+                                    changed = true;
+                                }
+                            }
+                            catch
+                            {
+                                // ถ้า parse ไม่ได้ ปล่อยค่าเดิม (สตริง) ไว้
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ถ้าไม่ต้องซ่อม แค่ passthrough เพื่อคงรูปแบบ escape จาก SQL เดิม
+            if (!changed)
+                return Content(json, "application/json", Encoding.UTF8);
+
+            // ถ้าซ่อมแล้ว ต้อง serialize ใหม่ (หมายเหตุ: System.Text.Json จะไม่ escape '/' เป็น '\/')
+            var fixedJson = root!.ToJsonString(new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = false
+            });
+            return Content(fixedJson, "application/json", Encoding.UTF8);
         }
 
     }

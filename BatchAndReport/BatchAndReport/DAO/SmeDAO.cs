@@ -514,6 +514,7 @@ WHERE PROJECT_CODE =  @PROJECT_CODE", connection);
             {
                 if (shouldClose) await dbConn.CloseAsync();
             }
+        }
 
         public async Task<StrategyResponse> GetStrategyDetailsByYearAsync(int fiscalYear)
         {
