@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BatchAndReport.DAO
@@ -462,5 +464,58 @@ WHERE PROJECT_CODE =  @PROJECT_CODE", connection);
                 return null;
             }
         }
+
+        // ===== NEW METHOD: flat list by year (for SME_Project/master/SmeProject?year=xxxx) =====
+        public async Task<string> GetSmeProjectFlatByYearAsync(string year)
+        {
+            var dbConn = _k2context_sme.Database.GetDbConnection();
+
+            await using var cmd = dbConn.CreateCommand();
+            cmd.CommandText = "dbo.SP_SME_PROJECT_API_BY_YEAR";
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            var p = cmd.CreateParameter();
+            p.ParameterName = "@Year";
+            p.DbType = DbType.String;
+            p.Size = 10;
+            p.Value = string.IsNullOrWhiteSpace(year) ? (object)DBNull.Value : year;
+            cmd.Parameters.Add(p);
+
+            // เพิ่ม timeout เผื่อผลลัพธ์ใหญ่
+            cmd.CommandTimeout = 300;
+
+            var shouldClose = dbConn.State != ConnectionState.Open;
+            if (shouldClose) await dbConn.OpenAsync();
+
+            try
+            {
+                var sb = new StringBuilder(1024 * 64);
+
+                await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
+                while (await reader.ReadAsync())
+                {
+                    // สมมติว่า SP คืนคอลัมน์เดียวเป็นชิ้นส่วนของ JSON
+                    // (ถ้ามากกว่าหนึ่งคอลัมน์ให้เปลี่ยน index ตามจริง)
+                    if (!reader.IsDBNull(0))
+                        sb.Append(reader.GetString(0));
+                }
+
+                var json = sb.ToString();
+
+                if (string.IsNullOrWhiteSpace(json) ||
+                    !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
+                {
+                    json = "{\"responseCode\":\"500\",\"responseMsg\":\"No or invalid JSON returned from SP_SME_PROJECT_API_BY_YEAR\",\"data\":[]}";
+                }
+
+                return json;
+            }
+            finally
+            {
+                if (shouldClose) await dbConn.CloseAsync();
+            }
+        }
+
+
     }
 }
