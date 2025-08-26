@@ -462,5 +462,76 @@ WHERE PROJECT_CODE =  @PROJECT_CODE", connection);
                 return null;
             }
         }
+
+
+        public async Task<StrategyResponse> GetStrategyDetailsByYearAsync(int fiscalYear)
+        {
+            var response = new StrategyResponse();
+            try
+            {
+                var results = new List<StrategyDataModels>();
+                await using var connection = _connectionDAO.GetConnectionK2DBContext_SME();
+                await using var command = new SqlCommand(@"
+            SELECT y.FISCAL_YEAR_DESC, s.STRATEGY_ID, s.TOPIC_NO, s.TOPIC,
+                   sd.STRATEGY_DETAIL_ID, sd.STRATEGY_NUM, sd.STRATEGY_DESC
+            FROM SME_FISCAL_YEAR_MASTER y
+            INNER JOIN SME_SME_PROJECT_STRATEGY s ON s.FISCAL_YEAR_ID = y.FISCAL_YEAR_ID
+            INNER JOIN SME_PROJECT_STRATEGY_DETAIL sd ON s.STRATEGY_ID = sd.STRATEGY_ID
+            WHERE y.FISCAL_YEAR_DESC = @FiscalYear
+              AND s.ACTIVE_FLAG = 'Y'
+              AND sd.ACTIVE_FLAG = 'Y'
+        ", connection);
+
+                command.Parameters.AddWithValue("@FiscalYear", fiscalYear.ToString());
+
+                await connection.OpenAsync();
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    results.Add(new StrategyDataModels
+                    {
+                        FiscalYearDesc = reader["FISCAL_YEAR_DESC"].ToString(),
+                        StrategyId = Convert.ToInt32(reader["STRATEGY_ID"]),
+                        TopicNo = reader["TOPIC_NO"].ToString(),
+                        Topic = reader["TOPIC"].ToString(),
+                        StrategyDetailId = Convert.ToInt32(reader["STRATEGY_DETAIL_ID"]),
+                        StrategyNum = Convert.ToInt32(reader["STRATEGY_NUM"]),
+                        StrategyDesc = reader["STRATEGY_DESC"].ToString()
+                    });
+                }
+                // Replace this line:
+                //var xdat = results.Cast<StrategyDataModels>().ToList();
+                //response.result = results.Cast<StrategyResponse>().ToList();
+
+                // With this:
+                var grouped = results
+                    .GroupBy(r => new { r.FiscalYearDesc, r.TopicNo, r.Topic })
+                    .Select(g => new StrategyModels
+                    {
+                        FiscalYearDesc = g.Key.FiscalYearDesc,
+                        TopicNo = g.Key.TopicNo,
+                        Topic = g.Key.Topic,
+                        SubStrategy = g.Select(x => new StrategyDetailModels
+                        {                          
+                            StrategyNum = x.StrategyNum,
+                            StrategyDesc = x.StrategyDesc
+                        }).ToList()
+                    }).ToList();
+
+                response.result = grouped;
+                response.responseCode = 200;
+                response.responseMsg = "Success";
+            }
+            catch (Exception ex)
+            {
+                response.responseCode = 500;
+                response.responseMsg = ex.Message;
+                response.result = new List<StrategyModels>();
+            }
+
+            return response;
+        }
+
+
     }
 }

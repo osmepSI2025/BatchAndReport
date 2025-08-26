@@ -381,5 +381,14 @@ namespace BatchAndReport.Controllers
             return Ok(new { message = "Sync Complete", years = fiscalYears });
         }
 
+        // กลยุทธ์ strategy sme
+        [HttpGet("strategy")]
+        public async Task<IActionResult> strategy([FromQuery] int year)
+        {
+            var details = await _smeDao.GetStrategyDetailsByYearAsync(year);
+
+            // Return the details directly (StrategyResponse already contains responseCode, etc.)
+            return Ok(details);
+        }
     }
 }
