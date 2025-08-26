@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO.Compression;
+using System.Text;
 using System.Text.Json;
 
 namespace BatchAndReport.Controllers
@@ -481,6 +482,58 @@ namespace BatchAndReport.Controllers
             return File(excelBytes,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "ProcessResultByIndicator.xlsx");
+        }
+
+        [HttpGet("Workflow")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetWorkflow()
+        {
+            string json;
+            try
+            {
+                json = await _workflowDao.GetSubProcessMaterAsync();
+            }
+            catch (Exception ex)
+            {
+                var err = new { responseCode = "500", responseMsg = "Database error: " + ex.Message, data = Array.Empty<object>() };
+                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // sanity check แบบเบาๆ ว่าสตริงหน้าตาเป็น JSON
+            if (string.IsNullOrWhiteSpace(json) || !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
+            {
+                var err = new { responseCode = "500", responseMsg = "Stored procedure returned invalid JSON.", data = Array.Empty<object>() };
+                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // สำคัญ: ส่งเป็น application/json ตรง ๆ — ไม่ Ok(string) (จะถูก escape)
+            return Content(json, "application/json", Encoding.UTF8);
+        }
+
+        [HttpGet("WorkflowActivity")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetWorkflowActivity()
+        {
+            string json;
+            try
+            {
+                json = await _workflowDao.GetWorkflowActivityAsync();
+            }
+            catch (Exception ex)
+            {
+                var err = new { responseCode = "500", responseMsg = "Database error: " + ex.Message, data = Array.Empty<object>() };
+                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // sanity check แบบเบาๆ ว่าสตริงหน้าตาเป็น JSON
+            if (string.IsNullOrWhiteSpace(json) || !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
+            {
+                var err = new { responseCode = "500", responseMsg = "Stored procedure returned invalid JSON.", data = Array.Empty<object>() };
+                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // สำคัญ: ส่งเป็น application/json ตรง ๆ — ไม่ Ok(string) (จะถูก escape)
+            return Content(json, "application/json", Encoding.UTF8);
         }
 
     }

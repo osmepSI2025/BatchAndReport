@@ -13,6 +13,7 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography.Xml;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -872,6 +873,106 @@ namespace BatchAndReport.DAO
 
 
             return result.ProcessResultByIndicators;
+        }
+
+        public async Task<string> GetSubProcessMaterAsync()
+        {
+            var dbConn = _k2context_workflow.Database.GetDbConnection();
+
+            await using var cmd = dbConn.CreateCommand();
+            cmd.CommandText = "dbo.SP_GET_SUB_PROCESS_MASTER_API";
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            //var p = cmd.CreateParameter();
+            //p.ParameterName = "@Year";
+            //p.DbType = DbType.String;
+            //p.Size = 10;
+            //p.Value = string.IsNullOrWhiteSpace(year) ? (object)DBNull.Value : year;
+            //cmd.Parameters.Add(p);
+
+            // เพิ่ม timeout เผื่อผลลัพธ์ใหญ่
+            cmd.CommandTimeout = 300;
+
+            var shouldClose = dbConn.State != ConnectionState.Open;
+            if (shouldClose) await dbConn.OpenAsync();
+
+            try
+            {
+                var sb = new StringBuilder(1024 * 64);
+
+                await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
+                while (await reader.ReadAsync())
+                {
+                    // สมมติว่า SP คืนคอลัมน์เดียวเป็นชิ้นส่วนของ JSON
+                    // (ถ้ามากกว่าหนึ่งคอลัมน์ให้เปลี่ยน index ตามจริง)
+                    if (!reader.IsDBNull(0))
+                        sb.Append(reader.GetString(0));
+                }
+
+                var json = sb.ToString();
+
+                if (string.IsNullOrWhiteSpace(json) ||
+                    !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
+                {
+                    json = "{\"responseCode\":\"500\",\"responseMsg\":\"No or invalid JSON returned from SP_SME_PROJECT_API_BY_YEAR\",\"data\":[]}";
+                }
+
+                return json;
+            }
+            finally
+            {
+                if (shouldClose) await dbConn.CloseAsync();
+            }
+        }
+
+        public async Task<string> GetWorkflowActivityAsync()
+        {
+            var dbConn = _k2context_workflow.Database.GetDbConnection();
+
+            await using var cmd = dbConn.CreateCommand();
+            cmd.CommandText = "dbo.SP_GET_SUB_PROCESS_WITH_ACTIVITIES_API";
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            //var p = cmd.CreateParameter();
+            //p.ParameterName = "@Year";
+            //p.DbType = DbType.String;
+            //p.Size = 10;
+            //p.Value = string.IsNullOrWhiteSpace(year) ? (object)DBNull.Value : year;
+            //cmd.Parameters.Add(p);
+
+            // เพิ่ม timeout เผื่อผลลัพธ์ใหญ่
+            cmd.CommandTimeout = 300;
+
+            var shouldClose = dbConn.State != ConnectionState.Open;
+            if (shouldClose) await dbConn.OpenAsync();
+
+            try
+            {
+                var sb = new StringBuilder(1024 * 64);
+
+                await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
+                while (await reader.ReadAsync())
+                {
+                    // สมมติว่า SP คืนคอลัมน์เดียวเป็นชิ้นส่วนของ JSON
+                    // (ถ้ามากกว่าหนึ่งคอลัมน์ให้เปลี่ยน index ตามจริง)
+                    if (!reader.IsDBNull(0))
+                        sb.Append(reader.GetString(0));
+                }
+
+                var json = sb.ToString();
+
+                if (string.IsNullOrWhiteSpace(json) ||
+                    !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
+                {
+                    json = "{\"responseCode\":\"500\",\"responseMsg\":\"No or invalid JSON returned from SP_SME_PROJECT_API_BY_YEAR\",\"data\":[]}";
+                }
+
+                return json;
+            }
+            finally
+            {
+                if (shouldClose) await dbConn.CloseAsync();
+            }
         }
     }
 
