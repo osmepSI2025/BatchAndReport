@@ -486,14 +486,14 @@ namespace BatchAndReport.Controllers
                 "ProcessResultByIndicator.xlsx");
         }
 
-        [HttpGet("Workflow")]
+        [HttpPost("Workflow")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetWorkflow()
+        public async Task<IActionResult> GetWorkflow([FromBody] string? processCode = null)
         {
             string json;
             try
             {
-                json = await _workflowDao.GetSubProcessMaterAsync();
+                json = await _workflowDao.GetSubProcessMaterAsync(processCode);
             }
             catch (Exception ex)
             {
@@ -561,14 +561,14 @@ namespace BatchAndReport.Controllers
             return Content(fixedJson, "application/json", Encoding.UTF8);
         }
 
-        [HttpGet("WorkflowActivity")]
+        [HttpPost("WorkflowActivity")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetWorkflowActivity()
+        public async Task<IActionResult> GetWorkflowActivity([FromBody] string? processCode = null)
         {
             string json;
             try
             {
-                json = await _workflowDao.GetWorkflowActivityAsync();
+                json = await _workflowDao.GetWorkflowActivityAsync(processCode);
             }
             catch (Exception ex)
             {
@@ -636,14 +636,14 @@ namespace BatchAndReport.Controllers
             return Content(fixedJson, "application/json", Encoding.UTF8);
         }
 
-        [HttpGet("WorkflowControlPoint")]
+        [HttpPost("WorkflowControlPoint")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetWorkflowControlPoint()
+        public async Task<IActionResult> GetWorkflowControlPoint([FromBody] string? processCode = null)
         {
             string json;
             try
             {
-                json = await _workflowDao.GetWorkflowActivityAsync();
+                json = await _workflowDao.GetWorkflowActivityAsync(processCode);
             }
             catch (Exception ex)
             {
@@ -711,14 +711,14 @@ namespace BatchAndReport.Controllers
             return Content(fixedJson, "application/json", Encoding.UTF8);
         }
 
-        [HttpGet("WorkflowLeadingLagging")]
+        [HttpPost("WorkflowLeadingLagging")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetWorkflowLeadingLagging()
+        public async Task<IActionResult> GetWorkflowLeadingLagging([FromBody] string? processCode = null)
         {
             string json;
             try
             {
-                json = await _workflowDao.GetWorkflowLeadingLaggingAsync();
+                json = await _workflowDao.GetWorkflowLeadingLaggingAsync(processCode);
             }
             catch (Exception ex)
             {

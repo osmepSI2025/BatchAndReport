@@ -1,15 +1,10 @@
 @page
-@model WorkflowProcessModel
+@model WorkflowProcessDataModel
 @{
     Layout = "_Layout1";
     var detail = Model.Detail;
     int supportCount = detail.SupportProcesses.Count;
 }
-
-<h5 class="fw-bold">
-    @detail.UserProcessReviewName
-  
-</h5>
 
 <style>
     /* ตั้งฐานฟอนต์ทั้งบล็อก */

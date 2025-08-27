@@ -226,6 +226,7 @@ namespace BatchAndReport.Entities
 
                 entity.Property(e => e.IsDeleted)
                     .HasColumnName("IS_DELETED");
+
             });
             modelBuilder.Entity<SubProcessReviewApproval>(entity =>
             {

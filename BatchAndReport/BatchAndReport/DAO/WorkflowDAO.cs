@@ -875,7 +875,7 @@ namespace BatchAndReport.DAO
             return result.ProcessResultByIndicators;
         }
 
-        public async Task<string> GetSubProcessMaterAsync()
+        public async Task<string> GetSubProcessMaterAsync(string processCode)
         {
             var dbConn = _k2context_workflow.Database.GetDbConnection();
 
@@ -883,12 +883,12 @@ namespace BatchAndReport.DAO
             cmd.CommandText = "dbo.SP_GET_SUB_PROCESS_MASTER_API";
             cmd.CommandType = CommandType.StoredProcedure;
 
-            //var p = cmd.CreateParameter();
-            //p.ParameterName = "@Year";
-            //p.DbType = DbType.String;
-            //p.Size = 10;
-            //p.Value = string.IsNullOrWhiteSpace(year) ? (object)DBNull.Value : year;
-            //cmd.Parameters.Add(p);
+            var p = cmd.CreateParameter();
+            p.ParameterName = "@PROCESS_CODE";
+            p.DbType = DbType.String;
+            p.Size = 10;
+            p.Value = string.IsNullOrWhiteSpace(processCode) ? (object)DBNull.Value : processCode;
+            cmd.Parameters.Add(p);
 
             // เพิ่ม timeout เผื่อผลลัพธ์ใหญ่
             cmd.CommandTimeout = 300;
@@ -925,7 +925,7 @@ namespace BatchAndReport.DAO
             }
         }
 
-        public async Task<string> GetWorkflowActivityAsync()
+        public async Task<string> GetWorkflowActivityAsync(string processCode)
         {
             var dbConn = _k2context_workflow.Database.GetDbConnection();
 
@@ -933,12 +933,12 @@ namespace BatchAndReport.DAO
             cmd.CommandText = "dbo.SP_GET_SUB_PROCESS_WITH_ACTIVITIES_API";
             cmd.CommandType = CommandType.StoredProcedure;
 
-            //var p = cmd.CreateParameter();
-            //p.ParameterName = "@Year";
-            //p.DbType = DbType.String;
-            //p.Size = 10;
-            //p.Value = string.IsNullOrWhiteSpace(year) ? (object)DBNull.Value : year;
-            //cmd.Parameters.Add(p);
+            var p = cmd.CreateParameter();
+            p.ParameterName = "@PROCESS_CODE";
+            p.DbType = DbType.String;
+            p.Size = 10;
+            p.Value = string.IsNullOrWhiteSpace(processCode) ? (object)DBNull.Value : processCode;
+            cmd.Parameters.Add(p);
 
             // เพิ่ม timeout เผื่อผลลัพธ์ใหญ่
             cmd.CommandTimeout = 300;
@@ -975,7 +975,7 @@ namespace BatchAndReport.DAO
             }
         }
 
-        public async Task<string> GetWorkflowLeadingLaggingAsync()
+        public async Task<string> GetWorkflowLeadingLaggingAsync(string processCode)
         {
             var dbConn = _k2context_workflow.Database.GetDbConnection();
 
@@ -983,12 +983,12 @@ namespace BatchAndReport.DAO
             cmd.CommandText = "dbo.SP_GET_WorkflowLeadingLagging_API";
             cmd.CommandType = CommandType.StoredProcedure;
 
-            //var p = cmd.CreateParameter();
-            //p.ParameterName = "@Year";
-            //p.DbType = DbType.String;
-            //p.Size = 10;
-            //p.Value = string.IsNullOrWhiteSpace(year) ? (object)DBNull.Value : year;
-            //cmd.Parameters.Add(p);
+            var p = cmd.CreateParameter();
+            p.ParameterName = "@PROCESS_CODE";
+            p.DbType = DbType.String;
+            p.Size = 10;
+            p.Value = string.IsNullOrWhiteSpace(processCode) ? (object)DBNull.Value : processCode;
+            cmd.Parameters.Add(p);
 
             // เพิ่ม timeout เผื่อผลลัพธ์ใหญ่
             cmd.CommandTimeout = 300;
