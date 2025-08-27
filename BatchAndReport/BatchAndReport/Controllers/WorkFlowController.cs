@@ -488,8 +488,41 @@ namespace BatchAndReport.Controllers
 
         [HttpPost("Workflow")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetWorkflow([FromBody] string? processCode = null)
+        public async Task<IActionResult> GetWorkflow([FromBody] JsonElement? body = null)
         {
+            // 1) ดึง processCode จาก body ได้ทั้งแบบ object และ string
+            string? processCode = null;
+
+            if (body.HasValue)
+            {
+                var b = body.Value;
+                if (b.ValueKind == JsonValueKind.Object)
+                {
+                    // รองรับทั้ง workflowCode และ processCode (case-sensitive)
+                    if (b.TryGetProperty("workflowCode", out var p1)) processCode = p1.GetString();
+                    else if (b.TryGetProperty("processCode", out var p2)) processCode = p2.GetString();
+
+                    // (ออปชัน) เผื่อมีเคสตัวพิมพ์เล็กใหญ่ไม่ตรง:
+                    if (processCode is null)
+                    {
+                        foreach (var prop in b.EnumerateObject())
+                        {
+                            if (prop.NameEquals("workflowCode") || prop.NameEquals("processCode"))
+                            {
+                                processCode = prop.Value.GetString();
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (b.ValueKind == JsonValueKind.String)
+                {
+                    // บอดี้เป็นสตริงล้วน เช่น "C2.2"
+                    processCode = b.GetString();
+                }
+            }
+
+            // 2) เรียก DAO
             string json;
             try
             {
@@ -507,12 +540,9 @@ namespace BatchAndReport.Controllers
                 return Content(JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
             }
 
-            // ✅ ตรวจว่าเป็น JSON และ “ซ่อม” activityDetails ถ้ายังมาเป็นสตริง
+            // 3) ตรวจว่าเป็น JSON + ซ่อม activityDetails ถ้ายังเป็นสตริง
             JsonNode? root;
-            try
-            {
-                root = JsonNode.Parse(json);
-            }
+            try { root = JsonNode.Parse(json); }
             catch
             {
                 var err = new { responseCode = "500", responseMsg = "Stored procedure returned invalid JSON.", data = Array.Empty<object>() };
@@ -520,14 +550,12 @@ namespace BatchAndReport.Controllers
             }
 
             bool changed = false;
-
             if (root is JsonObject obj && obj["data"] is JsonArray arr)
             {
                 foreach (var item in arr)
                 {
                     if (item is JsonObject row && row.TryGetPropertyValue("activityDetails", out var ad))
                     {
-                        // ถ้า activityDetails เป็นสตริง ให้พยายาม parse เป็นอาเรย์
                         if (ad is JsonValue val && val.TryGetValue<string>(out var s) && !string.IsNullOrWhiteSpace(s))
                         {
                             try
@@ -539,20 +567,15 @@ namespace BatchAndReport.Controllers
                                     changed = true;
                                 }
                             }
-                            catch
-                            {
-                                // ถ้า parse ไม่ได้ ปล่อยค่าเดิม (สตริง) ไว้
-                            }
+                            catch { /* ignore */ }
                         }
                     }
                 }
             }
 
-            // ถ้าไม่ต้องซ่อม แค่ passthrough เพื่อคงรูปแบบ escape จาก SQL เดิม
             if (!changed)
                 return Content(json, "application/json", Encoding.UTF8);
 
-            // ถ้าซ่อมแล้ว ต้อง serialize ใหม่ (หมายเหตุ: System.Text.Json จะไม่ escape '/' เป็น '\/')
             var fixedJson = root!.ToJsonString(new JsonSerializerOptions
             {
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -563,8 +586,40 @@ namespace BatchAndReport.Controllers
 
         [HttpPost("WorkflowActivity")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetWorkflowActivity([FromBody] string? processCode = null)
+        public async Task<IActionResult> GetWorkflowActivity([FromBody] JsonElement? body = null)
         {
+            // 1) ดึง processCode จาก body ได้ทั้งแบบ object และ string
+            string? processCode = null;
+
+            if (body.HasValue)
+            {
+                var b = body.Value;
+                if (b.ValueKind == JsonValueKind.Object)
+                {
+                    // รองรับทั้ง workflowCode และ processCode (case-sensitive)
+                    if (b.TryGetProperty("workflowCode", out var p1)) processCode = p1.GetString();
+                    else if (b.TryGetProperty("processCode", out var p2)) processCode = p2.GetString();
+
+                    // (ออปชัน) เผื่อมีเคสตัวพิมพ์เล็กใหญ่ไม่ตรง:
+                    if (processCode is null)
+                    {
+                        foreach (var prop in b.EnumerateObject())
+                        {
+                            if (prop.NameEquals("workflowCode") || prop.NameEquals("processCode"))
+                            {
+                                processCode = prop.Value.GetString();
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (b.ValueKind == JsonValueKind.String)
+                {
+                    // บอดี้เป็นสตริงล้วน เช่น "C2.2"
+                    processCode = b.GetString();
+                }
+            }
+
             string json;
             try
             {
@@ -638,8 +693,40 @@ namespace BatchAndReport.Controllers
 
         [HttpPost("WorkflowControlPoint")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetWorkflowControlPoint([FromBody] string? processCode = null)
+        public async Task<IActionResult> GetWorkflowControlPoint([FromBody] JsonElement? body = null)
         {
+            // 1) ดึง processCode จาก body ได้ทั้งแบบ object และ string
+            string? processCode = null;
+
+            if (body.HasValue)
+            {
+                var b = body.Value;
+                if (b.ValueKind == JsonValueKind.Object)
+                {
+                    // รองรับทั้ง workflowCode และ processCode (case-sensitive)
+                    if (b.TryGetProperty("workflowCode", out var p1)) processCode = p1.GetString();
+                    else if (b.TryGetProperty("processCode", out var p2)) processCode = p2.GetString();
+
+                    // (ออปชัน) เผื่อมีเคสตัวพิมพ์เล็กใหญ่ไม่ตรง:
+                    if (processCode is null)
+                    {
+                        foreach (var prop in b.EnumerateObject())
+                        {
+                            if (prop.NameEquals("workflowCode") || prop.NameEquals("processCode"))
+                            {
+                                processCode = prop.Value.GetString();
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (b.ValueKind == JsonValueKind.String)
+                {
+                    // บอดี้เป็นสตริงล้วน เช่น "C2.2"
+                    processCode = b.GetString();
+                }
+            }
+
             string json;
             try
             {
@@ -713,8 +800,40 @@ namespace BatchAndReport.Controllers
 
         [HttpPost("WorkflowLeadingLagging")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetWorkflowLeadingLagging([FromBody] string? processCode = null)
+        public async Task<IActionResult> GetWorkflowLeadingLagging([FromBody] JsonElement? body = null)
         {
+            // 1) ดึง processCode จาก body ได้ทั้งแบบ object และ string
+            string? processCode = null;
+
+            if (body.HasValue)
+            {
+                var b = body.Value;
+                if (b.ValueKind == JsonValueKind.Object)
+                {
+                    // รองรับทั้ง workflowCode และ processCode (case-sensitive)
+                    if (b.TryGetProperty("workflowCode", out var p1)) processCode = p1.GetString();
+                    else if (b.TryGetProperty("processCode", out var p2)) processCode = p2.GetString();
+
+                    // (ออปชัน) เผื่อมีเคสตัวพิมพ์เล็กใหญ่ไม่ตรง:
+                    if (processCode is null)
+                    {
+                        foreach (var prop in b.EnumerateObject())
+                        {
+                            if (prop.NameEquals("workflowCode") || prop.NameEquals("processCode"))
+                            {
+                                processCode = prop.Value.GetString();
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (b.ValueKind == JsonValueKind.String)
+                {
+                    // บอดี้เป็นสตริงล้วน เช่น "C2.2"
+                    processCode = b.GetString();
+                }
+            }
+
             string json;
             try
             {

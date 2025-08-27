@@ -875,7 +875,7 @@ namespace BatchAndReport.DAO
             return result.ProcessResultByIndicators;
         }
 
-        public async Task<string> GetSubProcessMaterAsync(string processCode)
+        public async Task<string> GetSubProcessMaterAsync(string? processCode)
         {
             var dbConn = _k2context_workflow.Database.GetDbConnection();
 
@@ -886,11 +886,10 @@ namespace BatchAndReport.DAO
             var p = cmd.CreateParameter();
             p.ParameterName = "@PROCESS_CODE";
             p.DbType = DbType.String;
-            p.Size = 10;
+            p.Size = 50; // <-- สำคัญ: ให้ตรง NVARCHAR(50)
             p.Value = string.IsNullOrWhiteSpace(processCode) ? (object)DBNull.Value : processCode;
             cmd.Parameters.Add(p);
 
-            // เพิ่ม timeout เผื่อผลลัพธ์ใหญ่
             cmd.CommandTimeout = 300;
 
             var shouldClose = dbConn.State != ConnectionState.Open;
@@ -899,24 +898,19 @@ namespace BatchAndReport.DAO
             try
             {
                 var sb = new StringBuilder(1024 * 64);
-
                 await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
                 while (await reader.ReadAsync())
                 {
-                    // สมมติว่า SP คืนคอลัมน์เดียวเป็นชิ้นส่วนของ JSON
-                    // (ถ้ามากกว่าหนึ่งคอลัมน์ให้เปลี่ยน index ตามจริง)
                     if (!reader.IsDBNull(0))
                         sb.Append(reader.GetString(0));
                 }
 
                 var json = sb.ToString();
-
                 if (string.IsNullOrWhiteSpace(json) ||
                     !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
                 {
-                    json = "{\"responseCode\":\"500\",\"responseMsg\":\"No or invalid JSON returned from SP_SME_PROJECT_API_BY_YEAR\",\"data\":[]}";
+                    json = "{\"responseCode\":\"500\",\"responseMsg\":\"No or invalid JSON returned from SP_GET_SUB_PROCESS_MASTER_API\",\"data\":[]}";
                 }
-
                 return json;
             }
             finally
@@ -925,7 +919,8 @@ namespace BatchAndReport.DAO
             }
         }
 
-        public async Task<string> GetWorkflowActivityAsync(string processCode)
+
+        public async Task<string> GetWorkflowActivityAsync(string? processCode)
         {
             var dbConn = _k2context_workflow.Database.GetDbConnection();
 
@@ -975,7 +970,7 @@ namespace BatchAndReport.DAO
             }
         }
 
-        public async Task<string> GetWorkflowLeadingLaggingAsync(string processCode)
+        public async Task<string> GetWorkflowLeadingLaggingAsync(string? processCode)
         {
             var dbConn = _k2context_workflow.Database.GetDbConnection();
 
