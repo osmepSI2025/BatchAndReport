@@ -281,8 +281,7 @@ public class WordEContract_DataSecretService
         if (conPurpose != null && conPurpose.Count > 0)
         {
             purposeHtml += "<p class='tab3 t-16'><b>ข้อ ๑ วัตถุประสงค์</b></p>";
-            purposeHtml += "<p class='tab3 t-16'>โดยที่ผู้ให้ข้อมูลเป็นเจ้าของข้อมูล ผู้รับข้อมูลมีความต้องการที่จะใช้ข้อมูลของผู้ให้ข้อมูลเพื่อที่จะ" +
-                "</br>ดำเนินการตามวัตถุประสงค์ ดังนี้ </p>";
+            purposeHtml += "<p class='tab3 t-16'>โดยที่ผู้ให้ข้อมูลเป็นเจ้าของข้อมูล ผู้รับข้อมูลมีความต้องการที่จะใช้ข้อมูลของผู้</br>ให้ข้อมูลเพื่อที่จะดำเนินการตามวัตถุประสงค์ ดังนี้ </p>";
             foreach (var purpose in conPurpose)
             {
                 purposeHtml += $"<p class='tab4 t-16'>{System.Net.WebUtility.HtmlEncode(purpose.Detail)}</p>";
