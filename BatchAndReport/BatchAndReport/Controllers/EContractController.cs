@@ -3,6 +3,7 @@ using BatchAndReport.Models;
 using BatchAndReport.Repository;
 using BatchAndReport.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Text;
 using System.Text.Json;
 
 namespace BatchAndReport.Controllers
@@ -261,6 +262,42 @@ namespace BatchAndReport.Controllers
             return File(wordBytes,
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 $"JointContract.docx");
+        }
+
+        [HttpGet("Project")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetProject([FromQuery] string projectCode)
+        {
+            if (string.IsNullOrWhiteSpace(projectCode))
+            {
+                return BadRequest(new
+                {
+                    responseCode = "400",
+                    responseMsg = "Missing required query param 'projectCode'",
+                    data = Array.Empty<object>()
+                });
+            }
+
+            string json;
+            try
+            {
+                json = await _eContractDao.GetProjectByProjectCodeAsync(projectCode);
+            }
+            catch (Exception ex)
+            {
+                var err = new { responseCode = "500", responseMsg = "Database error: " + ex.Message, data = Array.Empty<object>() };
+                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // sanity check แบบเบาๆ ว่าสตริงหน้าตาเป็น JSON
+            if (string.IsNullOrWhiteSpace(json) || !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
+            {
+                var err = new { responseCode = "500", responseMsg = "Stored procedure returned invalid JSON.", data = Array.Empty<object>() };
+                return Content(System.Text.Json.JsonSerializer.Serialize(err), "application/json", Encoding.UTF8);
+            }
+
+            // สำคัญ: ส่งเป็น application/json ตรง ๆ — ไม่ Ok(string) (จะถูก escape)
+            return Content(json, "application/json", Encoding.UTF8);
         }
 
     }

@@ -3,6 +3,8 @@ using BatchAndReport.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Data;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BatchAndReport.DAO
@@ -229,6 +231,56 @@ namespace BatchAndReport.DAO
                 // Optionally log the exception here
             }
             return result;
+        }
+
+        public async Task<string> GetProjectByProjectCodeAsync(string projectCode)
+        {
+            var dbConn = _context.Database.GetDbConnection();
+
+            await using var cmd = dbConn.CreateCommand();
+            cmd.CommandText = "dbo.SP_Get_All_Contract_API";
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            var p = cmd.CreateParameter();
+            p.ParameterName = "@ProjectCode";
+            p.DbType = DbType.String;
+            p.Size = 10;
+            p.Value = string.IsNullOrWhiteSpace(projectCode) ? (object)DBNull.Value : projectCode;
+            cmd.Parameters.Add(p);
+
+            // เพิ่ม timeout เผื่อผลลัพธ์ใหญ่
+            cmd.CommandTimeout = 300;
+
+            var shouldClose = dbConn.State != ConnectionState.Open;
+            if (shouldClose) await dbConn.OpenAsync();
+
+            try
+            {
+                var sb = new StringBuilder(1024 * 64);
+
+                await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
+                while (await reader.ReadAsync())
+                {
+                    // สมมติว่า SP คืนคอลัมน์เดียวเป็นชิ้นส่วนของ JSON
+                    // (ถ้ามากกว่าหนึ่งคอลัมน์ให้เปลี่ยน index ตามจริง)
+                    if (!reader.IsDBNull(0))
+                        sb.Append(reader.GetString(0));
+                }
+
+                var json = sb.ToString();
+
+                if (string.IsNullOrWhiteSpace(json) ||
+                    !(json.TrimStart().StartsWith("{") || json.TrimStart().StartsWith("[")))
+                {
+                    json = "{\"responseCode\":\"500\",\"responseMsg\":\"No or invalid JSON returned from SP_SME_PROJECT_API_BY_YEAR\",\"data\":[]}";
+                }
+
+                return json;
+            }
+            finally
+            {
+                if (shouldClose) await dbConn.CloseAsync();
+            }
         }
     }
 }
