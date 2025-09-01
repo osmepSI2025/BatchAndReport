@@ -2,8 +2,17 @@
 using BatchAndReport.Models;
 using BatchAndReport.Repository;
 using BatchAndReport.Services;
+using iText.Kernel.Crypto;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Modes;
+using Org.BouncyCastle.Crypto.Paddings;
+using Org.BouncyCastle.Crypto.Parameters;
+
+using Org.BouncyCastle.Security;
+using System;
 using System.Text;
+
 using System.Text.Json;
 
 namespace BatchAndReport.Controllers
@@ -299,6 +308,58 @@ namespace BatchAndReport.Controllers
             // สำคัญ: ส่งเป็น application/json ตรง ๆ — ไม่ Ok(string) (จะถูก escape)
             return Content(json, "application/json", Encoding.UTF8);
         }
+        [HttpGet("convertSaraly")]
+        public IActionResult convertSaraly()
+        {
+            string decryptedText = "";
 
+            try
+            {
+                string encryptedBase64 = "8EgYChBAnJaZTdXJNarZng==";
+                string encryptionKey = "5EU6l0SddrsT5HI6MhIxFkwT8JHRUyxz";
+
+                decryptedText = DecryptBase64String(encryptedBase64, encryptionKey);
+
+            }
+            catch (Exception ex)
+            {
+                decryptedText = $"Decryption failed: {ex.Message}";
+            }
+
+            // ViewBag.DecryptedText = decryptedText;
+            return Ok();
+        }
+        // ตัวอย่างการถอดรหัส AES-256
+
+        public static string DecryptBase64String(string base64String, string keyString)
+        {
+            // 1. แปลง Base64 String เป็น byte array
+            byte[] encryptedBytes = Convert.FromBase64String(base64String);
+
+            // 2. แปลง Key String เป็น byte array
+            byte[] keyBytes = Encoding.UTF8.GetBytes(keyString);
+
+            // 3. สร้าง AES engine และตั้งค่า (initialization)
+            var aesEngine = new AesEngine();
+            var cbcBlockCipher = new CbcBlockCipher(aesEngine); // Bouncy Castle ใช้ CbcBlockCipher เพื่อรองรับ padding และการใช้งานที่หลากหลาย
+            var keyParameter = new KeyParameter(keyBytes);
+
+            // 4. ตั้งค่าเพื่อการถอดรหัส
+            cbcBlockCipher.Init(false, keyParameter); // 'false' สำหรับ Decryption
+
+            // 5. สร้าง PaddedBufferedBlockCipher
+            var decryptor = new PaddedBufferedBlockCipher(cbcBlockCipher, new Pkcs7Padding());
+            decryptor.Init(false, keyParameter);
+
+            // 6. ถอดรหัส
+            byte[] decryptedBytes = new byte[decryptor.GetOutputSize(encryptedBytes.Length)];
+            int length = decryptor.ProcessBytes(encryptedBytes, 0, encryptedBytes.Length, decryptedBytes, 0);
+            decryptor.DoFinal(decryptedBytes, length);
+
+            // 7. แปลงผลลัพธ์เป็น string UTF-8
+            string decryptedString = Encoding.UTF8.GetString(decryptedBytes).TrimEnd('\0'); // trim null characters if any
+
+            return decryptedString;
+        }
     }
 }
