@@ -1,0 +1,74 @@
+@page
+@model BatchAndReport.Models.FileUploadModel
+@{
+    Layout = "_Layout1";
+}
+
+<style>
+    .upload-container {
+        border: 2px dashed #ccc;
+        padding: 20px;
+        text-align: center;
+        border-radius: 8px;
+        font-family: 'TH SarabunPSK', Arial, sans-serif;
+        font-size: 20px;
+        max-width: 600px;
+        margin: 50px auto;
+        background: #fff;
+    }
+    .upload-container h2 {
+        font-family: 'TH SarabunPSK', Arial, sans-serif;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .form-group label,
+    .form-group input,
+    .form-group span,
+    .upload-button,
+    .status-success,
+    .status-error {
+        font-family: 'TH SarabunPSK', Arial, sans-serif;
+        font-size: 20px;
+    }
+    .upload-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    .upload-button:hover {
+        background-color: #0056b3;
+    }
+    .status-success { color: green; }
+    .status-error { color: red; }
+</style>
+
+<div class="upload-container">
+    <h2>อัปโหลดไฟล์สำหรับ K2</h2>
+    @using (Html.BeginForm("Upload", "File", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.PostedFiles)
+            <input type="file" name="PostedFiles" multiple="multiple" />
+            @Html.ValidationMessageFor(model => model.PostedFiles)
+        </div>
+        
+        @Html.HiddenFor(model => model.ProcessInstanceID)
+
+        <button type="submit" class="upload-button">อัปโหลดไฟล์</button>
+
+        @* if (!string.IsNullOrEmpty(Model.StatusMessage))
+        {
+            <div class="@(Model.IsSuccess ? "status-success" : "status-error")">
+                <p>@Model.StatusMessage</p>
+            </div>
+        } *@
+    }
+</div>
