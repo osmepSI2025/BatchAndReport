@@ -102,6 +102,7 @@ builder.Services.AddScoped<WordEContract_ContactToDoThingService>();
 builder.Services.AddScoped<WordEContract_MemorandumInWritingService>();
 
 builder.Services.AddScoped<WordEContract_MIWService>();
+builder.Services.AddScoped<WordEContract_AMJOAService>();
 // add work flow
 
 builder.Services.AddScoped<WordWorkFlow_annualProcessReviewService>();

@@ -34,6 +34,7 @@ namespace BatchAndReport.Pages.Report
         private readonly WordEContract_MemorandumInWritingService _MemorandumInWritingService;
         private readonly IConfiguration _configuration;
         private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
+        private readonly WordEContract_AMJOAService _AMJOAService;
         public ExportModel(SmeDAO smeDao, WordEContract_AllowanceService allowanceService
             , WordEContract_LoanPrinterService wordEContract_LoanPrinterService
             , WordEContract_ContactToDoThingService ContactToDoThingService
@@ -58,6 +59,7 @@ namespace BatchAndReport.Pages.Report
             , IConfiguration configuration // <-- add this
             , WordEContract_MIWService MIWService
               , IConverter pdfConverter
+            , WordEContract_AMJOAService AMJOAService
             )
         {
             _smeDao = smeDao;
@@ -84,6 +86,7 @@ namespace BatchAndReport.Pages.Report
             _configuration = configuration; // <-- initialize the configuration
             this._MIWService = MIWService;
             _pdfConverter = pdfConverter;
+            _AMJOAService = AMJOAService;
         }
         public IActionResult OnGetPdf()
         {
@@ -5476,6 +5479,415 @@ namespace BatchAndReport.Pages.Report
         }
         #endregion  4.1.1.2.16 แบบฟอร์มบันทึกข้อตกลงเป็นหนังสือ MIW
 
+
+        #region  4.1.6 เอกสารแนบท้ายบันทึกข้อตกลงความร่วมมือและสัญญาร่วมดำเนินการ AMJOA
+
+        public async Task OnGetWordContact_AMJOA_PDF(string ContractId = "70")
+        {
+            // 1. Get HTML content from the service
+            var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
+
+            // 2. Convert HTML to PDF using DinkToPdf
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+
+            // Assuming you have injected IConverter as _pdfConverter
+            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "AMJOA_" + ContractId + ".pdf");
+
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+
+            // Optionally, return the file as a download:
+            // return File(pdfBytes, "application/pdf", "AMJOA_" + ContractId + ".pdf");
+        }
+        public async Task<IActionResult> OnGetWordContact_AMJOA_PDF_Preview(string ContractId = "70", string Name = "สมใจ ทดสอบ")
+        {
+            // 1. Get HTML content from the service
+            var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
+
+            // 2. Convert HTML to PDF using DinkToPdf
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+
+            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA", "AMJOA_" + ContractId);
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var fileName = $"AMJOA_{ContractId}_Preview.pdf";
+            var filePath = Path.Combine(folderPath, fileName);
+
+            // Get password from appsettings.json
+            string userPassword = _configuration["Password:PaswordPDF"];
+
+            using (var inputStream = new MemoryStream(pdfBytes))
+            using (var outputStream = new MemoryStream())
+            {
+                var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
+                        var lines = text.Split('\n');
+
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
+
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
+
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
+
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
+                    }
+                }
+
+                var securitySettings = document.SecuritySettings;
+                securitySettings.UserPassword = userPassword;
+                securitySettings.OwnerPassword = userPassword;
+                securitySettings.PermitPrint = true;
+                securitySettings.PermitModifyDocument = false;
+                securitySettings.PermitExtractContent = false;
+                securitySettings.PermitAnnotations = false;
+
+                document.Save(outputStream);
+
+                // Optionally save to disk
+                // await System.IO.File.WriteAllBytesAsync(filePath, outputStream.ToArray());
+
+                return File(outputStream.ToArray(), "application/pdf", fileName);
+            }
+        }
+        public async Task<IActionResult> OnGetWordContact_AMJOA_JPEG(string ContractId = "70")
+        {
+            // 1. Get HTML content and convert to PDF bytes
+            var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
+            // 2. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA", "AMJOA_" + ContractId, "AMJOA_" + ContractId + "_JPEG");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var pdfPath = Path.Combine(folderPath, $"AMJOA_{ContractId}.pdf");
+
+            // 3. Save PDF to disk
+            if (System.IO.File.Exists(pdfPath))
+            {
+                System.IO.File.Delete(pdfPath);
+            }
+            await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes);
+
+            // 4. Convert each PDF page to JPEG
+            using (var pdfStream = new MemoryStream(pdfBytes))
+            using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
+            {
+                for (int i = 0; i < document.PageCount; i++)
+                {
+                    using (var image = document.Render(i, 300, 300, true))
+                    {
+                        var jpegPath = Path.Combine(folderPath, $"AMJOA_{ContractId}_p{i + 1}.jpg");
+                        image.Save(jpegPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    }
+                }
+            }
+            // 5. Delete the PDF file after conversion
+            System.IO.File.Delete(pdfPath);
+
+            // 6. Create zip file of JPEGs
+            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA", "AMJOA_" + ContractId);
+            var zipPath = Path.Combine(folderPathZip, $"AMJOA_{ContractId}_JPEG.zip");
+            if (System.IO.File.Exists(zipPath))
+            {
+                System.IO.File.Delete(zipPath);
+            }
+            var jpegFiles = Directory.GetFiles(folderPath, $"AMJOA_{ContractId}_p*.jpg");
+            using (var zip = System.IO.Compression.ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            {
+                foreach (var file in jpegFiles)
+                {
+                    zip.CreateEntryFromFile(file, Path.GetFileName(file));
+                }
+            }
+            // 7. Delete JPEG files after zipping
+            foreach (var file in jpegFiles)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            // 8. Return the zip file as download
+            var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+            return File(zipBytes, "application/zip", $"AMJOA_{ContractId}_JPEG.zip");
+        }
+        public async Task<IActionResult> OnGetWordContact_AMJOA_JPEG_Preview(string ContractId = "70")
+        {
+            // 1. Get HTML content and convert to PDF bytes
+            var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
+            // 2. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA", "AMJOA_" + ContractId, "AMJOA_" + ContractId + "_JPEG");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var pdfPath = Path.Combine(folderPath, $"AMJOA_{ContractId}.pdf");
+
+            // 3. Save PDF to disk
+            if (System.IO.File.Exists(pdfPath))
+            {
+                System.IO.File.Delete(pdfPath);
+            }
+            await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes);
+
+            // 4. Convert each PDF page to JPEG
+            using (var pdfStream = new MemoryStream(pdfBytes))
+            using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
+            {
+                for (int i = 0; i < document.PageCount; i++)
+                {
+                    using (var image = document.Render(i, 300, 300, true))
+                    {
+                        var jpegPath = Path.Combine(folderPath, $"AMJOA_{ContractId}_p{i + 1}.jpg");
+                        image.Save(jpegPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    }
+                }
+            }
+            // 5. Delete the PDF file after conversion
+            System.IO.File.Delete(pdfPath);
+
+            // 6. Create password-protected zip file of JPEGs
+            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA", "AMJOA_" + ContractId);
+            var zipPath = Path.Combine(folderPathZip, $"AMJOA_{ContractId}_JPEG_Preview.zip");
+            if (System.IO.File.Exists(zipPath))
+            {
+                System.IO.File.Delete(zipPath);
+            }
+            var jpegFiles = Directory.GetFiles(folderPath, $"AMJOA_{ContractId}_p*.jpg");
+            string password = _configuration["Password:PaswordPDF"];
+
+            using (var fsOut = System.IO.File.Create(zipPath))
+            using (var zipStream = new ICSharpCode.SharpZipLib.Zip.ZipOutputStream(fsOut))
+            {
+                zipStream.SetLevel(9); // 0-9, 9 = best compression
+                zipStream.Password = password; // Set password
+
+                foreach (var file in jpegFiles)
+                {
+                    var entry = new ICSharpCode.SharpZipLib.Zip.ZipEntry(Path.GetFileName(file))
+                    {
+                        DateTime = DateTime.Now
+                    };
+                    zipStream.PutNextEntry(entry);
+
+                    byte[] buffer = System.IO.File.ReadAllBytes(file);
+                    zipStream.Write(buffer, 0, buffer.Length);
+                    zipStream.CloseEntry();
+                }
+                zipStream.IsStreamOwner = true;
+                zipStream.Close();
+            }
+            // 7. Delete JPEG files after zipping
+            foreach (var file in jpegFiles)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            // 8. Return the password-protected zip file as download
+            var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+            return File(zipBytes, "application/zip", $"AMJOA_{ContractId}_JPEG_Preview.zip");
+        }
+        public async Task<IActionResult> OnGetWordContact_AMJOA_Word(string ContractId = "70")
+        {
+            // 1. Get HTML content from the service
+            var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
+
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA", "AMJOA_" + ContractId);
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, $"AMJOA_{ContractId}.docx");
+
+            // 5. Save Word file to disk
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // 6. Return the Word file as download
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"AMJOA_{ContractId}.docx");
+        }
+        public async Task<IActionResult> OnGetWordContact_AMJOA_Word_Preview(string ContractId = "70")
+        {
+            // 1. Get HTML content from the service
+            var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
+
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA", "AMJOA_" + ContractId);
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, $"AMJOA_{ContractId}_Preview.docx");
+
+            // 5. Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+
+            // 6. Get password from appsettings.json
+            string? userPassword = _configuration["Password:PaswordPDF"];
+
+            // 7. Load the Word file from memory and apply password protection
+            using (var msProtect = new MemoryStream(wordBytes))
+            {
+                Document doc = new Document();
+                doc.LoadFromStream(msProtect, FileFormat.Docx);
+
+                // Apply password protection
+                doc.Encrypt(userPassword);
+
+                // Save the password-protected file
+                doc.SaveToFile(filePath, FileFormat.Docx);
+            }
+
+            // 8. Return the password-protected Word file as download
+            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"AMJOA_{ContractId}_Preview.docx");
+        }
+        #endregion  4.1.6 เอกสารแนบท้ายบันทึกข้อตกลงความร่วมมือและสัญญาร่วมดำเนินการ AMJOA
 
         // Helper: Generate a simple hash and salt for Word protection (not secure, demo only)
         private static void GenerateWordPasswordHash(string password, out string hash, out string salt)
