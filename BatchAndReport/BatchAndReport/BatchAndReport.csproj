@@ -10,13 +10,9 @@
 
   <ItemGroup>
     <Compile Remove="Report\**" />
-    <Compile Remove="Views\File\**" />
     <Content Remove="Report\**" />
-    <Content Remove="Views\File\**" />
     <EmbeddedResource Remove="Report\**" />
-    <EmbeddedResource Remove="Views\File\**" />
     <None Remove="Report\**" />
-    <None Remove="Views\File\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -75,7 +71,6 @@
 
   <ItemGroup>
     <None Include="bin\Debug\net8.0\libwkhtmltox.dll" />
-    <None Include="Views\File\Index.cshtml" />
     <None Include="wwwroot\Report\index.html" />
   </ItemGroup>
 

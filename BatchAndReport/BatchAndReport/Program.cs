@@ -101,6 +101,7 @@ builder.Services.AddScoped<WordEContract_ConsultantService>();
 builder.Services.AddScoped<WordEContract_ContactToDoThingService>();
 builder.Services.AddScoped<WordEContract_MemorandumInWritingService>();
 
+builder.Services.AddScoped<WordEContract_MIWService>();
 // add work flow
 
 builder.Services.AddScoped<WordWorkFlow_annualProcessReviewService>();
@@ -121,6 +122,8 @@ builder.Services.AddScoped<Econtract_Report_CTRDAO>();
 builder.Services.AddScoped<Econtract_Report_PDSADAO>();
 builder.Services.AddScoped<Econtract_Report_CWADAO>();
 builder.Services.AddScoped<Econtract_Report_GADAO>();
+
+
 builder.Services.AddSingleton<IConverter, SynchronizedConverter>(provider =>
     new SynchronizedConverter(new PdfTools()));
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
