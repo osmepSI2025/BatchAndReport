@@ -6,8 +6,19 @@ using DinkToPdf;
 using DinkToPdf.Contracts;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Update the Serilog configuration to use the correct method
+builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
+    .ReadFrom.Configuration(context.Configuration) // Removed GetSection("Serilog")
+    .WriteTo.File(
+        path: "Logs/app-log.txt",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+    )
+);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -116,13 +127,15 @@ builder.Services.AddHostedService(provider => provider.GetRequiredService<Schedu
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+//if (!app.Environment.IsDevelopment() || !app.Environment.IsProduction())
+//{
+//    app.UseExceptionHandler("/Home/Error");
+//    app.UseHsts();
+//}
+//else 
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
-else 
-{
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }

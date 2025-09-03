@@ -1,0 +1,24 @@
+@page
+@model BatchAndReport.Pages.File.UploadFileModel
+@{
+    Layout = "~/Views/Shared/_Layout1.cshtml";
+    ViewData["Title"] = "Upload File";
+}
+
+<h2>Upload File</h2>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="PostedFiles">Select files to upload</label>
+        <input type="file" name="FileUpload.PostedFiles" id="PostedFiles" multiple class="form-control" />
+    </div>
+    <input type="hidden" name="FileUpload.ProcessInstanceID" value="@Model.FileUpload.ProcessInstanceID" />
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="@(Model.IsSuccess ? "alert alert-success mt-3" : "alert alert-danger mt-3")">
+        <p>@Model.StatusMessage</p>
+    </div>
+}

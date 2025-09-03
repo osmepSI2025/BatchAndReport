@@ -1,9 +1,5 @@
 ﻿// Controllers/FileController.cs
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using BatchAndReport.Models;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BatchAndReport.Controllers
@@ -46,6 +42,12 @@ namespace BatchAndReport.Controllers
             // กลับไปหน้าเดิมพร้อมข้อความ หรือจะคืน JSON ก็ได้
             // return RedirectToAction("Index"); // ถ้ามีหน้าแสดงผล
             return Ok(new { message = "Upload complete.", folder = targetFolder, count = model.PostedFiles.Count });
+        }
+
+        public IActionResult Index()
+        {
+            FileUploadModel xmodel = new FileUploadModel();
+            return View(xmodel);
         }
     }
 }

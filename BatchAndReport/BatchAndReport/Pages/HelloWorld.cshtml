@@ -1,0 +1,77 @@
+@page
+@model BatchAndReport.Pages.HelloWorldModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Hello World Test</title>
+    <style>
+        .upload-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            font-family: 'TH SarabunPSK', Arial, sans-serif;
+            font-size: 20px;
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+        }
+        .upload-container h2 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .form-group label,
+        .form-group input,
+        .form-group span,
+        .upload-button,
+        .status-success,
+        .status-error {
+            font-size: 20px;
+        }
+        .upload-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .upload-button:hover {
+            background-color: #0056b3;
+        }
+        .status-success {
+            color: green;
+        }
+        .status-error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>@Model.Message</h1>
+    <div class="upload-container">
+        <h2>Upload File</h2>
+        <form method="post" enctype="multipart/form-data" asp-page-handler="Upload">
+            <div class="form-group">
+                <label asp-for="PostedFiles"></label>
+                <input type="file" asp-for="PostedFiles" multiple />
+                <span asp-validation-for="PostedFiles"></span>
+            </div>
+            <input type="hidden" asp-for="ProcessInstanceID" />
+            <button type="submit" class="upload-button">Upload</button>
+            @if (!string.IsNullOrEmpty(Model.StatusMessage))
+            {
+                <div class="@(Model.IsSuccess ? "status-success" : "status-error")">
+                    <p>@Model.StatusMessage</p>
+                </div>
+            }
+        </form>
+    </div>
+</body>
+</html>

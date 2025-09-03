@@ -4529,31 +4529,42 @@ namespace BatchAndReport.Pages.Report
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
-
                 // Add watermark to each page
                 foreach (var page in document.Pages)
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}";
-                        var size = gfx.MeasureString(text, font);
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
