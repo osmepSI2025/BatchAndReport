@@ -99,6 +99,7 @@ builder.Services.AddScoped<WordEContract_ControlDataService>();
 builder.Services.AddScoped<WordEContract_DataPersonalService>();
 builder.Services.AddScoped<WordEContract_ConsultantService>();
 builder.Services.AddScoped<WordEContract_ContactToDoThingService>();
+builder.Services.AddScoped<WordEContract_MemorandumInWritingService>();
 
 // add work flow
 

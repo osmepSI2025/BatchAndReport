@@ -41,7 +41,7 @@ namespace BatchAndReport.Controllers
 
             // กลับไปหน้าเดิมพร้อมข้อความ หรือจะคืน JSON ก็ได้
             // return RedirectToAction("Index"); // ถ้ามีหน้าแสดงผล
-            return Ok(new { message = "Upload complete.", folder = targetFolder, count = model.PostedFiles.Count });
+            return Ok("จำนวนไฟล์ที่ถูกอัพโหลดสำเร็จทั้งหมด " + model.PostedFiles.Count +" ไฟล์");
         }
 
         public IActionResult Index()

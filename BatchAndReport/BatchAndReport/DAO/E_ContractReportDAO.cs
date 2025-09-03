@@ -100,7 +100,7 @@ namespace BatchAndReport.DAO
                     BU_UNIT = signatoryReader["BU_UNIT"] as string,
                     DS_FILE = signatoryReader["DS_FILE"] as string,
                     Company_Seal = signatoryReader["Company_Seal"] as string,
-                       Signatory_Type = signatoryReader["Signatory_Type"] as string
+                    Signatory_Type = signatoryReader["Signatory_Type"] as string
                 });
             }
 
@@ -196,6 +196,60 @@ namespace BatchAndReport.DAO
 
             return detail;
         }
+        public async Task<E_ConReport_MOAModels?> GetMOAAsync(string moaId)
+        {
+            var conn = _k2context_EContract.Database.GetDbConnection();
+            await using var connection = new SqlConnection(conn.ConnectionString);
+            await using var command = new SqlCommand("sp_Preview_MOA", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@MOA_ID_INPUT", moaId);
+            await connection.OpenAsync();
+
+            using var reader = await command.ExecuteReaderAsync();
+            if (!await reader.ReadAsync()) return null;
+
+            var detail = new E_ConReport_MOAModels
+            {
+                MOA_ID = reader["MOA_ID"] as long?,
+                Contract_Number = reader["Contract_Number"] as string,
+                ProjectTitle = reader["ProjectTitle"] as string,
+                OrgName = reader["OrgName"] as string,
+                OrgCommonName = reader["OrgCommonName"] as string,
+                Sign_Date = reader["Sign_Date"] as DateTime?,
+                Requestor = reader["Requestor"] as string,
+                RequestorPosition = reader["RequestorPosition"] as string,
+                Org_Requestor = reader["Org_Requestor"] as string,
+                Org_RequestorPosition = reader["Org_RequestorPosition"] as string,
+                Contract_Type = reader["Contract_Type"] as string,
+                Contract_Type_Other = reader["Contract_Type_Other"] as string,
+                Effective_Date = reader["Effective_Date"] as DateTime?,
+                Office_Loc = reader["Office_Loc"] as string,
+                Start_Date = reader["Start_Date"] as DateTime?,
+                End_Date = reader["End_Date"] as DateTime?,
+                Contract_Value = reader["Contract_Value"] as decimal?,
+                Contract_Category = reader["Contract_Category"] as string,
+                Contract_Storage = reader["Contract_Storage"] as string,
+                OSMEP_Signer = reader["OSMEP_Signer"] as string,
+                OSMEP_Witness = reader["OSMEP_Witness"] as string,
+                Contract_Signer = reader["Contract_Signer"] as string,
+                Contract_Witness = reader["Contract_Witness"] as string,
+                CreatedDate = reader["CreatedDate"] as DateTime?,
+                CreateBy = reader["CreateBy"] as string,
+                UpdateDate = reader["UpdateDate"] as DateTime?,
+                UpdateBy = reader["UpdateBy"] as string,
+                Flag_Delete = reader["Flag_Delete"] as bool?,
+                Request_ID = reader["Request_ID"] as string,
+                Contract_Status = reader["Contract_Status"] as string,
+                NeedAttachCuS = reader["NeedAttachCuS"] as bool?,
+                AttorneyFlag = reader["AttorneyFlag"] as bool?,
+                AttorneyLetterNumber = reader["AttorneyLetterNumber"] as string
+            };
+
+            return detail;
+        }
 
         public async Task<List<E_ConReport_MOUPoposeModels>> GetMOUPoposeAsync(string? Mou_id = "0")
         {
@@ -231,7 +285,37 @@ namespace BatchAndReport.DAO
 
         }
 
+        public async Task<List<E_ConReport_MOAPoposeModels>> GetMOAPoposeAsync(string? Moa_id = "0")
+        {
+            try
+            {
+                var result = new List<E_ConReport_MOAPoposeModels>();
+                await using var connection = _connectionDAO.GetConnectionK2Econctract();
+                await using var command = new SqlCommand(@"
+        SELECT MOAP_ID, MOA_ID, Detail
+        FROM MOA_Purpose
+        WHERE MOA_ID = @MOA_ID", connection);
 
+                command.Parameters.AddWithValue("@MOA_ID", Moa_id ?? "0");
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new E_ConReport_MOAPoposeModels
+                    {
+                        MOAP_ID = reader["MOAP_ID"] as int?,
+                        MOA_ID = reader["MOA_ID"] as int?,
+                        Detail = reader["Detail"] as string
+                    });
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
 
         #region PDPA    
         public async Task<E_ConReport_PDPAModels?> GetPDPAAsync(string Joa_id)

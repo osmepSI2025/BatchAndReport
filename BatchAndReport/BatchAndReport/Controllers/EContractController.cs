@@ -76,7 +76,8 @@ namespace BatchAndReport.Controllers
 
                 if (employees?.Results == null || !employees.Results.Any())
                     return BadRequest("No employee contract data found.");
-
+                
+                string keyString = "5EU6l0SddrsT5HI6MhIxFkwT8JHRUyxz";
                 // Map to model
                 var contractModels = employees.Results
                     .Where(emp => emp != null) // Ensure no null references
@@ -101,8 +102,15 @@ namespace BatchAndReport.Controllers
                         CompanyId = emp.CompanyId,
                         BusinessUnitId = emp.BusinessUnitId,
                         PositionId = emp.PositionId,
-                        Salary = emp.Salary,
-                        IdCard = emp.IdCard,
+                        //Salary = emp.Salary,
+                        //IdCard = emp.IdCard,
+                        // ▼ Salary: ถอดรหัสก่อน; ถ้าไม่ได้ลองพาร์สเป็นตัวเลขดิบ; สุดท้ายให้ 0
+                        Salary = DecryptBase64String(emp.Salary, keyString)
+                         ?? emp.Salary,
+
+                        // ▼ IdCard: ถอดรหัสก่อน; ถ้าไม่ได้เก็บค่าดิบไว้
+                        IdCard = DecryptBase64String(emp.IdCard, keyString)
+                         ?? emp.IdCard,
                         PassportNo = emp.PassportNo
                     }).ToList();
 
@@ -315,7 +323,8 @@ namespace BatchAndReport.Controllers
 
             try
             {
-                string encryptedBase64 = "8EgYChBAnJaZTdXJNarZng==";
+                
+                string encryptedBase64 = "7GtvfN8LB5aEOtY0c7didw=="; //8EgYChBAnJaZTdXJNarZng==
                 string encryptionKey = "5EU6l0SddrsT5HI6MhIxFkwT8JHRUyxz";
 
                 decryptedText = DecryptBase64String(encryptedBase64, encryptionKey);
@@ -327,7 +336,7 @@ namespace BatchAndReport.Controllers
             }
 
             // ViewBag.DecryptedText = decryptedText;
-            return Ok();
+            return Ok(decryptedText);
         }
         // ตัวอย่างการถอดรหัส AES-256
 

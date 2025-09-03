@@ -29,6 +29,7 @@ namespace BatchAndReport.Pages.Report
         private readonly WordEContract_DataPersonalService _DataPersonalService;
         private readonly WordEContract_ConsultantService _ConsultantService;
         private readonly WordEContract_Test_HeaderLOGOService _Test_HeaderLOGOService;
+        private readonly WordEContract_MemorandumInWritingService _MemorandumInWritingService;
         private readonly IConfiguration _configuration;
         public ExportModel(SmeDAO smeDao, WordEContract_AllowanceService allowanceService
             , WordEContract_LoanPrinterService wordEContract_LoanPrinterService
@@ -50,6 +51,7 @@ namespace BatchAndReport.Pages.Report
             , WordEContract_DataPersonalService DataPersonalService
             , WordEContract_ConsultantService ConsultantService
             , WordEContract_Test_HeaderLOGOService Test_HeaderLOGOService
+            , WordEContract_MemorandumInWritingService MemorandumInWritingService
             , IConfiguration configuration // <-- add this
             )
         {
@@ -73,6 +75,7 @@ namespace BatchAndReport.Pages.Report
             this._DataPersonalService = DataPersonalService;
             this._ConsultantService = ConsultantService;
             this._Test_HeaderLOGOService = Test_HeaderLOGOService;
+            this._MemorandumInWritingService = MemorandumInWritingService;
             _configuration = configuration; // <-- initialize the configuration
         }
         public IActionResult OnGetPdf()
@@ -165,7 +168,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -461,7 +464,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -753,7 +756,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -1047,7 +1050,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -1338,7 +1341,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -1896,7 +1899,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -2190,7 +2193,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -2484,7 +2487,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -2777,7 +2780,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -3072,7 +3075,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -3363,7 +3366,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -3656,7 +3659,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -3947,7 +3950,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page
@@ -4188,6 +4191,291 @@ namespace BatchAndReport.Pages.Report
         }
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 
+        #region 4.1.1.2.3.บันทึกข้อตกลงความเข้าใจ MOA
+        public async Task OnGetWordContact_MOA_PDF(string ContractId = "7")
+        {
+            var wordBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "MOA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            //   return File(wordBytes, "application/pdf", "MOU_" + ContractId + ".pdf");
+        }
+        public async Task<IActionResult> OnGetWordContact_MOA_PDF_Preview(string ContractId = "7", string Name = "สมใจ ทดสอบ")
+        {
+            var wordBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var fileName = $"MOA_{ContractId}_Preview.pdf";
+            var filePath = Path.Combine(folderPath, fileName);
+
+            // Get password from appsettings.json
+            string userPassword = _configuration["Password:PaswordPDF"];
+
+            using (var inputStream = new MemoryStream(wordBytes))
+            using (var outputStream = new MemoryStream())
+            {
+                var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
+
+                // Add watermark to each page
+                foreach (var page in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
+                        var size = gfx.MeasureString(text, font);
+
+                        // Center of the page
+                        double x = (page.Width - size.Width) / 2;
+                        double y = (page.Height - size.Height) / 2;
+
+                        // Draw the watermark diagonally with transparency
+                        var state = gfx.Save();
+                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                        gfx.RotateTransform(-30);
+                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                        gfx.DrawString(text, font, brush, x, y);
+                        gfx.Restore(state);
+                    }
+                }
+
+                var securitySettings = document.SecuritySettings;
+                securitySettings.UserPassword = userPassword;
+                securitySettings.OwnerPassword = userPassword;
+                securitySettings.PermitPrint = true;
+                securitySettings.PermitModifyDocument = false;
+                securitySettings.PermitExtractContent = false;
+                securitySettings.PermitAnnotations = false;
+
+                document.Save(outputStream);
+
+                // Optionally save to disk
+                // await System.IO.File.WriteAllBytesAsync(filePath, outputStream.ToArray());
+
+                return File(outputStream.ToArray(), "application/pdf", fileName);
+            }
+        }
+        public async Task<IActionResult> OnGetWordContact_MOA_JPEG(string ContractId = "7")
+        {
+            // 1. Generate PDF from MOU contract
+            var pdfBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+
+            // 2. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId, "MOA_" + ContractId + "_JPEG");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var pdfPath = Path.Combine(folderPath, $"MOA_{ContractId}.pdf");
+
+            // 3. Save PDF to disk
+            if (System.IO.File.Exists(pdfPath))
+            {
+                System.IO.File.Delete(pdfPath);
+            }
+            await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes);
+
+            // 4. Convert each PDF page to JPEG
+            using (var pdfStream = new MemoryStream(pdfBytes))
+            using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
+            {
+                for (int i = 0; i < document.PageCount; i++)
+                {
+                    using (var image = document.Render(i, 300, 300, true))
+                    {
+                        var jpegPath = Path.Combine(folderPath, $"MOA_{ContractId}_p{i + 1}.jpg");
+                        image.Save(jpegPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    }
+                }
+            }
+            // 5. Delete the PDF file after conversion
+            System.IO.File.Delete(pdfPath);
+
+            // 6. Create zip file of JPEGs
+            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId);
+            var zipPath = Path.Combine(folderPathZip, $"MOA_{ContractId}_JPEG.zip");
+            if (System.IO.File.Exists(zipPath))
+            {
+                System.IO.File.Delete(zipPath);
+            }
+            var jpegFiles = Directory.GetFiles(folderPath, $"MOA_{ContractId}_p*.jpg");
+            using (var zip = System.IO.Compression.ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            {
+                foreach (var file in jpegFiles)
+                {
+                    zip.CreateEntryFromFile(file, Path.GetFileName(file));
+                }
+            }
+            // 7. Delete JPEG files after zipping
+            foreach (var file in jpegFiles)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            // 8. Return the zip file as download
+            var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+            return File(zipBytes, "application/zip", $"MOA_{ContractId}_JPEG.zip");
+        }
+
+        public async Task<IActionResult> OnGetWordContact_MOA_JPEG_Preview(string ContractId = "7")
+        {
+            // 1. Generate PDF from MOU contract
+            var pdfBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+
+            // 2. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId, "MOA_" + ContractId + "_JPEG");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var pdfPath = Path.Combine(folderPath, $"MOA_{ContractId}.pdf");
+
+            // 3. Save PDF to disk
+            if (System.IO.File.Exists(pdfPath))
+            {
+                System.IO.File.Delete(pdfPath);
+            }
+            await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes);
+
+            // 4. Convert each PDF page to JPEG
+            using (var pdfStream = new MemoryStream(pdfBytes))
+            using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
+            {
+                for (int i = 0; i < document.PageCount; i++)
+                {
+                    using (var image = document.Render(i, 300, 300, true))
+                    {
+                        var jpegPath = Path.Combine(folderPath, $"MOA_{ContractId}_p{i + 1}.jpg");
+                        image.Save(jpegPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    }
+                }
+            }
+            // 5. Delete the PDF file after conversion
+            System.IO.File.Delete(pdfPath);
+
+            // 6. Create password-protected zip file of JPEGs
+            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId);
+            var zipPath = Path.Combine(folderPathZip, $"MOA_{ContractId}_JPEG_Preview.zip");
+            if (System.IO.File.Exists(zipPath))
+            {
+                System.IO.File.Delete(zipPath);
+            }
+            var jpegFiles = Directory.GetFiles(folderPath, $"MOA_{ContractId}_p*.jpg");
+            string password = _configuration["Password:PaswordPDF"];
+
+            using (var fsOut = System.IO.File.Create(zipPath))
+            using (var zipStream = new ZipOutputStream(fsOut))
+            {
+                zipStream.SetLevel(9); // 0-9, 9 = best compression
+                zipStream.Password = password; // Set password
+
+                foreach (var file in jpegFiles)
+                {
+                    var entry = new ZipEntry(Path.GetFileName(file))
+                    {
+                        DateTime = DateTime.Now
+                    };
+                    zipStream.PutNextEntry(entry);
+
+                    byte[] buffer = System.IO.File.ReadAllBytes(file);
+                    zipStream.Write(buffer, 0, buffer.Length);
+                    zipStream.CloseEntry();
+                }
+                zipStream.IsStreamOwner = true;
+                zipStream.Close();
+            }
+            // 7. Delete JPEG files after zipping
+            foreach (var file in jpegFiles)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            // 8. Return the password-protected zip file as download
+            var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
+            return File(zipBytes, "application/zip", $"MOA_{ContractId}_JPEG_Preview.zip");
+        }
+        public async Task<IActionResult> OnGetWordContact_MOA_Word(string ContractId = "7")
+        {
+            // 1. Get the Word document for MOU contract
+            var wordBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+
+            // 2. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId);
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, $"MOA_{ContractId}.docx");
+
+            // 3. Save Word file to disk
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // 4. Return the Word file as download
+            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"MOA_{ContractId}.docx");
+        }
+        public async Task<IActionResult> OnGetWordContact_MOA_Word_Preview(string ContractId = "7")
+        {
+            // 1. Get the Word document for MOU contract
+            var wordBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+
+            // 2. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId);
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, $"MOA_{ContractId}_Preview.docx");
+
+            // 3. Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+
+            // 4. Get password from appsettings.json
+            string? userPassword = _configuration["Password:PaswordPDF"];
+
+            // 5. Load the Word file from memory and apply password protection
+            using (var ms = new MemoryStream(wordBytes))
+            {
+                Document doc = new Document();
+                doc.LoadFromStream(ms, FileFormat.Docx);
+
+                // Apply password protection
+                doc.Encrypt(userPassword);
+
+                // Save the password-protected file
+                doc.SaveToFile(filePath, FileFormat.Docx);
+            }
+
+            // 6. Return the password-protected Word file as download
+            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"MOA_{ContractId}_Preview.docx");
+        }
+        #endregion  4.1.1.2.3.บันทึกข้อตกลงความเข้าใจ MOA
+
         #region 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
         public async Task<IActionResult> OnGetWordContact_GA(string ContractId = "1")
         {
@@ -4239,7 +4527,7 @@ namespace BatchAndReport.Pages.Report
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์โดย โดย {Name}";
+                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
                         var size = gfx.MeasureString(text, font);
 
                         // Center of the page

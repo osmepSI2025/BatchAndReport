@@ -1,4 +1,6 @@
-﻿namespace BatchAndReport.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BatchAndReport.Models
 {
     public class ProcessMasterModels
     {
@@ -12,4 +14,5 @@
         public int? FISCAL_YEAR_ID { get; set; }
         public bool? IS_DELETED { get; set; }
     }
+    
 }
