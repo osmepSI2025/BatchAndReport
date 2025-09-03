@@ -5428,36 +5428,49 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_MIW_Word_Preview(string ContractId = "70")
         {
-            var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationService(ContractId);
+            // 1. Get HTML content from the service
+            var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
 
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MIW", "MIW_" + ContractId);
-
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
-            var filePath = Path.Combine(folderPath, "MIW_" + ContractId + "_Preview.docx");
+            var filePath = Path.Combine(folderPath, $"MIW_{ContractId}_Preview.docx");
 
-            // ลบไฟล์เดิมถ้ามี
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
+
+            // 6. Get password from appsettings.json
             string? userPassword = _configuration["Password:PaswordPDF"];
-            // โหลดไฟล์จาก memory
-            using (var ms = new MemoryStream(wordBytes))
+
+            // 7. Load the Word file from memory and apply password protection
+            using (var msProtect = new MemoryStream(wordBytes))
             {
                 Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
+                doc.LoadFromStream(msProtect, FileFormat.Docx);
 
-                // ใส่ password
-                doc.Encrypt(userPassword); // <-- password ตอนเปิด Word
+                // Apply password protection
+                doc.Encrypt(userPassword);
 
-                // Save ใหม่เป็นไฟล์เข้ารหัส
+                // Save the password-protected file
                 doc.SaveToFile(filePath, FileFormat.Docx);
             }
 
-            // Return the file as download
+            // 8. Return the password-protected Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"MIW_{ContractId}_Preview.docx");
         }
