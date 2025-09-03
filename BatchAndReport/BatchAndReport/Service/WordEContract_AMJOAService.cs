@@ -5,6 +5,7 @@ using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using iText.Commons.Actions.Data;
 using iText.Commons.Bouncycastle.Crypto;
 using iText.Signatures;
 using Spire.Doc.Documents;
@@ -81,6 +82,53 @@ public class WordEContract_AMJOAService
             strAttorney = "";
         }
         #endregion
+
+        // data mock 6. ตัวชี้วัดความสำเร็จของโครงการ
+        var mockIndicators = GenerateMockData();
+
+        // Build the HTML table for section 6 using mockIndicators
+        var indicatorTable = new StringBuilder();
+        indicatorTable.AppendLine("<table style='width:100%; border-collapse:collapse; margin-top:10px; font-size:1.2em;'>");
+        indicatorTable.AppendLine("<tr>");
+        indicatorTable.AppendLine("<th style='border:1px solid #000;'>ผลผลิต</th>");
+        indicatorTable.AppendLine("<th style='border:1px solid #000;'>หน่วยนับ</th>");
+        indicatorTable.AppendLine("<th style='border:1px solid #000;'>เป้าหมาย</th>");
+        indicatorTable.AppendLine("<th style='border:1px solid #000;'>วิธีการวัด</th>");
+        indicatorTable.AppendLine("</tr>");
+
+        // Outputs
+        for (int i = 0; i < mockIndicators.Outputs.Count; i++)
+        {
+            var o = mockIndicators.Outputs[i];
+            indicatorTable.AppendLine("<tr>");
+            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{i + 1}. {o.Description}</td>");
+            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.UnitOfMeasurement}</td>");
+            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.Target}</td>");
+            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.MeasurementMethod}</td>");
+            indicatorTable.AppendLine("</tr>");
+        }
+
+        // Outcomes header
+        indicatorTable.AppendLine("<tr>");
+
+        indicatorTable.AppendLine("<th style='border:1px solid #000;'>ผลลัพธ์</th>");
+        indicatorTable.AppendLine("<th style='border:1px solid #000;'>หน่วยนับ</th>");
+        indicatorTable.AppendLine("<th style='border:1px solid #000;'>เป้าหมาย</th>");
+        indicatorTable.AppendLine("<th style='border:1px solid #000;'>วิธีการวัด</th>");
+        indicatorTable.AppendLine("</tr>");
+
+        // Outcomes
+        for (int i = 0; i < mockIndicators.Outcomes.Count; i++)
+        {
+            var o = mockIndicators.Outcomes[i];
+            indicatorTable.AppendLine("<tr>");
+            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{i + 1}. {o.Description}</td>");
+            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.UnitOfMeasurement}</td>");
+            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.Target}</td>");
+            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.MeasurementMethod}</td>");
+            indicatorTable.AppendLine("</tr>");
+        }
+        indicatorTable.AppendLine("</table>");
 
         var strDateTH = CommonDAO.ToThaiDateString(dataResult.Contract_SignDate ?? DateTime.Now);
         var purposeList = await _eContractReportDAO.GetJOAPoposeAsync(conId);
@@ -324,8 +372,7 @@ SMEs ที่เข้าร่วมโครงการอย่างใก
  <P class='t-16 tab3'>๕.๒.๘ .......................</P>
 
   <P class='t-16 tab0'><b>๖. ตัวชี้วัดความสำเร็จของโครงการ</b></P>
-    <P class='t-16 tab1'> ตาราง</P>
-     <P class='t-16 tab1'> ตาราง</P>
+   {indicatorTable.ToString()}
 
    <P class='t-16 tab0'><b>๗. ระยะเวลาการดำเนินงาน</b></P>
     <P class='t-16 tab1'>ระยะเวลา</P>
@@ -398,5 +445,78 @@ SMEs ที่เข้าร่วมโครงการอย่างใก
 
        
         return html;
+    }
+
+    public static ProjectData GenerateMockData()
+    {
+        var projectData = new ProjectData();
+
+        // Mock data for "Outputs"
+        projectData.Outputs = new List<ProjectIndicator>
+        {
+            new ProjectIndicator
+            {
+                Description = "เอกสารคู่มือการใช้งาน (User manual documents)",
+                UnitOfMeasurement = "ฉบับ (Copies)",
+                Target = "5",
+                MeasurementMethod = "การตรวจสอบเอกสาร (Document review)"
+            },
+            new ProjectIndicator
+            {
+                Description = "จำนวนผู้เข้าอบรม (Number of trainees)",
+                UnitOfMeasurement = "คน (People)",
+                Target = "100",
+                MeasurementMethod = "รายชื่อผู้เข้าอบรม (Trainee list)"
+            },
+            new ProjectIndicator
+            {
+                Description = "การจัดกิจกรรม Workshop (Workshop activities)",
+                UnitOfMeasurement = "ครั้ง (Times)",
+                Target = "2",
+                MeasurementMethod = "สรุปผลการจัดกิจกรรม (Activity summary report)"
+            },
+            new ProjectIndicator
+            {
+                Description = "รายงานผลการดำเนินงาน (Project progress reports)",
+                UnitOfMeasurement = "ฉบับ (Copies)",
+                Target = "3",
+                MeasurementMethod = "การส่งมอบเอกสารตามกำหนด (On-time document submission)"
+            }
+        };
+
+        // Mock data for "Outcomes"
+        projectData.Outcomes = new List<ProjectIndicator>
+        {
+            new ProjectIndicator
+            {
+                Description = "ผู้ใช้งานมีความเข้าใจในการใช้ระบบ (User understanding of the system)",
+                UnitOfMeasurement = "เปอร์เซ็นต์ (%)",
+                Target = "85%",
+                MeasurementMethod = "แบบสอบถามประเมินความพึงพอใจ (Satisfaction survey)"
+            },
+            new ProjectIndicator
+            {
+                Description = "ลดระยะเวลาในการทำงาน (Reduced work duration)",
+                UnitOfMeasurement = "เปอร์เซ็นต์ (%)",
+                Target = "20%",
+                MeasurementMethod = "การเปรียบเทียบระยะเวลาก่อนและหลังใช้งาน (Before and after usage time comparison)"
+            }
+        };
+
+        return projectData;
+    }
+    public class ProjectIndicator
+    {
+        public string Description { get; set; }
+        public string UnitOfMeasurement { get; set; }
+        public string Target { get; set; }
+        public string MeasurementMethod { get; set; }
+    }
+
+    // Defines a container for the project's success indicators
+    public class ProjectData
+    {
+        public List<ProjectIndicator> Outputs { get; set; }
+        public List<ProjectIndicator> Outcomes { get; set; }
     }
 }
