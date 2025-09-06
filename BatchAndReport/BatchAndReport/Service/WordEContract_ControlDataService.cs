@@ -385,7 +385,7 @@ public class WordEContract_ControlDataService
         }
        
     }
-    public async Task<byte[]> OnGetWordContact_ControlDataServiceHtmlToPdf(string id,string typeContact)
+    public async Task<string> OnGetWordContact_ControlDataServiceHtmlToPdf(string id,string typeContact)
     {
         var result = await _eContractReportDAO.GetJDCAAsync(id);
         if (result == null)
@@ -734,35 +734,35 @@ public class WordEContract_ControlDataService
 ";
 
         // You must inject IConverter _pdfConverter in the constructor
-        var doc = new DinkToPdf.HtmlToPdfDocument()
-        {
-            GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-            Objects = {
-            new DinkToPdf.ObjectSettings() {
-                HtmlContent = html,
-                FooterSettings = new DinkToPdf.FooterSettings
-                {
-                    FontName = "THSarabunNew",
-                    FontSize = 6,
-                    Line = false,
-                    Center = "[page] / [toPage]"
-                }
-            }
-        }
-        };
+        //var doc = new DinkToPdf.HtmlToPdfDocument()
+        //{
+        //    GlobalSettings = {
+        //    PaperSize = DinkToPdf.PaperKind.A4,
+        //    Orientation = DinkToPdf.Orientation.Portrait,
+        //    Margins = new DinkToPdf.MarginSettings
+        //    {
+        //        Top = 20,
+        //        Bottom = 20,
+        //        Left = 20,
+        //        Right = 20
+        //    }
+        //},
+        //    Objects = {
+        //    new DinkToPdf.ObjectSettings() {
+        //        HtmlContent = html,
+        //        FooterSettings = new DinkToPdf.FooterSettings
+        //        {
+        //            FontName = "THSarabunNew",
+        //            FontSize = 6,
+        //            Line = false,
+        //            Center = "[page] / [toPage]"
+        //        }
+        //    }
+        //}
+        //};
 
-        var pdfBytes = _pdfConverter.Convert(doc);
-        return pdfBytes;
+        //var pdfBytes = _pdfConverter.Convert(doc);
+        return html;
     }
 
     #endregion 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ

@@ -210,7 +210,7 @@ public class WordEContract_JointOperationService
     }
     #endregion 4.1.1.2.1.สัญญาร่วมดำเนินการ
 
-    public async Task<byte[]> OnGetWordContact_JointOperationServiceHtmlToPDF(string conId)
+    public async Task<string> OnGetWordContact_JointOperationServiceHtmlToPDF(string conId)
     {
         var dataResult = await _eContractReportDAO.GetJOAAsync(conId);
         if (dataResult == null)
@@ -457,37 +457,39 @@ public class WordEContract_JointOperationService
 </html>
 ";
 
-        if (_pdfConverter == null)
-            throw new Exception("PDF service is not available.");
+        //if (_pdfConverter == null)
+        //    throw new Exception("PDF service is not available.");
 
-        var doc = new HtmlToPdfDocument()
-        {
-            GlobalSettings = {
-            PaperSize = PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-            Objects = {
-            new ObjectSettings() {
-                HtmlContent = html,
-                FooterSettings = new FooterSettings
-                {
-                    FontName = "THSarabunNew",
-                    FontSize = 6,
-                    Line = false,
-                    Center = "[page] / [toPage]"
-                }
-            }
-        }
-        };
+        //var doc = new HtmlToPdfDocument()
+        //{
+        //    GlobalSettings = {
+        //    PaperSize = PaperKind.A4,
+        //    Orientation = DinkToPdf.Orientation.Portrait,
+        //    Margins = new MarginSettings
+        //    {
+        //        Top = 20,
+        //        Bottom = 20,
+        //        Left = 20,
+        //        Right = 20
+        //    }
+        //},
+        //    Objects = {
+        //    new ObjectSettings() {
+        //        HtmlContent = html,
+        //        FooterSettings = new FooterSettings
+        //        {
+        //            FontName = "THSarabunNew",
+        //            FontSize = 6,
+        //            Line = false,
+        //            Center = "[page] / [toPage]"
+        //        }
+        //    }
+        //}
+        //};
 
-        var pdfBytes = _pdfConverter.Convert(doc);
-        return pdfBytes;
+        //var pdfBytes = _pdfConverter.Convert(doc);
+        //return pdfBytes;
+
+        return html;
     }
 }

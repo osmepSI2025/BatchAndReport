@@ -312,7 +312,7 @@ public class WordEContract_PersernalProcessService
       
     }
 
-    public async Task<byte[]> OnGetWordContact_PersernalProcessService_HtmlToPDF(string id ,string typeContact)
+    public async Task<string> OnGetWordContact_PersernalProcessService_HtmlToPDF(string id ,string typeContact)
     {
         try {
          
@@ -597,39 +597,39 @@ public class WordEContract_PersernalProcessService
 </html>
 ";
 
-            var doc = new DinkToPdf.HtmlToPdfDocument()
-            {
-                GlobalSettings = {
-                PaperSize = DinkToPdf.PaperKind.A4,
-                Orientation = DinkToPdf.Orientation.Portrait,
-                Margins = new DinkToPdf.MarginSettings
-                {
-                    Top = 20,
-                    Bottom = 20,
-                    Left = 20,
-                    Right = 20
-                }
-            },
-                Objects = {
-                new DinkToPdf.ObjectSettings() {
-                    HtmlContent = html,
-                    FooterSettings = new DinkToPdf.FooterSettings
-                    {
-                        FontName = "THSarabunNew",
-                        FontSize = 6,
-                        Line = false,
-                        Center = "[page] / [toPage]"
-                    }
-                }
-            }
-            };
+            //var doc = new DinkToPdf.HtmlToPdfDocument()
+            //{
+            //    GlobalSettings = {
+            //    PaperSize = DinkToPdf.PaperKind.A4,
+            //    Orientation = DinkToPdf.Orientation.Portrait,
+            //    Margins = new DinkToPdf.MarginSettings
+            //    {
+            //        Top = 20,
+            //        Bottom = 20,
+            //        Left = 20,
+            //        Right = 20
+            //    }
+            //},
+            //    Objects = {
+            //    new DinkToPdf.ObjectSettings() {
+            //        HtmlContent = html,
+            //        FooterSettings = new DinkToPdf.FooterSettings
+            //        {
+            //            FontName = "THSarabunNew",
+            //            FontSize = 6,
+            //            Line = false,
+            //            Center = "[page] / [toPage]"
+            //        }
+            //    }
+            //}
+            //};
 
-            var pdfBytes = _pdfConverter.Convert(doc);
-            return pdfBytes;
+            //var pdfBytes = _pdfConverter.Convert(doc);
+            return html;
         }
         catch
         {
-            return Array.Empty<byte>();
+            return null;
         }
     }
 

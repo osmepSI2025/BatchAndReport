@@ -198,7 +198,7 @@ public class WordEContract_SupportSMEsService
     }
     #endregion  4.1.1.2.2.สัญญารับเงินอุดหนุน
 
-    public async Task<byte[]> OnGetWordContact_SupportSMEsService_HtmlToPDF(string id,string typeContact)
+    public async Task<string> OnGetWordContact_SupportSMEsService_HtmlToPDF(string id,string typeContact)
     {
         var result = await _e.GetGAAsync(id);
    
@@ -493,34 +493,34 @@ public class WordEContract_SupportSMEsService
 </body>
 </html>
 ";
-        var doc = new HtmlToPdfDocument()
-        {
-            GlobalSettings = {
-            PaperSize = PaperKind.A4,
-            Orientation = Orientation.Portrait,
-            Margins = new MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-            Objects = {
-            new ObjectSettings() {
-                HtmlContent = html,
-                FooterSettings = new FooterSettings
-                {
-                    FontName = "THSarabunNew",
-                    FontSize = 6,
-                    Line = false,
-                    Center = "[page] / [toPage]" // Thai page numbering
-                }
-            }
-        }
-        };
+        //var doc = new HtmlToPdfDocument()
+        //{
+        //    GlobalSettings = {
+        //    PaperSize = PaperKind.A4,
+        //    Orientation = Orientation.Portrait,
+        //    Margins = new MarginSettings
+        //    {
+        //        Top = 20,
+        //        Bottom = 20,
+        //        Left = 20,
+        //        Right = 20
+        //    }
+        //},
+        //    Objects = {
+        //    new ObjectSettings() {
+        //        HtmlContent = html,
+        //        FooterSettings = new FooterSettings
+        //        {
+        //            FontName = "THSarabunNew",
+        //            FontSize = 6,
+        //            Line = false,
+        //            Center = "[page] / [toPage]" // Thai page numbering
+        //        }
+        //    }
+        //}
+        //};
 
-        var pdfBytes = _pdfConverter.Convert(doc);
-        return pdfBytes;
+        //var pdfBytes = _pdfConverter.Convert(doc);
+        return html;
     }
 }

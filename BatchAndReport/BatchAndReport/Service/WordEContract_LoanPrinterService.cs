@@ -293,7 +293,7 @@ public class WordEContract_LoanPrinterService
     #endregion 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60
 
 
-    public async Task<byte[]> OnGetWordContact_LoanPrinter_ToPDF(string id,string typeContact)
+    public async Task<string> OnGetWordContact_LoanPrinter_ToPDF(string id,string typeContact)
     {
         try {
 
@@ -710,29 +710,29 @@ public class WordEContract_LoanPrinterService
 </html>
 ";
 
-            var doc = new HtmlToPdfDocument()
-            {
-                GlobalSettings = {
-            PaperSize = PaperKind.A4,
-            Orientation = Orientation.Portrait,
-            Margins = new MarginSettings { Top = 20, Bottom = 20, Left = 20, Right = 20 }
-        },
-                Objects = {
-            new ObjectSettings() {
-                HtmlContent = html,
-                FooterSettings = new FooterSettings
-                {
-                    FontName = "THSarabunNew",
-                    FontSize = 6,
-                    Line = false,
-                    Center = "[page] / [toPage]"
-                }
-            }
-        }
-            };
+        //    var doc = new HtmlToPdfDocument()
+        //    {
+        //        GlobalSettings = {
+        //    PaperSize = PaperKind.A4,
+        //    Orientation = Orientation.Portrait,
+        //    Margins = new MarginSettings { Top = 20, Bottom = 20, Left = 20, Right = 20 }
+        //},
+        //        Objects = {
+        //    new ObjectSettings() {
+        //        HtmlContent = html,
+        //        FooterSettings = new FooterSettings
+        //        {
+        //            FontName = "THSarabunNew",
+        //            FontSize = 6,
+        //            Line = false,
+        //            Center = "[page] / [toPage]"
+        //        }
+        //    }
+        //}
+        //    };
 
-            var pdfBytes = _pdfConverter.Convert(doc);
-            return pdfBytes;
+        //    var pdfBytes = _pdfConverter.Convert(doc);
+            return html;
         } catch (Exception ex) { throw new Exception("Error generating Word document", ex); }
        
     }

@@ -556,7 +556,7 @@ public class WordEContract_DataPersonalService
     #endregion  4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล
 
     #region PDSA
-    public async Task<byte[]> OnGetWordContact_DataPersonalService_ToPDF(string id,string typeContact)
+    public async Task<string> OnGetWordContact_DataPersonalService_ToPDF(string id,string typeContact)
     {
         try
         {
@@ -935,7 +935,7 @@ string datestring = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign
             };
 
             var pdfBytes = _pdfConverter.Convert(doc);
-            return pdfBytes;
+            return html;
         }
         catch (Exception ex)
         {

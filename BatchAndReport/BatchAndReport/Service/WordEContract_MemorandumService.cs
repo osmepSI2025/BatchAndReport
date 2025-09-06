@@ -202,7 +202,7 @@ public class WordEContract_MemorandumService
 
     }
 
-    public async Task<byte[]> OnGetWordContact_MemorandumService_HtmlToPDF(string id,string typeContact)
+    public async Task<string> OnGetWordContact_MemorandumService_HtmlToPDF(string id,string typeContact)
     {
         var result = await _eContractReportDAO.GetMOUAsync(id);
 
@@ -431,7 +431,7 @@ public class WordEContract_MemorandumService
     <tr>
         <!-- Left: SME logo -->
         <td style='width:60%; text-align:left; vertical-align:top;'>
-        <div style='display:inline-block; border:2px solid #333; padding:20px; font-size:32pt;'>
+        <div style='display:inline-block;  padding:20px; font-size:32pt;'>
              <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
             </div>
         </td>
@@ -486,36 +486,36 @@ public class WordEContract_MemorandumService
 </html>
 ";
 
-        // You need to inject IConverter _pdfConverter in the constructor for PDF generation
-        var doc = new DinkToPdf.HtmlToPdfDocument()
-        {
-            GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-            Objects = {
-            new DinkToPdf.ObjectSettings() {
-                HtmlContent = html,
-                FooterSettings = new DinkToPdf.FooterSettings
-                {
-                    FontName = "THSarabunNew",
-                    FontSize = 6,
-                    Line = false,
-                    Center = "[page] / [toPage]"
-                }
-            }
-        }
-        };
+        //// You need to inject IConverter _pdfConverter in the constructor for PDF generation
+        //var doc = new DinkToPdf.HtmlToPdfDocument()
+        //{
+        //    GlobalSettings = {
+        //    PaperSize = DinkToPdf.PaperKind.A4,
+        //    Orientation = DinkToPdf.Orientation.Portrait,
+        //    Margins = new DinkToPdf.MarginSettings
+        //    {
+        //        Top = 20,
+        //        Bottom = 20,
+        //        Left = 20,
+        //        Right = 20
+        //    }
+        //},
+        //    Objects = {
+        //    new DinkToPdf.ObjectSettings() {
+        //        HtmlContent = html,
+        //        FooterSettings = new DinkToPdf.FooterSettings
+        //        {
+        //            FontName = "THSarabunNew",
+        //            FontSize = 6,
+        //            Line = false,
+        //            Center = "[page] / [toPage]"
+        //        }
+        //    }
+        //}
+        //};
 
-        var pdfBytes = _pdfConverter.Convert(doc);
-        return pdfBytes;
+        //var pdfBytes = _pdfConverter.Convert(doc);
+        return html;
     }
     #endregion
 }

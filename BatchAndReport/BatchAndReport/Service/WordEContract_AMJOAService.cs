@@ -1,18 +1,6 @@
 ﻿using BatchAndReport.DAO;
-using BatchAndReport.Services;
-using DinkToPdf;
 using DinkToPdf.Contracts;
-using DocumentFormat.OpenXml.Drawing.Charts;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
-using iText.Commons.Actions.Data;
-using iText.Commons.Bouncycastle.Crypto;
-using iText.Signatures;
-using Spire.Doc.Documents;
 using System.Text;
-using System.Threading.Tasks;
-using static SkiaSharp.HarfBuzz.SKShaper;
-using Paragraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 public class WordEContract_AMJOAService
 {
     private readonly WordServiceSetting _w;
@@ -29,7 +17,7 @@ public class WordEContract_AMJOAService
         _eContractReportDAO = eContractReportDAO;
         _pdfConverter = pdfConverter;
     }
-   
+
 
     public async Task<string> OnGetWordContact_AMJOAServiceHtmlToPDF(string conId)
     {
@@ -443,7 +431,7 @@ SMEs ที่เข้าร่วมโครงการอย่างใก
 </html>
 ";
 
-       
+
         return html;
     }
 

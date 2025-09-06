@@ -202,7 +202,7 @@ public class WordEContract_MemorandumInWritingService
 
     }
 
-    public async Task<byte[]> OnGetWordContact_MemorandumInWritingService_HtmlToPDF(string id, string typeContact)
+    public async Task<string> OnGetWordContact_MemorandumInWritingService_HtmlToPDF(string id, string typeContact)
     {
         var result = await _eContractReportDAO.GetMOAAsync(id);
 
@@ -487,35 +487,35 @@ public class WordEContract_MemorandumInWritingService
 ";
 
         // You need to inject IConverter _pdfConverter in the constructor for PDF generation
-        var doc = new DinkToPdf.HtmlToPdfDocument()
-        {
-            GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-            Objects = {
-            new DinkToPdf.ObjectSettings() {
-                HtmlContent = html,
-                FooterSettings = new DinkToPdf.FooterSettings
-                {
-                    FontName = "THSarabunNew",
-                    FontSize = 6,
-                    Line = false,
-                    Center = "[page] / [toPage]"
-                }
-            }
-        }
-        };
+        //var doc = new DinkToPdf.HtmlToPdfDocument()
+        //{
+        //    GlobalSettings = {
+        //    PaperSize = DinkToPdf.PaperKind.A4,
+        //    Orientation = DinkToPdf.Orientation.Portrait,
+        //    Margins = new DinkToPdf.MarginSettings
+        //    {
+        //        Top = 20,
+        //        Bottom = 20,
+        //        Left = 20,
+        //        Right = 20
+        //    }
+        //},
+        //    Objects = {
+        //    new DinkToPdf.ObjectSettings() {
+        //        HtmlContent = html,
+        //        FooterSettings = new DinkToPdf.FooterSettings
+        //        {
+        //            FontName = "THSarabunNew",
+        //            FontSize = 6,
+        //            Line = false,
+        //            Center = "[page] / [toPage]"
+        //        }
+        //    }
+        //}
+        //};
 
-        var pdfBytes = _pdfConverter.Convert(doc);
-        return pdfBytes;
+        //var pdfBytes = _pdfConverter.Convert(doc);
+        return html;
     }
     #endregion
 }

@@ -248,7 +248,7 @@ E_ContractReportDAO eContractReportDAO
         }
  
     }
-    public async Task<byte[]> OnGetWordContact_BuyOrSellService_ToPDF(string id,string typeContact)
+    public async Task<string> OnGetWordContact_BuyOrSellService_ToPDF(string id,string typeContact)
     {
         var result = await _econtractReportSPADAO.GetSPAAsync(id);
       
@@ -706,38 +706,39 @@ E_ContractReportDAO eContractReportDAO
 </html>
 ";
 
-        if (_pdfConverter == null)
-            throw new Exception("PDF service is not available.");
+        //if (_pdfConverter == null)
+        //    throw new Exception("PDF service is not available.");
 
-        var doc = new HtmlToPdfDocument()
-        {
-            GlobalSettings = {
-            PaperSize = PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-            Objects = {
-            new ObjectSettings() {
-                HtmlContent = html,
-                FooterSettings = new FooterSettings
-                {
-                    FontName = "THSarabunNew",
-                    FontSize = 6,
-                    Line = false,
-                    Center = "[page] / [toPage]"
-                }
-            }
-        }
-        };
+        //var doc = new HtmlToPdfDocument()
+        //{
+        //    GlobalSettings = {
+        //    PaperSize = PaperKind.A4,
+        //    Orientation = DinkToPdf.Orientation.Portrait,
+        //    Margins = new MarginSettings
+        //    {
+        //        Top = 20,
+        //        Bottom = 20,
+        //        Left = 20,
+        //        Right = 20
+        //    }
+        //},
+        //    Objects = {
+        //    new ObjectSettings() {
+        //        HtmlContent = html,
+        //        FooterSettings = new FooterSettings
+        //        {
+        //            FontName = "THSarabunNew",
+        //            FontSize = 6,
+        //            Line = false,
+        //            Center = "[page] / [toPage]"
+        //        }
+        //    }
+        //}
+        //};
 
-        var pdfBytes = _pdfConverter.Convert(doc);
-        return pdfBytes;
+        //var pdfBytes = _pdfConverter.Convert(doc);
+       
+        return html;
 
 
     }

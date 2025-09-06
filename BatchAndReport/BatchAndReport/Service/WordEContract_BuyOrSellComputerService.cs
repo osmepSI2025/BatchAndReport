@@ -798,7 +798,7 @@ public class WordEContract_BuyOrSellComputerService
     //        return pdfBytes;
     //    }
 
-    public async Task<byte[]> OnGetWordContact_BuyOrSellComputerService_ToPDF(string id)
+    public async Task<string> OnGetWordContact_BuyOrSellComputerService_ToPDF(string id)
     {
         var result = await _eContractReportDAO.GetCPAAsync(id);
         if (result == null)
@@ -1313,38 +1313,38 @@ Lading) หรือสำเนาใบตราส่งสำหรับค
         </html>
         ";
 
-        if (_pdfConverter == null)
-            throw new Exception("PDF service is not available.");
+        //if (_pdfConverter == null)
+        //    throw new Exception("PDF service is not available.");
 
-        var doc = new HtmlToPdfDocument()
-        {
-            GlobalSettings = {
-            PaperSize = PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-            Objects = {
-            new ObjectSettings() {
-                HtmlContent = html,
-                FooterSettings = new FooterSettings
-                {
-                    FontName = "THSarabunNew",
-                    FontSize = 6,
-                    Line = false,
-                    Center = "[page] / [toPage]"
-                }
-            }
-        }
-        };
+        //var doc = new HtmlToPdfDocument()
+        //{
+        //    GlobalSettings = {
+        //    PaperSize = PaperKind.A4,
+        //    Orientation = DinkToPdf.Orientation.Portrait,
+        //    Margins = new MarginSettings
+        //    {
+        //        Top = 20,
+        //        Bottom = 20,
+        //        Left = 20,
+        //        Right = 20
+        //    }
+        //},
+        //    Objects = {
+        //    new ObjectSettings() {
+        //        HtmlContent = html,
+        //        FooterSettings = new FooterSettings
+        //        {
+        //            FontName = "THSarabunNew",
+        //            FontSize = 6,
+        //            Line = false,
+        //            Center = "[page] / [toPage]"
+        //        }
+        //    }
+        //}
+        //};
 
-        var pdfBytes = _pdfConverter.Convert(doc);
-        return pdfBytes;
+        //var pdfBytes = _pdfConverter.Convert(doc);
+        return html;
     }
     #endregion 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60
 

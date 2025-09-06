@@ -136,7 +136,30 @@ namespace BatchAndReport.Pages.Report
 
         public async Task OnGetWordContact_EC_PDF(string ContractId = "8")
         {
-            var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
+            var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
             if (!Directory.Exists(folderPath))
             {
@@ -149,13 +172,34 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
         public async Task<IActionResult> OnGetWordContact_EC_PDF_Preview(string ContractId = "8", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
+            var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
             if (!Directory.Exists(folderPath))
             {
@@ -167,7 +211,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -177,25 +221,38 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                      
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -219,7 +276,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_EC_JPEG(string ContractId = "7")
         {
             // 1. Generate PDF from EC contract
-            var pdfBytes = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
+            var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC", "EC_" + ContractId, "EC_" + ContractId + "_JPEG");
@@ -281,7 +359,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_EC_JPEG_Preview(string ContractId = "7")
         {
             // 1. Generate PDF from EC contract
-            var pdfBytes = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
+            var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC", "EC_" + ContractId, "EC_" + ContractId + "_JPEG");
@@ -358,10 +457,19 @@ namespace BatchAndReport.Pages.Report
 
         public async Task<IActionResult> OnGetWordContact_EC_Word(string ContractId = "7")
         {
-            // 1. Get the Word document for EC contract
-            var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee(ContractId);
+            // 1. Get HTML content for EC contract
+            var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC", "EC_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -369,24 +477,34 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"EC_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"EC_{ContractId}.docx");
         }
-
         public async Task<IActionResult> OnGetWordContact_EC_Word_Preview(string ContractId = "7")
         {
-            // 1. Get the Word document for EC contract
-            var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee(ContractId);
+            // 1. Get HTML content for EC contract
+            var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Get password from appsettings.json
+            string? userPassword = _configuration["Password:PaswordPDF"];
+            if (!string.IsNullOrEmpty(userPassword))
+            {
+                document.Encrypt(userPassword);
+            }
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC", "EC_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -394,33 +512,19 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"EC_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
-            string? userPassword = _configuration["Password:PaswordPDF"];
+            // 6. Save the password-protected Word document
+            document.SaveToFile(filePath, FileFormat.Docx);
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
-            {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
-            }
-
-            // 6. Return the password-protected Word file as download
+            // 7. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"EC_{ContractId}_Preview.docx");
         }
-
         #endregion 4.1.3.3. สัญญาจ้างลูกจ้าง
 
         #region 4.1.1.2.15.สัญญาจ้างทำของ CWA
@@ -432,7 +536,28 @@ namespace BatchAndReport.Pages.Report
 
         public async Task OnGetWordContact_CWA_PDF(string ContractId = "1")
         {
-            var wordBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
+            var htmlContent = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA");
             if (!Directory.Exists(folderPath))
             {
@@ -445,13 +570,35 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
         public async Task<IActionResult> OnGetWordContact_CWA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
+            // 1. Generate PDF from CWA contract
+            var htmlContent = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA");
             if (!Directory.Exists(folderPath))
             {
@@ -463,7 +610,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -473,25 +620,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -515,7 +674,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_CWA_JPEG(string ContractId = "1")
         {
             // 1. Generate PDF from CWA contract
-            var pdfBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
+            var htmlContent = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA", "CWA_" + ContractId, "CWA_" + ContractId + "_JPEG");
@@ -575,9 +755,30 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_CWA_JPEG_Preview(string ContractId = "1")
         {
+        
             // 1. Generate PDF from CWA contract
-            var pdfBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
-
+            var htmlContent = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA", "CWA_" + ContractId, "CWA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -652,10 +853,20 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_CWA_Word(string ContractId = "1")
         {
-            // 1. Get the Word document for CWA contract
-            var wordBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing(ContractId);
 
-            // 2. Prepare folder structure
+            // 1. Generate PDF from CWA contract
+            var htmlContent = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
+
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA", "CWA_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -663,23 +874,34 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"CWA_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"CWA_{ContractId}.docx");
         }
         public async Task<IActionResult> OnGetWordContact_CWA_Word_Preview(string ContractId = "1")
         {
-            // 1. Get the Word document for CWA contract
-            var wordBytes = await _ContactToDoThingService.OnGetWordContact_ToDoThing(ContractId);
+            // 1. Get HTML content for CWA contract
+            var htmlContent = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Get password from appsettings.json
+            string? userPassword = _configuration["Password:PaswordPDF"];
+            if (!string.IsNullOrEmpty(userPassword))
+            {
+                document.Encrypt(userPassword);
+            }
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA", "CWA_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -687,29 +909,16 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"CWA_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
-            string? userPassword = _configuration["Password:PaswordPDF"];
+            // 6. Save the password-protected Word document
+            document.SaveToFile(filePath, FileFormat.Docx);
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
-            {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
-            }
-
-            // 6. Return the password-protected Word file as download
+            // 7. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"CWA_{ContractId}_Preview.docx");
         }
@@ -724,7 +933,31 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_CTR31760_PDF(string ContractId = "1")
         {
-            var wordBytes = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
+            var htmlContent = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
+
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CTR31760");
             if (!Directory.Exists(folderPath))
             {
@@ -737,13 +970,35 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
         public async Task<IActionResult> OnGetWordContact_CTR31760_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
+            var htmlContent = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+            
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CTR31760");
             if (!Directory.Exists(folderPath))
             {
@@ -755,7 +1010,7 @@ namespace BatchAndReport.Pages.Report
             string userPassword = _configuration["Password:PaswordPDF"];
 
             // Load the PDF from the byte array
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -765,25 +1020,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -808,7 +1075,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_CTR31760_JPEG(string ContractId = "1")
         {
             // 1. Generate PDF from CTR31760 contract
-            var pdfBytes = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
+            var htmlContent = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CTR31760", "CTR31760_" + ContractId, "CTR31760_" + ContractId + "_JPEG");
@@ -869,7 +1157,29 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_CTR31760_JPEG_Preview(string ContractId = "1")
         {
             // 1. Generate PDF from CTR31760 contract
-            var pdfBytes = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
+            var htmlContent = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CTR31760", "CTR31760_" + ContractId, "CTR31760_" + ContractId + "_JPEG");
@@ -945,10 +1255,19 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_CTR31760_Word(string ContractId = "1")
         {
-            // 1. Get the Word document for CTR31760 contract
-            var wordBytes = await _ConsultantService.OnGetWordContact_ConsultantService(ContractId);
+            // 1. Get HTML content for CTR31760 contract
+            var htmlContent = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CTR31760", "CTR31760_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -956,23 +1275,34 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"CTR31760_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"CTR31760_{ContractId}.docx");
         }
         public async Task<IActionResult> OnGetWordContact_CTR31760_Word_Preview(string ContractId = "1")
         {
-            // 1. Get the Word document for CTR31760 contract
-            var wordBytes = await _ConsultantService.OnGetWordContact_ConsultantService(ContractId);
+            // 1. Get the HTML content for CTR31760 contract
+            var htmlContent = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Get password from appsettings.json
+            string? userPassword = _configuration["Password:PaswordPDF"];
+            if (!string.IsNullOrEmpty(userPassword))
+            {
+                document.Encrypt(userPassword);
+            }
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CTR31760", "CTR31760_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -980,33 +1310,19 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"CTR31760_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
-            string? userPassword = _configuration["Password:PaswordPDF"];
+            // 6. Save the password-protected Word document
+            document.SaveToFile(filePath, FileFormat.Docx);
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
-            {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
-            }
-
-            // 6. Return the password-protected Word file as download
+            // 7. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"CTR31760_{ContractId}_Preview.docx");
         }
-
         #endregion 4.1.1.2.14.สัญญาจ้างที่ปรึกษา CTR31760
 
         #region 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60 PML31460
@@ -1018,7 +1334,29 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_PML31460_PDF(string ContractId = "1")
         {
-            var wordBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
+            var htmlContent = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+            
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460");
             if (!Directory.Exists(folderPath))
             {
@@ -1031,13 +1369,35 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
         public async Task<IActionResult> OnGetWordContact_PML31460_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
+            var htmlContent = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+            
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460");
             if (!Directory.Exists(folderPath))
             {
@@ -1049,7 +1409,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -1059,25 +1419,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -1100,8 +1472,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_PML31460_JPEG(string ContractId = "1")
         {
             // 1. Generate PDF from PML31460 contract
-            var pdfBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
-
+            var htmlContent = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460", "PML31460_" + ContractId, "PML31460_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -1161,8 +1553,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_PML31460_JPEG_Preview(string ContractId = "1")
         {
             // 1. Generate PDF from PML31460 contract
-            var pdfBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
-
+            var htmlContent = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460", "PML31460_" + ContractId, "PML31460_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -1237,10 +1649,19 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_PML31460_Word(string ContractId = "1")
         {
-            // 1. Get the Word document for PML31460 contract
-            var wordBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter(ContractId);
+            // 1. Get HTML content for PML31460 contract
+            var htmlContent = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460", "PML31460_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -1248,23 +1669,34 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"PML31460_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"PML31460_{ContractId}.docx");
         }
         public async Task<IActionResult> OnGetWordContact_PML31460_Word_Preview(string ContractId = "1")
         {
-            // 1. Get the Word document for PML31460 contract
-            var wordBytes = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter(ContractId);
+            // 1. Get HTML content for PML31460 contract
+            var htmlContent = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Get password from appsettings.json
+            string? userPassword = _configuration["Password:PaswordPDF"];
+            if (!string.IsNullOrEmpty(userPassword))
+            {
+                document.Encrypt(userPassword);
+            }
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460", "PML31460_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -1272,32 +1704,20 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"PML31460_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
-            string? userPassword = _configuration["Password:PaswordPDF"];
+            // 6. Save the password-protected Word document
+            document.SaveToFile(filePath, FileFormat.Docx);
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
-            {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
-            }
-
-            // 6. Return the password-protected Word file as download
+            // 7. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"PML31460_{ContractId}_Preview.docx");
         }
+
         #endregion 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60 PML31460
 
         #region 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60 SMC31060
@@ -1350,25 +1770,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -1600,7 +2032,28 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_CLA30960_PDF(string ContractId = "1")
         {
-            var wordBytes = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
+            var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960");
             if (!Directory.Exists(folderPath))
             {
@@ -1613,13 +2066,34 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
         public async Task<IActionResult> OnGetWordContact_CLA30960_PDF_Preview(string ContractId = "1")
         {
-            var wordBytes = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
+            var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960");
             if (!Directory.Exists(folderPath))
             {
@@ -1631,7 +2105,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -1655,7 +2129,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_CLA30960_JPEG(string ContractId = "1")
         {
             // 1. Generate PDF from CLA30960 contract
-            var pdfBytes = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
+            var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960", "CLA30960_" + ContractId, "CLA30960_" + ContractId + "_JPEG");
@@ -1717,7 +2212,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_CLA30960_JPEG_Preview(string ContractId = "1")
         {
             // 1. Generate PDF from CLA30960 contract
-            var pdfBytes = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
+            var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960", "CLA30960_" + ContractId, "CLA30960_" + ContractId + "_JPEG");
@@ -1794,10 +2310,19 @@ namespace BatchAndReport.Pages.Report
 
         public async Task<IActionResult> OnGetWordContact_CLA30960_Word(string ContractId = "1")
         {
-            // 1. Get the Word document for CLA30960 contract
-            var wordBytes = await _LoanComputerService.OnGetWordContact_LoanComputer(ContractId);
+            // 1. Get HTML content for CLA30960 contract
+            var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960", "CLA30960_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -1805,24 +2330,35 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"CLA30960_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"CLA30960_{ContractId}.docx");
         }
 
         public async Task<IActionResult> OnGetWordContact_CLA30960_Word_Preview(string ContractId = "1")
         {
-            // 1. Get the Word document for CLA30960 contract
-            var wordBytes = await _LoanComputerService.OnGetWordContact_LoanComputer(ContractId);
+            // 1. Get HTML content for CLA30960 contract
+            var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Get password from appsettings.json
+            string? userPassword = _configuration["Password:PaswordPDF"];
+            if (!string.IsNullOrEmpty(userPassword))
+            {
+                document.Encrypt(userPassword);
+            }
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960", "CLA30960_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -1830,32 +2366,20 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"CLA30960_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
-            string? userPassword = _configuration["Password:PaswordPDF"];
+            // 6. Save the password-protected Word document
+            document.SaveToFile(filePath, FileFormat.Docx);
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
-            {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
-            }
-
-            // 6. Return the password-protected Word file as download
+            // 7. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"CLA30960_{ContractId}_Preview.docx");
-        }
+        }      
+        
         #endregion 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
 
         #region 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60 SLA30860
@@ -1866,7 +2390,29 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_SLA30860_PDF(string ContractId = "1")
         {
-            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
+            var htmlContent = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860");
             if (!Directory.Exists(folderPath))
             {
@@ -1879,14 +2425,36 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
 
         public async Task<IActionResult> OnGetWordContact_SLA30860_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
+            var htmlContent = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860");
             if (!Directory.Exists(folderPath))
             {
@@ -1898,7 +2466,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -1908,25 +2476,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -1950,7 +2530,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_SLA30860_JPEG(string ContractId = "1")
         {
             // 1. Generate PDF from SLA30860 contract
-            var pdfBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
+            var htmlContent = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860", "SLA30860_" + ContractId, "SLA30860_" + ContractId + "_JPEG");
@@ -2011,7 +2612,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_SLA30860_JPEG_Preview(string ContractId = "1")
         {
             // 1. Generate PDF from SLA30860 contract
-            var pdfBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
+            var htmlContent = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860", "SLA30860_" + ContractId, "SLA30860_" + ContractId + "_JPEG");
@@ -2087,10 +2709,19 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_SLA30860_Word(string ContractId = "1")
         {
-            // 1. Get the Word document for SLA30860 contract
-            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram(ContractId);
+            // 1. Get HTML content for SLA30860 contract
+            var htmlContent = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860", "SLA30860_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -2098,23 +2729,34 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"SLA30860_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"SLA30860_{ContractId}.docx");
         }
         public async Task<IActionResult> OnGetWordContact_SLA30860_Word_Preview(string ContractId = "1")
         {
-            // 1. Get the Word document for SLA30860 contract
-            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram(ContractId);
+            // 1. Get HTML content for SLA30860 contract
+            var htmlContent = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Get password from appsettings.json
+            string? userPassword = _configuration["Password:PaswordPDF"];
+            if (!string.IsNullOrEmpty(userPassword))
+            {
+                document.Encrypt(userPassword);
+            }
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860", "SLA30860_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -2122,32 +2764,20 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"SLA30860_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
-            string? userPassword = _configuration["Password:PaswordPDF"];
+            // 6. Save the password-protected Word document
+            document.SaveToFile(filePath, FileFormat.Docx);
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
-            {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
-            }
-
-            // 6. Return the password-protected Word file as download
+            // 7. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"SLA30860_{ContractId}_Preview.docx");
         }
+
         #endregion 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60 SLA30860
 
         #region 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์ CPA
@@ -2158,7 +2788,28 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_CPA_PDF(string ContractId = "14")
         {
-            var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
+            var htmlContent = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA");
             if (!Directory.Exists(folderPath))
@@ -2172,14 +2823,35 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             //return File(wordBytes, "application/pdf", "CPA_" + ContractId + ".pdf");
         }
 
         public async Task<IActionResult> OnGetWordContact_CPA_PDF_Preview(string ContractId = "14", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
+            var htmlContent = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA");
             if (!Directory.Exists(folderPath))
@@ -2192,7 +2864,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -2202,25 +2874,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -2244,8 +2928,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_CPA_JPEG(string ContractId = "14")
         {
             // 1. Generate PDF from CPA contract
-            var pdfBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
-
+            var htmlContent = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA", "CPA_" + ContractId, "CPA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -2305,7 +3009,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_CPA_JPEG_Preview(string ContractId = "14")
         {
             // 1. Generate PDF from CPA contract
-            var pdfBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
+            var htmlContent = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA", "CPA_" + ContractId, "CPA_" + ContractId + "_JPEG");
@@ -2381,10 +3106,19 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_CPA_Word(string ContractId = "14")
         {
-            // 1. Get the Word document for CPA contract
-            var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService(ContractId);
+            // 1. Get HTML content for CPA contract
+            var htmlContent = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA", "CPA_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -2392,23 +3126,41 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"CPA_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"CPA_{ContractId}.docx");
         }
         public async Task<IActionResult> OnGetWordContact_CPA_Word_Preview(string ContractId = "14")
         {
-            // 1. Get the Word document for CPA contract
-            var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService(ContractId);
+            // 1. Get HTML content for CPA contract
+            var htmlContent = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Get password from appsettings.json
+            string? userPassword = _configuration["Password:PaswordPDF"];
+
+            // 4. Apply password protection if password is set
+            if (!string.IsNullOrEmpty(userPassword))
+            {
+                document.Encrypt(userPassword);
+            }
+
+            // 5. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 6. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA", "CPA_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -2416,29 +3168,14 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"CPA_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 7. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Get password from appsettings.json
-            string? userPassword = _configuration["Password:PaswordPDF"];
-
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
-            {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
-            }
-
-            // 6. Return the password-protected Word file as download
+            // 8. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"CPA_{ContractId}_Preview.docx");
         }
@@ -2455,7 +3192,30 @@ namespace BatchAndReport.Pages.Report
 
         public async Task OnGetWordContact_SPA30560_PDF(string ContractId = "4")
         {
-            var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
+            var htmlContent = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560");
             if (!Directory.Exists(folderPath))
             {
@@ -2468,13 +3228,35 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
         public async Task<IActionResult> OnGetWordContact_SPA30560_PDF_Preview(string ContractId = "4", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
+            var htmlContent = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560");
             if (!Directory.Exists(folderPath))
             {
@@ -2486,7 +3268,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -2496,25 +3278,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -2537,7 +3331,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_SPA30560_JPEG(string ContractId = "4")
         {
             // 1. Generate PDF from SPA30560 contract
-            var pdfBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
+            var htmlContent = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560", "SPA30560_" + ContractId, "SPA30560_" + ContractId + "_JPEG");
@@ -2599,7 +3414,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_SPA30560_JPEG_Preview(string ContractId = "4")
         {
             // 1. Generate PDF from SPA30560 contract
-            var pdfBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
+            var htmlContent = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560", "SPA30560_" + ContractId, "SPA30560_" + ContractId + "_JPEG");
@@ -2676,10 +3512,19 @@ namespace BatchAndReport.Pages.Report
 
         public async Task<IActionResult> OnGetWordContact_SPA30560_Word(string ContractId = "4")
         {
-            // 1. Get the Word document for SPA30560 contract
-            var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService(ContractId);
+            // 1. Get HTML content for SPA30560 contract
+            var htmlContent = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560", "SPA30560_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -2687,57 +3532,51 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"SPA30560_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"SPA30560_{ContractId}.docx");
         }
-
         public async Task<IActionResult> OnGetWordContact_SPA30560_Word_Preview(string ContractId = "4")
         {
             // 1. Get the Word document for SPA30560 contract
-            var wordBytes = await _BuyOrSellService.OnGetWordContact_BuyOrSellService(ContractId);
+            var htmlContent = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560", "SPA30560_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
-            var filePath = Path.Combine(folderPath, $"SPA30560_{ContractId}_Preview.docx");
+            var filePath = Path.Combine(folderPath, $"SPA30560_{ContractId}.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Get password from appsettings.json
-            string? userPassword = _configuration["Password:PaswordPDF"];
-
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
-            {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
-            }
-
-            // 6. Return the password-protected Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"SPA30560_{ContractId}_Preview.docx");
+            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"SPA30560_{ContractId}.docx");
         }
+
         #endregion 4.1.1.2.8.สัญญาซื้อขาย ร.305-60 SPA30560
 
         #region 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
@@ -2748,7 +3587,29 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_NDA_PDF(string ContractId = "1")
         {
-            var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
+            var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
             if (!Directory.Exists(folderPath))
             {
@@ -2761,13 +3622,35 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
         public async Task<IActionResult> OnGetWordContact_NDA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
+            var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
             if (!Directory.Exists(folderPath))
             {
@@ -2779,7 +3662,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -2789,25 +3672,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -2831,7 +3726,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_NDA_PDF_JPEG(string ContractId = "1")
         {
             // 1. Generate PDF from NDA contract
-            var pdfBytes = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
+            var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA", "NDA_" + ContractId, "NDA_" + ContractId + "_JPEG");
@@ -2892,8 +3808,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_NDA_PDF_JPEG_Preview(string ContractId = "1")
         {
             // 1. Generate PDF from NDA contract
-            var pdfBytes = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
-
+            var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA", "NDA_" + ContractId, "NDA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -2967,12 +3903,22 @@ namespace BatchAndReport.Pages.Report
             return File(zipBytes, "application/zip", $"NDA_{ContractId}_JPEG_Preview.zip");
         }
 
-        public async Task<IActionResult> OnGetWordContact_NDA_PDF_Word(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_NDA_Word(string ContractId = "1")
         {
-            // 1. Get the Word document for NDA contract
-            var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService(ContractId);
 
-            // 2. Prepare folder structure
+            // 1. Get HTML content from the service (for NDA Word export)
+            var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
+
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA", "NDA_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -2980,24 +3926,33 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"NDA_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"NDA_{ContractId}.docx");
         }
 
-        public async Task<IActionResult> OnGetWordContact_NDA_PDF_Word_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_NDA_Word_Preview(string ContractId = "1")
         {
-            // 1. Get the Word document for NDA contract
-            var wordBytes = await _DataSecretService.OnGetWordContact_DataSecretService(ContractId);
+            // 1. Get HTML content from the service
+            var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA", "NDA_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -3005,33 +3960,17 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"NDA_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Get password from appsettings.json
-            string? userPassword = _configuration["Password:PaswordPDF"];
-
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
-            {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
-            }
-
-            // 6. Return the password-protected Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"NDA_{ContractId}_Preview.docx");
         }
-
         #endregion 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
 
         #region 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
@@ -3042,7 +3981,28 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_PDSA_PDF(string ContractId = "3")
         {
-            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
+            var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
             if (!Directory.Exists(folderPath))
             {
@@ -3055,14 +4015,35 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
 
         public async Task<IActionResult> OnGetWordContact_PDSA_PDF_Preview(string ContractId = "3", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
+            var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
             if (!Directory.Exists(folderPath))
             {
@@ -3074,7 +4055,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -3084,25 +4065,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -3125,8 +4118,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_PDSA_JPEG(string ContractId = "3")
         {
             // 1. Generate PDF from PDSA contract
-            var pdfBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
-
+            var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA", "PDSA_" + ContractId, "PDSA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -3186,8 +4199,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_PDSA_JPEG_Preview(string ContractId = "3")
         {
             // 1. Generate PDF from PDSA contract
-            var pdfBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
-
+            var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA", "PDSA_" + ContractId, "PDSA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -3260,82 +4293,120 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"PDSA_{ContractId}_JPEG_Preview.zip");
         }
+        // Update for OnGetWordContact_PDSA_Word
         public async Task<IActionResult> OnGetWordContact_PDSA_Word(string ContractId = "3")
         {
-            // 1. Get the Word document for PDSA contract
-            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(ContractId);
+            // 1. Get HTML content from the service (for PDSA Word export)
+            var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
 
-            // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA", "PDSA_" + ContractId);
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA", $"PDSA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, $"PDSA_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
-            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"PDSA_{ContractId}.docx");
+            // 6. Return the Word file as download
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"PDSA_{ContractId}.docx");
         }
         public async Task<IActionResult> OnGetWordContact_PDSA_Word_Preview(string ContractId = "3")
         {
-            // 1. Get the Word document for PDSA contract
-            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(ContractId);
+            // 1. Get HTML content for PDSA Word export
+            var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
 
-            // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA", "PDSA_" + ContractId);
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, $"PDSA_{ContractId}_Preview.docx");
+            // 2. Create Word document from HTML
+            using var htmlStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent));
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(htmlStream, Spire.Doc.FileFormat.Html);
 
-            // 3. Delete the file if it already exists
+            // 3. Save Word document to memory
+            using var wordStream = new MemoryStream();
+            document.SaveToStream(wordStream, Spire.Doc.FileFormat.Docx);
+            var wordBytes = wordStream.ToArray();
+
+            // 4. Prepare output folder
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA", $"PDSA_{ContractId}");
+            Directory.CreateDirectory(folderPath);
+            var filePath = Path.Combine(folderPath, $"PDSA_{ContractId}.docx");
+
+            // 5. Remove existing file if present
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
+            // 6. Get password from configuration
             string? userPassword = _configuration["Password:PaswordPDF"];
-
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
+            if (string.IsNullOrWhiteSpace(userPassword))
             {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
+                return BadRequest("Password for document protection is not configured.");
             }
 
-            // 6. Return the password-protected Word file as download
+            // 7. Apply password protection and save to disk
+            using (var protectedStream = new MemoryStream(wordBytes))
+            {
+                var protectedDoc = new Spire.Doc.Document();
+                protectedDoc.LoadFromStream(protectedStream, Spire.Doc.FileFormat.Docx);
+                protectedDoc.Encrypt(userPassword);
+                protectedDoc.SaveToFile(filePath, Spire.Doc.FileFormat.Docx);
+            }
+
+            // 8. Return the password-protected Word file for download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"PDSA_{ContractId}_Preview.docx");
         }
+
         #endregion 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
 
         #region 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA
 
-        public async Task<IActionResult> OnGetWordContact_JDCA(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_JDCA(string ContractId = "5")
         {
             var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.docx");
 
         }
-        public async Task OnGetWordContact_JDCA_PDF(string ContractId = "1")
+        public async Task OnGetWordContact_JDCA_PDF(string ContractId = "5")
         {
-            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
+            var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA");
             if (!Directory.Exists(folderPath))
             {
@@ -3348,12 +4419,34 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_JDCA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
+        public async Task<IActionResult> OnGetWordContact_JDCA_PDF_Preview(string ContractId = "5", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
+            var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA");
             if (!Directory.Exists(folderPath))
             {
@@ -3365,7 +4458,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -3375,25 +4468,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -3414,11 +4519,31 @@ namespace BatchAndReport.Pages.Report
             }
         }
 
-        public async Task<IActionResult> OnGetWordContact_JDCA_JPEG(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_JDCA_JPEG(string ContractId = "5")
         {
             // 1. Generate PDF from JDCA contract
-            var pdfBytes = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
-
+            var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA", "JDCA_" + ContractId, "JDCA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -3475,11 +4600,31 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"JDCA_{ContractId}_JPEG.zip");
         }
-        public async Task<IActionResult> OnGetWordContact_JDCA_JPEG_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_JDCA_JPEG_Preview(string ContractId = "5")
         {
             // 1. Generate PDF from JDCA contract
-            var pdfBytes = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
-
+            var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA", "JDCA_" + ContractId, "JDCA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -3552,66 +4697,83 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"JDCA_{ContractId}_JPEG_Preview.zip");
         }
-        public async Task<IActionResult> OnGetWordContact_JDCA_Word(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_JDCA_Word(string ContractId = "5")
         {
-            // 1. Get the Word document for JDCA contract
-            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataService(ContractId);
+            // 1. Get HTML content from the service
+            var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
 
-            // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA", "JDCA_" + ContractId);
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA", $"JDCA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, $"JDCA_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
-            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"JDCA_{ContractId}.docx");
+            // 6. Return the Word file as download
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"JDCA_{ContractId}.docx");
         }
-        public async Task<IActionResult> OnGetWordContact_JDCA_Word_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_JDCA_Word_Preview(string ContractId = "5")
         {
-            // 1. Get the Word document for JDCA contract
-            var wordBytes = await _ControlDataService.OnGetWordContact_ControlDataService(ContractId);
+            // 1. Get HTML content from the service
+            var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
 
-            // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA", "JDCA_" + ContractId);
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA", $"JDCA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, $"JDCA_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
+            // 6. Get password from appsettings.json
             string? userPassword = _configuration["Password:PaswordPDF"];
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
+            // 7. Load the Word file from memory and apply password protection
+            using (var msProtect = new MemoryStream(wordBytes))
             {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
+                var doc = new Spire.Doc.Document();
+                doc.LoadFromStream(msProtect, Spire.Doc.FileFormat.Docx);
 
                 // Apply password protection
                 doc.Encrypt(userPassword);
 
                 // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
+                doc.SaveToFile(filePath, Spire.Doc.FileFormat.Docx);
             }
 
-            // 6. Return the password-protected Word file as download
+            // 8. Return the password-protected Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"JDCA_{ContractId}_Preview.docx");
         }
@@ -3627,7 +4789,29 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_PDPA_PDF(string ContractId = "4")
         {
-            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
+            var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
             if (!Directory.Exists(folderPath))
             {
@@ -3640,13 +4824,35 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.pdf");
         }
 
         public async Task<IActionResult> OnGetWordContact_PDPA_PDF_Preview(string ContractId = "4", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
+            var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
+
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
             if (!Directory.Exists(folderPath))
             {
@@ -3658,7 +4864,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -3668,25 +4874,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -3709,7 +4927,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_PDPA_JPEG(string ContractId = "1")
         {
             // 1. Generate PDF from PDPA contract
-            var pdfBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
+            var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA", "PDPA_" + ContractId, "PDPA_" + ContractId + "_JPEG");
@@ -3770,8 +5009,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_PDPA_JPEG_Preview(string ContractId = "1")
         {
             // 1. Generate PDF from PDPA contract
-            var pdfBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
-
+            var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA", "PDPA_" + ContractId, "PDPA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -3846,68 +5105,88 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_PDPA_Word(string ContractId = "1")
         {
-            // 1. Get the Word document for PDPA contract
-            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService(ContractId);
+            // 1. Get HTML content from the service
+            var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
 
-            // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA", "PDPA_" + ContractId);
+
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA", $"PDPA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, $"PDPA_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
-            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"PDPA_{ContractId}.docx");
+            // 6. Return the Word file as download
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"PDPA_{ContractId}.docx");
         }
-
         public async Task<IActionResult> OnGetWordContact_PDPA_Word_Preview(string ContractId = "1")
         {
-            // 1. Get the Word document for PDPA contract
-            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService(ContractId);
+            // 1. Get HTML content from the service
+            var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
 
-            // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA", "PDPA_" + ContractId);
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA", $"PDPA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, $"PDPA_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
+            // 6. Get password from appsettings.json
             string? userPassword = _configuration["Password:PaswordPDF"];
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
+            // 7. Load the Word file from memory and apply password protection
+            using (var msProtect = new MemoryStream(wordBytes))
             {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
+                var doc = new Spire.Doc.Document();
+                doc.LoadFromStream(msProtect, Spire.Doc.FileFormat.Docx);
 
                 // Apply password protection
                 doc.Encrypt(userPassword);
 
                 // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
+                doc.SaveToFile(filePath, Spire.Doc.FileFormat.Docx);
             }
 
-            // 6. Return the password-protected Word file as download
+            // 8. Return the password-protected Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"PDPA_{ContractId}_Preview.docx");
         }
+
+
+
         #endregion 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
@@ -3918,7 +5197,29 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_MOU_PDF(string ContractId = "7")
         {
-            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
+            var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
             if (!Directory.Exists(folderPath))
             {
@@ -3931,13 +5232,35 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
             //   return File(wordBytes, "application/pdf", "MOU_" + ContractId + ".pdf");
         }
 
         public async Task<IActionResult> OnGetWordContact_MOU_PDF_Preview(string ContractId = "7", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
+            var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
             if (!Directory.Exists(folderPath))
             {
@@ -3949,7 +5272,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -3959,25 +5282,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -4000,7 +5335,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_MOU_JPEG(string ContractId = "7")
         {
             // 1. Generate PDF from MOU contract
-            var pdfBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
+            var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU", "MOU_" + ContractId, "MOU_" + ContractId + "_JPEG");
@@ -4062,7 +5418,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_MOU_JPEG_Preview(string ContractId = "7")
         {
             // 1. Generate PDF from MOU contract
-            var pdfBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
+            var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU", "MOU_" + ContractId, "MOU_" + ContractId + "_JPEG");
@@ -4136,12 +5513,23 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"MOU_{ContractId}_JPEG_Preview.zip");
         }
+        //  var pdfBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
+
         public async Task<IActionResult> OnGetWordContact_MOU_Word(string ContractId = "7")
         {
-            // 1. Get the Word document for MOU contract
-            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(ContractId);
+            // 1. Get HTML content for MOU contract
+            var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU", "MOU_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -4149,23 +5537,34 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"MOU_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
+            // 6. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"MOU_{ContractId}.docx");
         }
         public async Task<IActionResult> OnGetWordContact_MOU_Word_Preview(string ContractId = "7")
         {
             // 1. Get the Word document for MOU contract
-            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(ContractId);
+            var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
 
-            // 2. Prepare folder structure
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Get password from appsettings.json
+            string? userPassword = _configuration["Password:PaswordPDF"];
+            if (!string.IsNullOrEmpty(userPassword))
+            {
+                document.Encrypt(userPassword);
+            }
+
+            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU", "MOU_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
@@ -4173,29 +5572,16 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"MOU_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
-            string? userPassword = _configuration["Password:PaswordPDF"];
+            // 6. Save the password-protected Word document
+            document.SaveToFile(filePath, FileFormat.Docx);
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
-            {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
-
-                // Apply password protection
-                doc.Encrypt(userPassword);
-
-                // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
-            }
-
-            // 6. Return the password-protected Word file as download
+            // 7. Return the Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"MOU_{ContractId}_Preview.docx");
         }
@@ -4204,7 +5590,28 @@ namespace BatchAndReport.Pages.Report
         #region 4.1.1.2.3.บันทึกข้อตกลงความเข้าใจ MOA
         public async Task OnGetWordContact_MOA_PDF(string ContractId = "7")
         {
-            var wordBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+            var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA");
             if (!Directory.Exists(folderPath))
             {
@@ -4217,12 +5624,33 @@ namespace BatchAndReport.Pages.Report
             {
                 System.IO.File.Delete(filePath);
             }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
             //   return File(wordBytes, "application/pdf", "MOU_" + ContractId + ".pdf");
         }
         public async Task<IActionResult> OnGetWordContact_MOA_PDF_Preview(string ContractId = "7", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+            var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA");
             if (!Directory.Exists(folderPath))
             {
@@ -4234,7 +5662,7 @@ namespace BatchAndReport.Pages.Report
             // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
@@ -4244,25 +5672,37 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        // Measure the height of one line
+                        double lineHeight = font.GetHeight();
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                        // Calculate total height for centering
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                        // Center horizontally
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            // Draw the watermark diagonally with transparency
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -4285,8 +5725,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_MOA_JPEG(string ContractId = "7")
         {
             // 1. Generate PDF from MOU contract
-            var pdfBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
-
+            var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId, "MOA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -4347,8 +5807,28 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_MOA_JPEG_Preview(string ContractId = "7")
         {
             // 1. Generate PDF from MOU contract
-            var pdfBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
-
+            var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId, "MOA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -4423,68 +5903,88 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_MOA_Word(string ContractId = "7")
         {
-            // 1. Get the Word document for MOU contract
-            var wordBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+            // 1. Get HTML content from the service
+            var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
 
-            // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId);
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", $"MOA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, $"MOA_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
-            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"MOA_{ContractId}.docx");
+            // 6. Return the Word file as download
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"MOA_{ContractId}.docx");
         }
         public async Task<IActionResult> OnGetWordContact_MOA_Word_Preview(string ContractId = "7")
         {
-            // 1. Get the Word document for MOU contract
-            var wordBytes = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
+            // 1. Get HTML content from the service
+            var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
 
-            // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId);
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", $"MOA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, $"MOA_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
+            // 6. Get password from appsettings.json
             string? userPassword = _configuration["Password:PaswordPDF"];
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
+            // 7. Load the Word file from memory and apply password protection
+            using (var msProtect = new MemoryStream(wordBytes))
             {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
+                var doc = new Spire.Doc.Document();
+                doc.LoadFromStream(msProtect, Spire.Doc.FileFormat.Docx);
 
                 // Apply password protection
                 doc.Encrypt(userPassword);
 
                 // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
+                doc.SaveToFile(filePath, Spire.Doc.FileFormat.Docx);
             }
 
-            // 6. Return the password-protected Word file as download
+            // 8. Return the password-protected Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"MOA_{ContractId}_Preview.docx");
-        }
+        }     
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความเข้าใจ MOA
+
+
+
 
         #region 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
         public async Task<IActionResult> OnGetWordContact_GA(string ContractId = "1")
@@ -4494,8 +5994,31 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_GA_PDF(string ContractId = "1")
         {
-            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
+            var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
+            // 2. Convert HTML to PDF using DinkToPdf
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
 
+            // Assuming you have injected IConverter as _pdfConverter
+            var pdfBytes = _pdfConverter.Convert(doc);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
             if (!Directory.Exists(folderPath))
             {
@@ -4514,7 +6037,30 @@ namespace BatchAndReport.Pages.Report
 
         public async Task<IActionResult> OnGetWordContact_GA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
-            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
+            var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
             if (!Directory.Exists(folderPath))
             {
@@ -4523,7 +6069,6 @@ namespace BatchAndReport.Pages.Report
             var fileName = $"GA_{ContractId}_Preview.pdf";
             var filePath = Path.Combine(folderPath, fileName);
 
-            // Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
             using (var inputStream = new MemoryStream(pdfBytes))
@@ -4531,30 +6076,34 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
                 foreach (var page in document.Pages)
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
-                        var size = gfx.MeasureString(text, font);
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
+                        double lineHeight = font.GetHeight();
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (page.Height - totalHeight) / 2;
 
-                        // Center of the page
-                        double x = (page.Width - size.Width) / 2;
-                        double y = (page.Height - size.Height) / 2;
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (page.Width - size.Width) / 2;
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
 
-                        // Draw the watermark diagonally with transparency
-                        var state = gfx.Save();
-                        gfx.TranslateTransform(page.Width / 2, page.Height / 2);
-                        gfx.RotateTransform(-30);
-                        gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
 
-                        var brush = new PdfSharpCore.Drawing.XSolidBrush(
-                            PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
 
-                        gfx.DrawString(text, font, brush, x, y);
-                        gfx.Restore(state);
+                            y += lineHeight;
+                        }
                     }
                 }
 
@@ -4574,14 +6123,34 @@ namespace BatchAndReport.Pages.Report
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
         }
-
         public async Task<IActionResult> OnGetWordContact_GA_JPEG(string ContractId = "1")
         {
-            // 1. Generate PDF from GA contract
-            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
+            // 1. Generate PDF from GA contract (HTML to PDF)
+            var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", "GA_" + ContractId, "GA_" + ContractId + "_JPEG");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", $"GA_{ContractId}", $"GA_{ContractId}_JPEG");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
@@ -4612,7 +6181,7 @@ namespace BatchAndReport.Pages.Report
             System.IO.File.Delete(pdfPath);
 
             // 6. Create zip file of JPEGs
-            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", "GA_" + ContractId);
+            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", $"GA_{ContractId}");
             var zipPath = Path.Combine(folderPathZip, $"GA_{ContractId}_JPEG.zip");
             if (System.IO.File.Exists(zipPath))
             {
@@ -4636,14 +6205,34 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"GA_{ContractId}_JPEG.zip");
         }
-
         public async Task<IActionResult> OnGetWordContact_GA_JPEG_Preview(string ContractId = "1")
         {
-            // 1. Generate PDF from GA contract
-            var pdfBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
+            // 1. Generate PDF from GA contract (HTML to PDF)
+            var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
 
             // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", "GA_" + ContractId, "GA_" + ContractId + "_JPEG");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", $"GA_{ContractId}", $"GA_{ContractId}_JPEG");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
@@ -4674,7 +6263,7 @@ namespace BatchAndReport.Pages.Report
             System.IO.File.Delete(pdfPath);
 
             // 6. Create password-protected zip file of JPEGs
-            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", "GA_" + ContractId);
+            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", $"GA_{ContractId}");
             var zipPath = Path.Combine(folderPathZip, $"GA_{ContractId}_JPEG_Preview.zip");
             if (System.IO.File.Exists(zipPath))
             {
@@ -4684,14 +6273,14 @@ namespace BatchAndReport.Pages.Report
             string password = _configuration["Password:PaswordPDF"];
 
             using (var fsOut = System.IO.File.Create(zipPath))
-            using (var zipStream = new ZipOutputStream(fsOut))
+            using (var zipStream = new ICSharpCode.SharpZipLib.Zip.ZipOutputStream(fsOut))
             {
                 zipStream.SetLevel(9); // 0-9, 9 = best compression
                 zipStream.Password = password; // Set password
 
                 foreach (var file in jpegFiles)
                 {
-                    var entry = new ZipEntry(Path.GetFileName(file))
+                    var entry = new ICSharpCode.SharpZipLib.Zip.ZipEntry(Path.GetFileName(file))
                     {
                         DateTime = DateTime.Now
                     };
@@ -4716,64 +6305,81 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_GA_Word(string ContractId = "1")
         {
-            // 1. Get the Word document for GA contract
-            var wordBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService(ContractId);
+            // 1. Get HTML content from the service
+            var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
 
-            // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", "GA_" + ContractId);
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", $"GA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, $"GA_{ContractId}.docx");
 
-            // 3. Save Word file to disk
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // 4. Return the Word file as download
-            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"GA_{ContractId}.docx");
+            // 6. Return the Word file as download
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"GA_{ContractId}.docx");
         }
         public async Task<IActionResult> OnGetWordContact_GA_Word_Preview(string ContractId = "1")
         {
-            // 1. Get the Word document for GA contract
-            var wordBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService(ContractId);
+            // 1. Get HTML content from the service
+            var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
 
-            // 2. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", "GA_" + ContractId);
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", $"GA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, $"GA_{ContractId}_Preview.docx");
 
-            // 3. Delete the file if it already exists
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
 
-            // 4. Get password from appsettings.json
+            // 6. Get password from appsettings.json
             string? userPassword = _configuration["Password:PaswordPDF"];
 
-            // 5. Load the Word file from memory and apply password protection
-            using (var ms = new MemoryStream(wordBytes))
+            // 7. Load the Word file from memory and apply password protection
+            using (var msProtect = new MemoryStream(wordBytes))
             {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
+                var doc = new Spire.Doc.Document();
+                doc.LoadFromStream(msProtect, Spire.Doc.FileFormat.Docx);
 
                 // Apply password protection
                 doc.Encrypt(userPassword);
 
                 // Save the password-protected file
-                doc.SaveToFile(filePath, FileFormat.Docx);
+                doc.SaveToFile(filePath, Spire.Doc.FileFormat.Docx);
             }
 
-            // 6. Return the password-protected Word file as download
+            // 8. Return the password-protected Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"GA_{ContractId}_Preview.docx");
         }
@@ -4786,33 +6392,37 @@ namespace BatchAndReport.Pages.Report
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
         }
 
-        public async Task OnGetWordContact_JOA_PDF(string ContractId = "70")
-        {
-            var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
-
-
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "JOA_" + ContractId + ".pdf");
-
-            // Delete the file if it already exists
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
-            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
-
-
-            //  return File(wordBytes, "application/pdf", "JOA_" + ContractId + ".pdf");
-        }
         public async Task<IActionResult> OnGetWordContact_JOA_PDF_Preview(string ContractId = "70", string Name = "สมใจ ทดสอบ")
         {
-            var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", "JOA_" + ContractId);
+            // 1. Get HTML content
+            var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
 
+            // 2. Convert HTML to PDF using DinkToPdf
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+
+            var pdfBytes = _pdfConverter.Convert(doc);
+
+            // 3. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", "JOA_" + ContractId);
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
@@ -4820,36 +6430,30 @@ namespace BatchAndReport.Pages.Report
             var fileName = $"JOA_{ContractId}_Preview.pdf";
             var filePath = Path.Combine(folderPath, fileName);
 
-            // Get password from appsettings.json
+            // 4. Get password from appsettings.json
             string userPassword = _configuration["Password:PaswordPDF"];
 
-            using (var inputStream = new MemoryStream(wordBytes))
+            // 5. Add watermark and password protection
+            using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
-                // Add watermark to each page
+
                 foreach (var page in document.Pages)
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
                         double y = (page.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
                             double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
                             var state = gfx.Save();
                             gfx.TranslateTransform(page.Width / 2, page.Height / 2);
                             gfx.RotateTransform(-30);
@@ -4884,189 +6488,309 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task<IActionResult> OnGetWordContact_JOA_JPEG(string ContractId = "70")
         {
-            var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
-
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", "JOA_" + ContractId, "JOA_" + ContractId + "_JPEG");
+            // 1. Generate PDF from JOA contract (HTML to PDF)
+            var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+            // 2. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", $"JOA_{ContractId}", $"JOA_{ContractId}_JPEG");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
-            var pdfPath = Path.Combine(folderPath, "JOA_" + ContractId + ".pdf");
+            var pdfPath = Path.Combine(folderPath, $"JOA_{ContractId}.pdf");
 
-            // Save PDF
+            // 3. Save PDF to disk
             if (System.IO.File.Exists(pdfPath))
             {
                 System.IO.File.Delete(pdfPath);
             }
-            await System.IO.File.WriteAllBytesAsync(pdfPath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes);
 
-            // Convert each PDF page to JPEG
-            using (var pdfStream = new MemoryStream(wordBytes))
-            using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
+            // 4. Convert each PDF page to JPEG
+            try
             {
-                for (int i = 0; i < document.PageCount; i++)
+                using (var pdfStream = new MemoryStream(pdfBytes))
+                using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
                 {
-                    using (var image = document.Render(i, 300, 300, true))
+                    for (int i = 0; i < document.PageCount; i++)
                     {
-                        var jpegPath = Path.Combine(folderPath, $"JOA_{ContractId}_p{i + 1}.jpg");
-                        image.Save(jpegPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        using (var image = document.Render(i, 300, 300, true))
+                        {
+                            var jpegPath = Path.Combine(folderPath, $"JOA_{ContractId}_p{i + 1}.jpg");
+                            image.Save(jpegPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        }
                     }
                 }
             }
-            //delete the PDF file after conversion
-            System.IO.File.Delete(pdfPath);
+            catch (Exception ex)
+            {
+                // Clean up if conversion fails
+                if (System.IO.File.Exists(pdfPath))
+                {
+                    System.IO.File.Delete(pdfPath);
+                }
+                return BadRequest($"PDF to JPEG conversion failed: {ex.Message}");
+            }
 
-            // create zip file
-            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", "JOA_" + ContractId);
+            // 5. Delete the PDF file after conversion
+            if (System.IO.File.Exists(pdfPath))
+            {
+                System.IO.File.Delete(pdfPath);
+            }
 
+            // 6. Create zip file of JPEGs
+            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", $"JOA_{ContractId}");
             var zipPath = Path.Combine(folderPathZip, $"JOA_{ContractId}_JPEG.zip");
             if (System.IO.File.Exists(zipPath))
             {
                 System.IO.File.Delete(zipPath);
             }
             var jpegFiles = Directory.GetFiles(folderPath, $"JOA_{ContractId}_p*.jpg");
-            using (var zip = System.IO.Compression.ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            try
             {
-                foreach (var file in jpegFiles)
+                using (var zip = System.IO.Compression.ZipFile.Open(zipPath, ZipArchiveMode.Create))
                 {
-                    zip.CreateEntryFromFile(file, Path.GetFileName(file));
+                    foreach (var file in jpegFiles)
+                    {
+                        zip.CreateEntryFromFile(file, Path.GetFileName(file));
+                    }
                 }
             }
-            //delete JPEG files after zipping
+            catch (Exception ex)
+            {
+                return BadRequest($"JPEG to ZIP failed: {ex.Message}");
+            }
+
+            // 7. Delete JPEG files after zipping
             foreach (var file in jpegFiles)
             {
                 System.IO.File.Delete(file);
             }
+
+            // 8. Return the zip file as download
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"JOA_{ContractId}_JPEG.zip");
         }
         public async Task<IActionResult> OnGetWordContact_JOA_JPEG_Preview(string ContractId = "70")
         {
-            var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
-
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", "JOA_" + ContractId, "JOA_" + ContractId + "_JPEG");
+            // 1. Generate PDF from JOA contract (HTML to PDF)
+            var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+            // 2. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", $"JOA_{ContractId}", $"JOA_{ContractId}_JPEG");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
-            var pdfPath = Path.Combine(folderPath, "JOA_" + ContractId + ".pdf");
+            var pdfPath = Path.Combine(folderPath, $"JOA_{ContractId}.pdf");
 
-            // Save PDF
+            // 3. Save PDF to disk
             if (System.IO.File.Exists(pdfPath))
             {
                 System.IO.File.Delete(pdfPath);
             }
-            await System.IO.File.WriteAllBytesAsync(pdfPath, wordBytes);
+            await System.IO.File.WriteAllBytesAsync(pdfPath, pdfBytes);
 
-            // Convert each PDF page to JPEG
-            using (var pdfStream = new MemoryStream(wordBytes))
-            using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
+            // 4. Convert each PDF page to JPEG
+            try
             {
-                for (int i = 0; i < document.PageCount; i++)
+                using (var pdfStream = new MemoryStream(pdfBytes))
+                using (var document = PdfiumViewer.PdfDocument.Load(pdfStream))
                 {
-                    using (var image = document.Render(i, 300, 300, true))
+                    for (int i = 0; i < document.PageCount; i++)
                     {
-                        var jpegPath = Path.Combine(folderPath, $"JOA_{ContractId}_p{i + 1}.jpg");
-                        image.Save(jpegPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        using (var image = document.Render(i, 300, 300, true))
+                        {
+                            var jpegPath = Path.Combine(folderPath, $"JOA_{ContractId}_p{i + 1}.jpg");
+                            image.Save(jpegPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                        }
                     }
                 }
             }
-            //delete the PDF file after conversion
-            System.IO.File.Delete(pdfPath);
+            catch (Exception ex)
+            {
+                if (System.IO.File.Exists(pdfPath))
+                {
+                    System.IO.File.Delete(pdfPath);
+                }
+                return BadRequest($"PDF to JPEG conversion failed: {ex.Message}");
+            }
 
-            // create zip file
-            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", "JOA_" + ContractId);
+            // 5. Delete the PDF file after conversion
+            if (System.IO.File.Exists(pdfPath))
+            {
+                System.IO.File.Delete(pdfPath);
+            }
 
+            // 6. Create password-protected zip file of JPEGs
+            var folderPathZip = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", $"JOA_{ContractId}");
             var zipPath = Path.Combine(folderPathZip, $"JOA_{ContractId}_JPEG_Preview.zip");
             if (System.IO.File.Exists(zipPath))
             {
                 System.IO.File.Delete(zipPath);
             }
             var jpegFiles = Directory.GetFiles(folderPath, $"JOA_{ContractId}_p*.jpg");
-            string password = _configuration["Password:PaswordPDF"]; // or your password
+            string password = _configuration["Password:PaswordPDF"];
 
-            using (var fsOut = System.IO.File.Create(zipPath))
-            using (var zipStream = new ZipOutputStream(fsOut))
+            try
             {
-                zipStream.SetLevel(9); // 0-9, 9 = best compression
-                zipStream.Password = password; // Set password
-
-                foreach (var file in jpegFiles)
+                using (var fsOut = System.IO.File.Create(zipPath))
+                using (var zipStream = new ICSharpCode.SharpZipLib.Zip.ZipOutputStream(fsOut))
                 {
-                    var entry = new ZipEntry(Path.GetFileName(file))
-                    {
-                        DateTime = DateTime.Now
-                    };
-                    zipStream.PutNextEntry(entry);
+                    zipStream.SetLevel(9); // 0-9, 9 = best compression
+                    zipStream.Password = password; // Set password
 
-                    byte[] buffer = System.IO.File.ReadAllBytes(file);
-                    zipStream.Write(buffer, 0, buffer.Length);
-                    zipStream.CloseEntry();
+                    foreach (var file in jpegFiles)
+                    {
+                        var entry = new ICSharpCode.SharpZipLib.Zip.ZipEntry(Path.GetFileName(file))
+                        {
+                            DateTime = DateTime.Now
+                        };
+                        zipStream.PutNextEntry(entry);
+
+                        byte[] buffer = System.IO.File.ReadAllBytes(file);
+                        zipStream.Write(buffer, 0, buffer.Length);
+                        zipStream.CloseEntry();
+                    }
+                    zipStream.IsStreamOwner = true;
+                    zipStream.Close();
                 }
-                zipStream.IsStreamOwner = true;
-                zipStream.Close();
             }
+            catch (Exception ex)
+            {
+                return BadRequest($"JPEG to ZIP failed: {ex.Message}");
+            }
+
+            // 7. Delete JPEG files after zipping
+            foreach (var file in jpegFiles)
+            {
+                System.IO.File.Delete(file);
+            }
+
+            // 8. Return the password-protected zip file as download
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"JOA_{ContractId}_JPEG_Preview.zip");
         }
         public async Task<IActionResult> OnGetWordContact_JOA_Word(string ContractId = "70")
         {
-            var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationService(ContractId);
+            // 1. Get HTML content from the service
+            var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", "JOA_" + ContractId);
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
 
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", $"JOA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
-            var filePath = Path.Combine(folderPath, "JOA_" + ContractId + ".docx");
+            var filePath = Path.Combine(folderPath, $"JOA_{ContractId}.docx");
 
-            // Delete the file if it already exists
+            // 5. Save Word file to disk
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // Return the file as download
-            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"JOA_{ContractId}.docx");
+            // 6. Return the Word file as download
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"JOA_{ContractId}.docx");
         }
         public async Task<IActionResult> OnGetWordContact_JOA_Word_Preview(string ContractId = "70")
         {
-            var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationService(ContractId);
+            // 1. Get HTML content from the service
+            var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", "JOA_" + ContractId);
+            // 2. Create a Word document from HTML using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
 
+            // 3. Save the Word document to a MemoryStream
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", $"JOA_{ContractId}");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
-            var filePath = Path.Combine(folderPath, "JOA_" + ContractId + "_Preview.docx");
+            var filePath = Path.Combine(folderPath, $"JOA_{ContractId}_Preview.docx");
 
-            // ลบไฟล์เดิมถ้ามี
+            // 5. Delete the file if it already exists
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
             }
+
+            // 6. Get password from appsettings.json
             string? userPassword = _configuration["Password:PaswordPDF"];
-            // โหลดไฟล์จาก memory
-            using (var ms = new MemoryStream(wordBytes))
+
+            // 7. Load the Word file from memory and apply password protection
+            using (var msProtect = new MemoryStream(wordBytes))
             {
-                Document doc = new Document();
-                doc.LoadFromStream(ms, FileFormat.Docx);
+                var doc = new Spire.Doc.Document();
+                doc.LoadFromStream(msProtect, Spire.Doc.FileFormat.Docx);
 
-                // ใส่ password
-                doc.Encrypt(userPassword); // <-- password ตอนเปิด Word
+                // Apply password protection
+                doc.Encrypt(userPassword);
 
-                // Save ใหม่เป็นไฟล์เข้ารหัส
-                doc.SaveToFile(filePath, FileFormat.Docx);
+                // Save the password-protected file
+                doc.SaveToFile(filePath, Spire.Doc.FileFormat.Docx);
             }
 
-            // Return the file as download
+            // 8. Return the password-protected Word file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"JOA_{ContractId}_Preview.docx");
-        }
+        }        
         #endregion 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
 
 
@@ -5167,8 +6891,8 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
 
                         // Measure the height of one line
@@ -5577,8 +7301,8 @@ namespace BatchAndReport.Pages.Report
                 {
                     using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
                     {
-                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 48, PdfSharpCore.Drawing.XFontStyle.Bold);
-                        var text = $"พิมพ์ โดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy}";
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
 
                         // Measure the height of one line
