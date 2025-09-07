@@ -13,10 +13,12 @@ namespace BatchAndReport.DAO
     {
         private readonly K2DBContext_EContract _context;
         private readonly SqlConnectionDAO _connectionDAO;
-        public EContractDAO(K2DBContext_EContract context, SqlConnectionDAO connectionDAO) // Fixed spelling error: Changed "EcontractDAO" to "EContractDAO"  
+        private readonly string _fallbackPassword;
+        public EContractDAO(K2DBContext_EContract context, SqlConnectionDAO connectionDAO, IConfiguration configuration) // Fixed spelling error: Changed "EcontractDAO" to "EContractDAO"  
         {
             _context = context;
             _connectionDAO = connectionDAO;
+            _fallbackPassword = configuration["Password:PaswordPDF"] ?? string.Empty;
         }
 
         public async Task InsertOrUpdateEmployeeContractsAsync(List<MEmployeeContractModels> contracts)
@@ -281,6 +283,17 @@ namespace BatchAndReport.DAO
             {
                 if (shouldClose) await dbConn.CloseAsync();
             }
+        }
+        public async Task<string?> GetPdfPasswordByEmpIdAsync(string? empId, CancellationToken ct = default)
+        {
+
+            var pwd = await _context.ContractFilePasswords
+                .Where(x => x.EmpId == empId)
+                .Select(x => x.Password)
+                .FirstOrDefaultAsync(ct);
+
+            // ไม่พบใน DB -> ใช้ fallback จาก config
+            return string.IsNullOrWhiteSpace(pwd) ? _fallbackPassword : pwd;
         }
     }
 }

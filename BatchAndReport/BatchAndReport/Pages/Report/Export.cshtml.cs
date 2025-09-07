@@ -3,6 +3,7 @@ using DinkToPdf.Contracts;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Data.SqlClient;
 using Spire.Doc;
 using System.IO.Compression;
 using Document = Spire.Doc.Document;
@@ -11,6 +12,7 @@ namespace BatchAndReport.Pages.Report
     public class ExportModel : PageModel
     {
         private readonly SmeDAO _smeDao;
+        private readonly EContractDAO _eContractDao;
         private readonly WordEContract_AllowanceService _AllowanceService;
         private readonly WordEContract_LoanPrinterService _wordEContract_LoanPrinterService;
         private readonly WordEContract_ContactToDoThingService _ContactToDoThingService;
@@ -35,7 +37,7 @@ namespace BatchAndReport.Pages.Report
         private readonly IConfiguration _configuration;
         private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
         private readonly WordEContract_AMJOAService _AMJOAService;
-        public ExportModel(SmeDAO smeDao, WordEContract_AllowanceService allowanceService
+        public ExportModel(SmeDAO smeDao, EContractDAO eContractDao, WordEContract_AllowanceService allowanceService
             , WordEContract_LoanPrinterService wordEContract_LoanPrinterService
             , WordEContract_ContactToDoThingService ContactToDoThingService
             , WordEContract_HireEmployee HireEmployee
@@ -63,6 +65,7 @@ namespace BatchAndReport.Pages.Report
             )
         {
             _smeDao = smeDao;
+            _eContractDao = eContractDao;
             _AllowanceService = allowanceService;
             this._wordEContract_LoanPrinterService = wordEContract_LoanPrinterService;
             _ContactToDoThingService = ContactToDoThingService;
@@ -209,7 +212,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -608,7 +611,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -1007,7 +1010,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, "CTR31760_" + ContractId + "_Preview.pdf");
 
             // Set your desired password here
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             // Load the PDF from the byte array
             using (var inputStream = new MemoryStream(pdfBytes))
@@ -1407,7 +1410,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -1758,7 +1761,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(wordBytes))
             using (var outputStream = new MemoryStream())
@@ -2070,7 +2073,7 @@ namespace BatchAndReport.Pages.Report
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_CLA30960_PDF_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_CLA30960_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
             var doc = new DinkToPdf.HtmlToPdfDocument()
@@ -2103,7 +2106,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -2464,7 +2467,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -2862,7 +2865,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -3266,7 +3269,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -3660,7 +3663,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -4053,7 +4056,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -4456,7 +4459,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -4862,7 +4865,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -5270,7 +5273,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -5660,7 +5663,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -6069,7 +6072,7 @@ namespace BatchAndReport.Pages.Report
             var fileName = $"GA_{ContractId}_Preview.pdf";
             var filePath = Path.Combine(folderPath, fileName);
 
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -6441,6 +6444,15 @@ namespace BatchAndReport.Pages.Report
           //  return File(resultBytes, "application/pdf", $"JOA_{ContractId}.pdf");
         }
 
+        public async Task<string?> GetPdfPasswordAsync(string? empId, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(empId))
+                return null;
+
+            // HrDAO จะคืนรหัสจาก DB หรือ fallback เอง
+            return await _eContractDao.GetPdfPasswordByEmpIdAsync(empId, ct);
+        }
+
         public async Task<IActionResult> OnGetWordContact_JOA_PDF_Preview(string ContractId = "79", string Name = "สมใจ ทดสอบ")
         {
             // 1. Get HTML content
@@ -6480,7 +6492,8 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // 4. Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            //string? userPassword = await GetPdfPasswordAsync(Name);;
+            string? userPassword = await GetPdfPasswordAsync(Name);
 
             // 5. Add watermark and password protection
             using (var inputStream = new MemoryStream(pdfBytes))
@@ -6929,7 +6942,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
@@ -7339,7 +7352,7 @@ namespace BatchAndReport.Pages.Report
             var filePath = Path.Combine(folderPath, fileName);
 
             // Get password from appsettings.json
-            string userPassword = _configuration["Password:PaswordPDF"];
+            string? userPassword = await GetPdfPasswordAsync(Name);;
 
             using (var inputStream = new MemoryStream(pdfBytes))
             using (var outputStream = new MemoryStream())
