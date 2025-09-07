@@ -48,7 +48,7 @@
 </style>
 
 <div class="upload-container">
-    <h2>อัปโหลดไฟล์สัญญา</h2>
+    <h2>อัพโหลดไฟล์สัญญา(PDF)</h2>
     @using (Html.BeginForm("Upload", "File", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
         @Html.AntiForgeryToken()
@@ -62,7 +62,7 @@
         
         @Html.HiddenFor(model => model.ProcessInstanceID)
 
-        <button type="submit" class="upload-button">อัปโหลดไฟล์</button>
+        <button type="submit" class="upload-button">อัพโหลดไฟล์</button>
 
         @* if (!string.IsNullOrEmpty(Model.StatusMessage))
         {

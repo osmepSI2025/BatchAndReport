@@ -118,7 +118,7 @@ public class WordEContract_MemorandumInWritingService
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("(บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม" +
                         "เมื่อ"+ strDateTH + " ระหว่าง", null, "32"));
 
-                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย "+result.OrgCommonName+" สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.”ฝ่ายหนึ่ง กับ", null, "32"));
+                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย "+result.OrgCommonName+" เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550. (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.”ฝ่ายหนึ่ง กับ", null, "32"));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("“ชื่อเต็มของหน่วยงาน” โดย "+result.Requestor+" ตำแหน่ง."+result.RequestorPosition+ ".ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลง"+ strDateTH + "สำนักงานตั้งอยู่เลขที่ ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “  ” อีกฝ่ายหนึ่ง", null, "32"));
                 body.AppendChild(WordServiceSetting.JustifiedParagraph("วัตถุประสงค์ของความร่วมมือ", "32", true));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ (ชื่อโครงการที่ระบุไว้ข้างต้น) ซึ่งในบันทึกข้อตกลงฉบับนี้ต่อไปจะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการแผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของบันทึกข้อตกลงฉบับนี้ มีระยะเวลา" +
@@ -249,11 +249,23 @@ public class WordEContract_MemorandumInWritingService
         }
         #region checkมอบอำนาจ
         string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(result.Effective_Date ?? DateTime.Now);
+        string strAttorneyLetterDate_CP = CommonDAO.ToArabicDateStringCovert(result.CP_S_AttorneyLetterDate ?? DateTime.Now);
+        string strAttorneyOsmep = "";
+        var HtmlAttorneyOsmep = new StringBuilder();
+        if (result.AttorneyFlag == true)
+        {
+            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งที่ " + result.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+
+        }
+        else
+        {
+            strAttorneyOsmep = "";
+        }
         string strAttorney = "";
         var HtmlAttorney = new StringBuilder();
         if (result.AttorneyFlag == true)
         {
-            strAttorney = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+            strAttorney = "ผู้มีอำนาจกระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate + "";
 
         }
         else
@@ -273,40 +285,14 @@ public class WordEContract_MemorandumInWritingService
         var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
         var signatoryHtml = new StringBuilder();
         var companySealHtml = new StringBuilder();
+        bool sealAdded = false; // กันซ้ำ
 
         foreach (var signer in signlist)
         {
             string signatureHtml;
-            string companySeal = ""; // Initialize to avoid unassigned variable warning
+            string companySeal = ""; // กัน warning
 
-            // Fix CS8602: Use null-conditional operator for Position and Company_Seal
-            if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
-            {
-                try
-                {
-                    var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
-                    var contentEnd = signer.Company_Seal.IndexOf("</content>");
-                    var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
-
-                    companySeal = $@"
-<div class='t-16 text-center tab1'>
-                 <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
-            </div>";
-
-                    companySealHtml.AppendLine($@"
-    <div class='text-center'>
-        {companySeal}      
-    </div>
-<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
-
-");
-                }
-                catch
-                {
-                    companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
-                }
-            }
-
+            // ► ลายเซ็นรายบุคคล (เดิม)
             if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
             {
                 try
@@ -316,8 +302,8 @@ public class WordEContract_MemorandumInWritingService
                     var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
 
                     signatureHtml = $@"<div class='t-16 text-center tab1'>
-                 <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
-            </div>";
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+</div>";
                 }
                 catch
                 {
@@ -328,16 +314,62 @@ public class WordEContract_MemorandumInWritingService
             {
                 signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
             }
+            // ► ตราประทับ: ให้พิจารณาเมื่อเจอ CP_S เท่านั้น (ไม่เช็ค null/empty ตรง if ชั้นนอก)
+            if (!sealAdded && signer?.Signatory_Type == "CP_S")
+            {
+                if (!string.IsNullOrEmpty(signer.Company_Seal) && signer.Company_Seal.Contains("<content>"))
+                {
+                    try
+                    {
+                        var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                        var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                        companySeal = $@"
+<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+</div>";
+
+                        companySealHtml.AppendLine($@"
+<div class='text-center'>
+    {companySeal}
+</div>
+");
+                        sealAdded = true;
+                    }
+                    catch
+                    {
+                        companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                        sealAdded = true;
+                    }
+                }
+                else
+                {
+                    // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
+                    companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                    sealAdded = true;
+                }
+            }
 
             signatoryHtml.AppendLine($@"
-    <div class='sign-single-right'>
-        {signatureHtml}
-        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
-        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
-    </div>");
-
-            signatoryHtml.Append(companySealHtml);
+<div class='sign-single-right'>
+    {signatureHtml}
+    <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+    <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+</div>");
         }
+
+        // ► Fallback: ถ้าจบลูปแล้วยังไม่มีตราประทับ แต่คุณ “ต้องการให้มีอย่างน้อย placeholder 1 ครั้ง”
+        if (!sealAdded)
+        {
+            companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+            sealAdded = true;
+        }
+
+        // ► ประกอบผลลัพธ์
+        var signatoryWithLogoHtml = new StringBuilder();
+        if (companySealHtml.Length > 0) signatoryWithLogoHtml.Append(companySealHtml);
+        signatoryWithLogoHtml.Append(signatoryHtml);
 
         #endregion signlist
 
@@ -451,8 +483,8 @@ public class WordEContract_MemorandumInWritingService
     <div class='t-18 text-center'><B>{result.OrgName ?? ""}</B></div>
     <br/>
      <P class='t-16 tab2'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจ ขนาดกลางและขนาดย่อม เมื่อ {strSign_Date} ระหว่าง</P>
-    <P class='t-16 tab2'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B> โดย {result.Requestor} ตำแหน่ง {result.RequestorPosition} สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า “สสว.” ฝ่ายหนึ่ง กับ</P>
-    <P class='t-16 tab2'><B>“{result.OrgCommonName ?? ""}”</B> โดย {result.Org_Requestor} ตำแหน่ง {result.Org_RequestorPosition} {strAttorney} สำนักงานตั้งอยู่เลขที่ {result.Office_Loc} ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “{result.OrgName ?? ""}” อีกฝ่ายหนึ่ง</P>
+    <P class='t-16 tab2'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B>  โดย {result.OSMEP_NAME} ตำแหน่ง {result.OSMEP_POSITION} {strAttorneyOsmep} สำนักงานตั้งอยู่เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550. (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ</P>
+    <P class='t-16 tab2'><B>“{result.OrgCommonName ?? ""}”</B> โดย {result.CP_S_NAME} ตำแหน่ง {result.CP_S_POSITION} {strAttorney} สำนักงานตั้งอยู่เลขที่ {result.Office_Loc} ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “{result.OrgName ?? ""}” อีกฝ่ายหนึ่ง</P>
     <P class='t-16 tab1'><B>วัตถุประสงค์ของความร่วมมือ</B></P>
     <P class='t-16 tab2'>ทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ {result.ProjectTitle} ซึ่งในบันทึกข้อตกลงฉบับนี้ต่อไปจะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการแผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของบันทึกข้อตกลงฉบับนี้ มีระยะเวลา ตั้งแต่วันที่ {strStart_Date} จนถึงวันที่ {strEnd_Date} โดยมีวัตถุประสงค์ ในการดำเนินโครงการ ดังนี้</P>
 {(purposeList != null && purposeList.Count != 0
@@ -481,7 +513,7 @@ public class WordEContract_MemorandumInWritingService
 
 </br>
 </br>
-{signatoryHtml}
+{signatoryWithLogoHtml}
 </body>
 </html>
 ";

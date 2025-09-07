@@ -127,7 +127,7 @@ public class WordEContract_MIWService
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สัญญาร่วมดำเนินการฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม " +
                     "เมื่อวันที่ " + strDateTH[0] + " เดือน " + strDateTH[1] + "พ.ศ." + strDateTH[2] + " ระหว่าง", null, "32"));
 
-                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย " + dataResult.Organization ?? "" + "สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ", null, "32"));
+                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย " + dataResult.Organization ?? "" + "เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550. (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ", null, "32"));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs(" " + dataResult.OfficeLoc + " โดย " + dataResult.IssueOwner + " ตำแหน่ง " + dataResult.IssueOwnerPosition + " ผู้มีอำนาจกระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ " +
                     "ฉบับลงวันที่ " + strDateTH[0] + " เดือน" + strDateTH[1] + "พ.ศ." + strDateTH[2] + " ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “ชื่อหน่วยร่วม” อีกฝ่ายหนึ่ง", null, "32"));
                 body.AppendChild(WordServiceSetting.JustifiedParagraph("วัตถุประสงค์ตามสัญญาร่วมดำเนินการ", "32", true));
@@ -266,41 +266,92 @@ public class WordEContract_MIWService
         var purposeList = await _eContractReportDAO.GetJOAPoposeAsync(conId);
 
         var signatoryHtml = new StringBuilder();
+        var companySealHtml = new StringBuilder();
+        bool sealAdded = false; // กันซ้ำ
 
         foreach (var signer in dataResult.Signatories)
         {
             string signatureHtml;
+            string companySeal = ""; // กัน warning
 
-            if (!string.IsNullOrEmpty(signer.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+            // ► ลายเซ็นรายบุคคล (เดิม)
+            if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
             {
                 try
                 {
-                    // ตัดเอาเฉพาะ Base64 ในแท็ก <content>...</content>
                     var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
                     var contentEnd = signer.DS_FILE.IndexOf("</content>");
                     var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
 
                     signatureHtml = $@"<div class='t-16 text-center tab1'>
-                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
-            </div>";
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+</div>";
                 }
                 catch
                 {
-                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ)</div>";
+                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
                 }
             }
             else
             {
-                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ)</div>";
+                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+            }
+            // ► ตราประทับ: ให้พิจารณาเมื่อเจอ CP_S เท่านั้น (ไม่เช็ค null/empty ตรง if ชั้นนอก)
+            if (!sealAdded && signer?.Signatory_Type == "CP_S")
+            {
+                if (!string.IsNullOrEmpty(signer.Company_Seal) && signer.Company_Seal.Contains("<content>"))
+                {
+                    try
+                    {
+                        var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                        var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                        companySeal = $@"
+<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+</div>";
+
+                        companySealHtml.AppendLine($@"
+<div class='text-center'>
+    {companySeal}
+</div>
+");
+                        sealAdded = true;
+                    }
+                    catch
+                    {
+                        companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                        sealAdded = true;
+                    }
+                }
+                else
+                {
+                    // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
+                    companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                    sealAdded = true;
+                }
             }
 
             signatoryHtml.AppendLine($@"
-    <div class='sign-single-right'>
-        {signatureHtml}
-        <div class='t-16 text-center tab1'>({signer.Signatory_Name})</div>
-        <div class='t-16 text-center tab1'>{signer.BU_UNIT}</div>
-    </div>");
+<div class='sign-single-right'>
+    {signatureHtml}
+    <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+    <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+</div>");
         }
+
+        // ► Fallback: ถ้าจบลูปแล้วยังไม่มีตราประทับ แต่คุณ “ต้องการให้มีอย่างน้อย placeholder 1 ครั้ง”
+        if (!sealAdded)
+        {
+            companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+            sealAdded = true;
+        }
+
+        // ► ประกอบผลลัพธ์
+        var signatoryWithLogoHtml = new StringBuilder();
+        if (companySealHtml.Length > 0) signatoryWithLogoHtml.Append(companySealHtml);
+        signatoryWithLogoHtml.Append(signatoryHtml);
 
 
 
@@ -518,7 +569,7 @@ public class WordEContract_MIWService
 </br>
 </br>
 <!-- 🔹 รายชื่อผู้ลงนาม -->
-{signatoryHtml.ToString()}
+{signatoryWithLogoHtml.ToString()}
 
 </div>
 </body>

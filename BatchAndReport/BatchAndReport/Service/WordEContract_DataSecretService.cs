@@ -116,7 +116,7 @@ public class WordEContract_DataSecretService
                   "ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.) ระหว่าง", null, "32"));
 
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.) โดย " + result.OSMEP_Signatory + "" +
-                  "ตำแหน่ง " + result.OSMEP_Position + " สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เปิดเผยข้อมูล”" +
+                  "ตำแหน่ง " + result.OSMEP_Position + " เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550. (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เปิดเผยข้อมูล”" +
                   "กับ กับ" + result.Contract_Party_Name + " โดย " + result.CP_Signatory + "" +
                   "ตำแหน่ง " + result.CP_Position + " สำนักงานตั้งอยู่เลขที่ " + result.OfficeLoc + " ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้รับข้อมูล”",
                   null, "32"
@@ -317,40 +317,14 @@ public class WordEContract_DataSecretService
         var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
         var signatoryHtml = new StringBuilder();
         var companySealHtml = new StringBuilder();
+        bool sealAdded = false; // กันซ้ำ
 
         foreach (var signer in signlist)
         {
             string signatureHtml;
-            string companySeal = ""; // Initialize to avoid unassigned variable warning
+            string companySeal = ""; // กัน warning
 
-            // Fix CS8602: Use null-conditional operator for Position and Company_Seal
-            if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
-            {
-                try
-                {
-                    var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
-                    var contentEnd = signer.Company_Seal.IndexOf("</content>");
-                    var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
-
-                    companySeal = $@"
-<div class='t-16 text-center tab1'>
-                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
-            </div>";
-
-                    companySealHtml.AppendLine($@"
-    <div class='text-center'>
-        {companySeal}      
-    </div>
-<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
-
-");
-                }
-                catch
-                {
-                    companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
-                }
-            }
-
+            // ► ลายเซ็นรายบุคคล (เดิม)
             if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
             {
                 try
@@ -360,8 +334,8 @@ public class WordEContract_DataSecretService
                     var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
 
                     signatureHtml = $@"<div class='t-16 text-center tab1'>
-                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
-            </div>";
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+</div>";
                 }
                 catch
                 {
@@ -372,16 +346,62 @@ public class WordEContract_DataSecretService
             {
                 signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
             }
+            // ► ตราประทับ: ให้พิจารณาเมื่อเจอ CP_S เท่านั้น (ไม่เช็ค null/empty ตรง if ชั้นนอก)
+            if (!sealAdded && signer?.Signatory_Type == "CP_S")
+            {
+                if (!string.IsNullOrEmpty(signer.Company_Seal) && signer.Company_Seal.Contains("<content>"))
+                {
+                    try
+                    {
+                        var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                        var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                        companySeal = $@"
+<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+</div>";
+
+                        companySealHtml.AppendLine($@"
+<div class='text-center'>
+    {companySeal}
+</div>
+");
+                        sealAdded = true;
+                    }
+                    catch
+                    {
+                        companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                        sealAdded = true;
+                    }
+                }
+                else
+                {
+                    // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
+                    companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                    sealAdded = true;
+                }
+            }
 
             signatoryHtml.AppendLine($@"
-    <div class='sign-single-right'>
-        {signatureHtml}
-        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
-        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
-    </div>");
-
-            signatoryHtml.Append(companySealHtml);
+<div class='sign-single-right'>
+    {signatureHtml}
+    <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+    <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+</div>");
         }
+
+        // ► Fallback: ถ้าจบลูปแล้วยังไม่มีตราประทับ แต่คุณ “ต้องการให้มีอย่างน้อย placeholder 1 ครั้ง”
+        if (!sealAdded)
+        {
+            companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+            sealAdded = true;
+        }
+
+        // ► ประกอบผลลัพธ์
+        var signatoryWithLogoHtml = new StringBuilder();
+        if (companySealHtml.Length > 0) signatoryWithLogoHtml.Append(companySealHtml);
+        signatoryWithLogoHtml.Append(signatoryHtml);
 
         #endregion signlist
 
@@ -496,7 +516,7 @@ public class WordEContract_DataSecretService
         สัญญาการรักษาข้อมูลที่เป็นความลับ (“สัญญา”) ฉบับนี้จัดขึ้น เมื่อ {strDateTH} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.) ระหว่าง
     </p>
    <p class='tab3 t-16'>
-        สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.) โดย {result.OSMEP_Signatory} </br>ตำแหน่ง {result.OSMEP_Position} สำนักงานตั้งอยู่เลขที่ 21 อาคารทีเอสที ทาวเวอร์ ชั้น G,17-18,23 ถนนวิภาวดีรังสิต แขวงจอมพล เขตจตุจักร กรุงเทพมหานคร 10900 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เปิดเผยข้อมูล”
+        สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.) โดย {result.OSMEP_Signatory} </br>ตำแหน่ง {result.OSMEP_Position} เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550. (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เปิดเผยข้อมูล”
         กับ {result.Contract_Party_Name} โดย {result.CP_Signatory} ตำแหน่ง {result.CP_Position} 
 </br>สำนักงานตั้งอยู่เลขที่ {result.OfficeLoc} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้รับข้อมูล”
     </p>
@@ -633,7 +653,7 @@ public class WordEContract_DataSecretService
     <!-- Signature Table -->
    </br>
 </br>
-{signatoryHtml}
+{signatoryWithLogoHtml}
 </body>
 </html>
 ";

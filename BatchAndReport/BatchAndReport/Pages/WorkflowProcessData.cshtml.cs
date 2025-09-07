@@ -53,7 +53,7 @@ public class WorkflowProcessDataModel : PageModel
             FiscalYear = fiscalYear,
 
             CoreProcesses = all
-        .Where(p => p.ProcessTypeCode == "CORE")
+         .Where(p => p.ProcessTypeCode == "CORE" && p.IsDeleted == false)
         .OrderBy(p => Regex.Match(p.ProcessGroupCode, @"^[A-Za-z]+").Value) // ตัวอักษรนำหน้า
         .ThenBy(p =>
         {
@@ -68,7 +68,7 @@ public class WorkflowProcessDataModel : PageModel
         .ToList(),
 
             SupportProcesses = all
-        .Where(p => p.ProcessTypeCode == "SUPPORT")
+        .Where(p => p.ProcessTypeCode == "SUPPORT" && p.IsDeleted == false)
         .OrderBy(p => Regex.Match(p.ProcessGroupCode, @"^[A-Za-z]+").Value)
         .ThenBy(p =>
         {

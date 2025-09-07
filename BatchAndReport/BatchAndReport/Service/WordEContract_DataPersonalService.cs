@@ -577,40 +577,14 @@ string datestring = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign
             var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
             var signatoryHtml = new StringBuilder();
             var companySealHtml = new StringBuilder();
+            bool sealAdded = false; // กันซ้ำ
 
             foreach (var signer in signlist)
             {
                 string signatureHtml;
-                string companySeal = ""; // Initialize to avoid unassigned variable warning
+                string companySeal = ""; // กัน warning
 
-                // Fix CS8602: Use null-conditional operator for Position and Company_Seal
-                if (signer?.Signatory_Type == "CP_S" && !string.IsNullOrEmpty(signer?.Company_Seal))
-                {
-                    try
-                    {
-                        var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
-                        var contentEnd = signer.Company_Seal.IndexOf("</content>");
-                        var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
-
-                        companySeal = $@"
-<div class='t-16 text-center tab1'>
-                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
-            </div>";
-
-                        companySealHtml.AppendLine($@"
-    <div class='text-center'>
-        {companySeal}      
-    </div>
-<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>
-
-");
-                    }
-                    catch
-                    {
-                        companySeal = "<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>";
-                    }
-                }
-
+                // ► ลายเซ็นรายบุคคล (เดิม)
                 if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
                 {
                     try
@@ -620,8 +594,8 @@ string datestring = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign
                         var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
 
                         signatureHtml = $@"<div class='t-16 text-center tab1'>
-                <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
-            </div>";
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+</div>";
                     }
                     catch
                     {
@@ -632,16 +606,62 @@ string datestring = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign
                 {
                     signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
                 }
+                // ► ตราประทับ: ให้พิจารณาเมื่อเจอ CP_S เท่านั้น (ไม่เช็ค null/empty ตรง if ชั้นนอก)
+                if (!sealAdded && signer?.Signatory_Type == "CP_S")
+                {
+                    if (!string.IsNullOrEmpty(signer.Company_Seal) && signer.Company_Seal.Contains("<content>"))
+                    {
+                        try
+                        {
+                            var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                            var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                            var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                            companySeal = $@"
+<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+</div>";
+
+                            companySealHtml.AppendLine($@"
+<div class='text-center'>
+    {companySeal}
+</div>
+");
+                            sealAdded = true;
+                        }
+                        catch
+                        {
+                            companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                            sealAdded = true;
+                        }
+                    }
+                    else
+                    {
+                        // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
+                        companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                        sealAdded = true;
+                    }
+                }
 
                 signatoryHtml.AppendLine($@"
-    <div class='sign-single-right'>
-        {signatureHtml}
-        <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
-        <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
-    </div>");
-
-                signatoryHtml.Append(companySealHtml);
+<div class='sign-single-right'>
+    {signatureHtml}
+    <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+    <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+</div>");
             }
+
+            // ► Fallback: ถ้าจบลูปแล้วยังไม่มีตราประทับ แต่คุณ “ต้องการให้มีอย่างน้อย placeholder 1 ครั้ง”
+            if (!sealAdded)
+            {
+                companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                sealAdded = true;
+            }
+
+            // ► ประกอบผลลัพธ์
+            var signatoryWithLogoHtml = new StringBuilder();
+            if (companySealHtml.Length > 0) signatoryWithLogoHtml.Append(companySealHtml);
+            signatoryWithLogoHtml.Append(signatoryHtml);
 
             #endregion signlist
 
@@ -903,7 +923,7 @@ string datestring = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign
 
 </br>
 </br>
-{signatoryHtml}
+{signatoryWithLogoHtml}
 </body>
 </html>
 ";
