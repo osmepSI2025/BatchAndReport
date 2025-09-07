@@ -338,22 +338,6 @@ public class WordEContract_PersernalProcessService
                 logoBase64 = Convert.ToBase64String(bytes);
             }
 
-            #region checkมอบอำนาจ
-            string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(result.Grant_Date ?? DateTime.Now);
-            string strAttorneyOsmep = "";
-            var HtmlAttorneyOsmep = new StringBuilder();
-            if (result.AttorneyFlag == true)
-            {
-                strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งที่ " + result.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
-
-            }
-            else
-            {
-                strAttorneyOsmep = "";
-            }
-            
-            #endregion
-
             // Font
             var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
             string signDate = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign_Date ?? DateTime.Now);
@@ -416,14 +400,14 @@ public class WordEContract_PersernalProcessService
                         }
                         catch
                         {
-                            companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                            
                             sealAdded = true;
                         }
                     }
                     else
                     {
                         // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
-                        companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                        
                         sealAdded = true;
                     }
                 }
@@ -439,7 +423,7 @@ public class WordEContract_PersernalProcessService
             // ► Fallback: ถ้าจบลูปแล้วยังไม่มีตราประทับ แต่คุณ “ต้องการให้มีอย่างน้อย placeholder 1 ครั้ง”
             if (!sealAdded)
             {
-                companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                
                 sealAdded = true;
             }
 
@@ -551,7 +535,7 @@ public class WordEContract_PersernalProcessService
         ข้อตกลงการประมวลผลข้อมูลส่วนบุคคล (“ข้อตกลง”) ฉบับนี้ทำขึ้น เมื่อวันที่ {signDate} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม
     </P>
     <p class='t-16 tab3'> 
-        สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย {result.OSMEP_NAME} ตำแหน่ง {result.OSMEP_POSITION} {strAttorneyOsmep} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สสว.” ฝ่ายหนึ่ง ได้ตกลงใน {result.Project_Name ?? ""} สัญญาเลขที่ {result.Contract_Number ?? ""} ฉบับลง {signDate} ซึ่งต่อไปในข้อตกลงฉบับนี้
+        โดยที่ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สสว.” ฝ่ายหนึ่ง ได้ตกลงใน {result.Project_Name ?? ""} สัญญาเลขที่ {result.Contract_Number ?? ""} ฉบับลง {signDate} ซึ่งต่อไปในข้อตกลงฉบับนี้
 </br>เรียกว่า “(บันทึกความร่วมมือ/สัญญา)” กับ {result.Contract_Organization ?? ""} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “{result.Contract_Organization ?? ""}” อีกฝ่ายหนึ่ง
     </P>
     <p class='t-16 tab3'>

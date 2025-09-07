@@ -28,6 +28,15 @@
         public bool Flag_Delete { get; set; }
         public string Request_ID { get; set; }
         public string Contract_Status { get; set; }
+        public string? OSMEP_NAME { get; set; }
+        public bool? CP_S_AttorneyFlag { get; set; }
+        public DateTime? Grant_Date { get; set; }
+        public string? AttorneyLetterNumber { get; set; }
+        public string? OSMEP_POSITION { get; set; }
+        public bool? AttorneyFlag { get; set; }
+        public string? CP_S_NAME { get; set; }
+        public string? CP_S_POSITION { get; set; }
+        public DateTime? CP_S_AttorneyLetterDate { get; set; }
     }
 
     public class E_ConReport_NDAConfidentialTypeModels

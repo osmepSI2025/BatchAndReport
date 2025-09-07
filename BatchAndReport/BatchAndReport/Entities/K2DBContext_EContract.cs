@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace BatchAndReport.Entities
 {
@@ -14,10 +14,15 @@ namespace BatchAndReport.Entities
         public virtual DbSet<EmployeeContract> EmployeeContracts { get; set; }
         public virtual DbSet<EmployeeProfile> EmployeeProfiles { get; set; }
         public virtual DbSet<ContractParty> ContractParties { get; set; }
+        public virtual DbSet<ContractFilePassword> ContractFilePasswords { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Server=192.168.9.156;Database=E-Contract;User Id=sa;Password=Osmep@2025;TrustServerCertificate=True;");
+
+//        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+//        => optionsBuilder.UseSqlServer("Server=192.168.9.237;Database=E-Contract;User Id=sa;Password=SS0@Osmep@2025;TrustServerCertificate=True;");
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<EmployeeContract>(entity =>
@@ -278,6 +283,53 @@ namespace BatchAndReport.Entities
                 entity.Property(e => e.FlagActive)
                     .HasColumnName("Flag_Active")
                     .HasMaxLength(1);
+            });
+            modelBuilder.Entity<ContractFilePassword>(entity =>
+            {
+                entity.ToTable("Contract_File_Password"); // ← ใส่ schema ให้ชัด
+
+                entity.HasKey(e => e.GuId);
+
+                entity.Property(e => e.GuId).HasColumnName("gu_id");
+
+                entity.Property(e => e.Password)
+                    .HasColumnName("Password")
+                    .HasMaxLength(100)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.EmpId)
+                    .HasColumnName("Emp_Id")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.Email)
+                    .HasColumnName("Email")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.CreateDate)
+                    .HasColumnName("Create_Date")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.CreateBy)
+                    .HasColumnName("Create_By")
+                    .HasMaxLength(100)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.UpdateDate)
+                    .HasColumnName("Update_Date")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.UpdateBy)
+                    .HasColumnName("Update_By")
+                    .HasMaxLength(100)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.FlagActive)
+                    .HasColumnName("Flag_Active")
+                    .HasMaxLength(1)
+                    .IsRequired()
+                    .UseCollation("Thai_CI_AS");
             });
 
         }
