@@ -317,10 +317,21 @@ public class WordEContract_JointOperationService
                 signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
             }
 
+            string name = signer?.Signatory_Name ?? "";
+            string nameBlock;
+            if (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
+            {
+                nameBlock = $"({name})พยาน";
+            }
+            else
+            {
+                nameBlock = $"({name})";
+            }
+
             return $@"
 <div class='sign-single-right'>
     {signatureHtml}
-    <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
+    <div class='t-16 text-center tab1'>{nameBlock}</div>
     <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
 </div>";
         }

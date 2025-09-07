@@ -5190,12 +5190,8 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
-        public async Task<IActionResult> OnGetWordContact_MOU(string ContractId = "5")
-        {
-            var wordBytes = await _MemorandumService.OnGetWordContact_MemorandumService(ContractId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือ.docx");
-        }
-        public async Task OnGetWordContact_MOU_PDF(string ContractId = "7")
+ 
+        public async Task OnGetWordContact_MOU_PDF(string ContractId = "19")
         {
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
             var doc = new DinkToPdf.HtmlToPdfDocument()
@@ -5236,7 +5232,7 @@ namespace BatchAndReport.Pages.Report
             //   return File(wordBytes, "application/pdf", "MOU_" + ContractId + ".pdf");
         }
 
-        public async Task<IActionResult> OnGetWordContact_MOU_PDF_Preview(string ContractId = "7", string Name = "สมใจ ทดสอบ")
+        public async Task<IActionResult> OnGetWordContact_MOU_PDF_Preview(string ContractId = "19", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
             var doc = new DinkToPdf.HtmlToPdfDocument()
@@ -5332,7 +5328,7 @@ namespace BatchAndReport.Pages.Report
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
         }
-        public async Task<IActionResult> OnGetWordContact_MOU_JPEG(string ContractId = "7")
+        public async Task<IActionResult> OnGetWordContact_MOU_JPEG(string ContractId = "19")
         {
             // 1. Generate PDF from MOU contract
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
@@ -5415,7 +5411,7 @@ namespace BatchAndReport.Pages.Report
             return File(zipBytes, "application/zip", $"MOU_{ContractId}_JPEG.zip");
         }
 
-        public async Task<IActionResult> OnGetWordContact_MOU_JPEG_Preview(string ContractId = "7")
+        public async Task<IActionResult> OnGetWordContact_MOU_JPEG_Preview(string ContractId = "19")
         {
             // 1. Generate PDF from MOU contract
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
@@ -5515,7 +5511,7 @@ namespace BatchAndReport.Pages.Report
         }
         //  var pdfBytes = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
 
-        public async Task<IActionResult> OnGetWordContact_MOU_Word(string ContractId = "7")
+        public async Task<IActionResult> OnGetWordContact_MOU_Word(string ContractId = "19")
         {
             // 1. Get HTML content for MOU contract
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
@@ -5548,7 +5544,7 @@ namespace BatchAndReport.Pages.Report
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"MOU_{ContractId}.docx");
         }
-        public async Task<IActionResult> OnGetWordContact_MOU_Word_Preview(string ContractId = "7")
+        public async Task<IActionResult> OnGetWordContact_MOU_Word_Preview(string ContractId = "19")
         {
             // 1. Get the Word document for MOU contract
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
