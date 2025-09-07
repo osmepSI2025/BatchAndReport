@@ -1,4 +1,5 @@
 ﻿using BatchAndReport.DAO;
+using BatchAndReport.Models;
 using BatchAndReport.Services;
 using DinkToPdf;
 using DinkToPdf.Contracts;
@@ -281,12 +282,19 @@ public class WordEContract_JointOperationService
         var companySealHtml = new StringBuilder();
         bool sealAdded = false; // กันซ้ำ
 
-        foreach (var signer in dataResult.Signatories)
+        var dataSignatories = dataResult.Signatories.Where(e => e.Signatory_Type != null).ToList();
+        // Group signatories
+        var dataSignatoriesTypeOSMEP = dataSignatories
+            .Where(e => e.Signatory_Type == "OSMEP_S" || e.Signatory_Type == "OSMEP_W")
+            .ToList();
+        var dataSignatoriesTypeCP = dataSignatories
+            .Where(e => e.Signatory_Type == "CP_S" || e.Signatory_Type == "CP_W")
+            .ToList();
+
+        // Helper to render a signatory block
+        string RenderSignatory(E_ConReport_SignatoryModels signer)
         {
             string signatureHtml;
-            string companySeal = ""; // กัน warning
-
-            // ► ลายเซ็นรายบุคคล (เดิม)
             if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
             {
                 try
@@ -308,64 +316,84 @@ public class WordEContract_JointOperationService
             {
                 signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
             }
-            // ► ตราประทับ: ให้พิจารณาเมื่อเจอ CP_S เท่านั้น (ไม่เช็ค null/empty ตรง if ชั้นนอก)
-            if (!sealAdded && signer?.Signatory_Type == "CP_S")
-            {
-                if (!string.IsNullOrEmpty(signer.Company_Seal) && signer.Company_Seal.Contains("<content>"))
-                {
-                    try
-                    {
-                        var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
-                        var contentEnd = signer.Company_Seal.IndexOf("</content>");
-                        var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
 
-                        companySeal = $@"
-<div class='t-16 text-center tab1'>
-    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
-</div>";
-
-                        companySealHtml.AppendLine($@"
-<div class='text-center'>
-    {companySeal}
-</div>
-");
-                        sealAdded = true;
-                    }
-                    catch
-                    {
-                        companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
-                        sealAdded = true;
-                    }
-                }
-                else
-                {
-                    // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
-                    companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
-                    sealAdded = true;
-                }
-            }
-
-            signatoryHtml.AppendLine($@"
+            return $@"
 <div class='sign-single-right'>
     {signatureHtml}
     <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
     <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
-</div>");
+</div>";
         }
 
-        // ► Fallback: ถ้าจบลูปแล้วยังไม่มีตราประทับ แต่คุณ “ต้องการให้มีอย่างน้อย placeholder 1 ครั้ง”
-        if (!sealAdded)
+        // Build HTML for each column
+        var smeSignHtml = new StringBuilder();
+        foreach (var signer in dataSignatoriesTypeOSMEP)
         {
-            companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+            smeSignHtml.AppendLine(RenderSignatory(signer));
+        }
+
+        var customerSignHtml = new StringBuilder();
+        foreach (var signer in dataSignatoriesTypeCP)
+        {
+            customerSignHtml.AppendLine(RenderSignatory(signer));
+        }
+        //คราประทับ
+        var companySealSignatory = dataSignatoriesTypeCP.Where(e => e.Company_Seal != null).FirstOrDefault();
+        if (companySealSignatory != null && !string.IsNullOrEmpty(companySealSignatory.Company_Seal) && companySealSignatory.Company_Seal.Contains("<content>"))
+        {
+            try
+            {
+                var contentStart = companySealSignatory.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                var contentEnd = companySealSignatory.Company_Seal.IndexOf("</content>");
+                var base64 = companySealSignatory.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                var companySeal = $@"
+<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+</div>";
+
+                companySealHtml.AppendLine($@"
+<div class='text-center'>
+    {companySeal}
+</div>
+");
+                sealAdded = true;
+            }
+            catch
+            {
+                companySealHtml.AppendLine("<div class='t-16 text-center tab1'></div>");
+                sealAdded = true;
+            }
+        }
+        else
+        {
+            // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
+            companySealHtml.AppendLine("<div class='t-16 text-center tab1'></div>");
             sealAdded = true;
         }
 
-        // ► ประกอบผลลัพธ์
-        var signatoryWithLogoHtml = new StringBuilder();
-        if (companySealHtml.Length > 0) signatoryWithLogoHtml.Append(companySealHtml);
-        signatoryWithLogoHtml.Append(signatoryHtml);
+        // Output as a table
+        var signatoryTableHtml = $@"
+<table class='signature-table'>
+    <tr>
+        <td style='width:50%; vertical-align:top;'>
+            <div class='t-22 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</b></div>
+            {smeSignHtml}
+        </td>
+        <td style='width:50%; vertical-align:top;'>
+            <div class='t-22 text-center'><b>{dataResult.Organization ?? "หน่วยงานร่วม"}</b></div>
+            {customerSignHtml}
+     {companySealHtml}
+        </td>
+    </tr>
+</table>
+
+";
+
+     
 
 
+        // Use signatoryTableHtml in your final HTML output
 
 
         var html = $@"<html>
@@ -516,45 +544,16 @@ public class WordEContract_JointOperationService
 </br>
 </br>
 <!-- 🔹 รายชื่อผู้ลงนาม -->
-{signatoryHtml.ToString()}
+
+
+{signatoryTableHtml}
 
 </div>
 </body>
 </html>
 ";
 
-        //if (_pdfConverter == null)
-        //    throw new Exception("PDF service is not available.");
-
-        //var doc = new HtmlToPdfDocument()
-        //{
-        //    GlobalSettings = {
-        //    PaperSize = PaperKind.A4,
-        //    Orientation = DinkToPdf.Orientation.Portrait,
-        //    Margins = new MarginSettings
-        //    {
-        //        Top = 20,
-        //        Bottom = 20,
-        //        Left = 20,
-        //        Right = 20
-        //    }
-        //},
-        //    Objects = {
-        //    new ObjectSettings() {
-        //        HtmlContent = html,
-        //        FooterSettings = new FooterSettings
-        //        {
-        //            FontName = "THSarabunNew",
-        //            FontSize = 6,
-        //            Line = false,
-        //            Center = "[page] / [toPage]"
-        //        }
-        //    }
-        //}
-        //};
-
-        //var pdfBytes = _pdfConverter.Convert(doc);
-        //return pdfBytes;
+ 
 
         return html;
     }

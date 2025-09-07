@@ -6386,13 +6386,62 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
 
         #region 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
-        public async Task<IActionResult> OnGetWordContact_JOA(string ContractId = "32")
+        public async Task<IActionResult> OnGetWordContact_JOA(string ContractId = "79")
         {
             var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
         }
+        public async Task OnGetWordContact_JOA_PDF(string ContractId = "79", string Name = "สมใจ ทดสอบ")
+        {
+            // 1. Get HTML content
+            var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
 
-        public async Task<IActionResult> OnGetWordContact_JOA_PDF_Preview(string ContractId = "70", string Name = "สมใจ ทดสอบ")
+            // 2. Convert HTML to PDF using DinkToPdf
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+            PaperSize = DinkToPdf.PaperKind.A4,
+            Orientation = DinkToPdf.Orientation.Portrait,
+            Margins = new DinkToPdf.MarginSettings
+            {
+                Top = 20,
+                Bottom = 20,
+                Left = 20,
+                Right = 20
+            }
+        },
+                Objects = {
+            new DinkToPdf.ObjectSettings()
+            {
+                HtmlContent = htmlContent
+            }
+        }
+            };
+
+            // 3. Convert to PDF
+            var pdfBytes = _pdfConverter.Convert(doc);
+
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, $"JOA_{ContractId}.pdf");
+
+            // 5. Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+
+            // 6. Return the PDF file as download
+            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+          //  return File(resultBytes, "application/pdf", $"JOA_{ContractId}.pdf");
+        }
+
+        public async Task<IActionResult> OnGetWordContact_JOA_PDF_Preview(string ContractId = "79", string Name = "สมใจ ทดสอบ")
         {
             // 1. Get HTML content
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
@@ -6486,7 +6535,7 @@ namespace BatchAndReport.Pages.Report
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
         }
-        public async Task<IActionResult> OnGetWordContact_JOA_JPEG(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_JOA_JPEG(string ContractId = "79")
         {
             // 1. Generate PDF from JOA contract (HTML to PDF)
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
@@ -6591,7 +6640,7 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"JOA_{ContractId}_JPEG.zip");
         }
-        public async Task<IActionResult> OnGetWordContact_JOA_JPEG_Preview(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_JOA_JPEG_Preview(string ContractId = "79")
         {
             // 1. Generate PDF from JOA contract (HTML to PDF)
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
@@ -6711,7 +6760,7 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"JOA_{ContractId}_JPEG_Preview.zip");
         }
-        public async Task<IActionResult> OnGetWordContact_JOA_Word(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_JOA_Word(string ContractId = "79")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
