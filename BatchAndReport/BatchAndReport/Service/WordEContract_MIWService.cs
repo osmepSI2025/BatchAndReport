@@ -249,11 +249,23 @@ public class WordEContract_MIWService
         }
         #region checkมอบอำนาจ
         string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(dataResult.Grant_Date ?? DateTime.Now);
-        string strAttorney = "";
-        var HtmlAttorney = new StringBuilder();
+        string strAttorneyLetterDate_CP = CommonDAO.ToArabicDateStringCovert(dataResult.CP_S_AttorneyLetterDate ?? DateTime.Now);
+        string strAttorneyOsmep = "";
+        var HtmlAttorneyOsmep = new StringBuilder();
         if (dataResult.AttorneyFlag == true)
         {
-            strAttorney = "ผู้มีอำนาจ กระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งที่ " + dataResult.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+
+        }
+        else
+        {
+            strAttorneyOsmep = "";
+        }
+        string strAttorney = "";
+        var HtmlAttorney = new StringBuilder();
+        if (dataResult.CP_S_AttorneyFlag == true)
+        {
+            strAttorney = "ผู้มีอำนาจ กระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate_CP + "";
 
         }
         else
@@ -321,14 +333,14 @@ public class WordEContract_MIWService
                     }
                     catch
                     {
-                        companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                        
                         sealAdded = true;
                     }
                 }
                 else
                 {
                     // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
-                    companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                    
                     sealAdded = true;
                 }
             }
@@ -344,7 +356,7 @@ public class WordEContract_MIWService
         // ► Fallback: ถ้าจบลูปแล้วยังไม่มีตราประทับ แต่คุณ “ต้องการให้มีอย่างน้อย placeholder 1 ครั้ง”
         if (!sealAdded)
         {
-            companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+            
             sealAdded = true;
         }
 

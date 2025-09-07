@@ -282,14 +282,14 @@ public class WordEContract_SupportSMEsService
                     }
                     catch
                     {
-                        companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                        
                         sealAdded = true;
                     }
                 }
                 else
                 {
                     // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
-                    companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+                    
                     sealAdded = true;
                 }
             }
@@ -305,7 +305,7 @@ public class WordEContract_SupportSMEsService
         // ► Fallback: ถ้าจบลูปแล้วยังไม่มีตราประทับ แต่คุณ “ต้องการให้มีอย่างน้อย placeholder 1 ครั้ง”
         if (!sealAdded)
         {
-            companySealHtml.AppendLine("<div class='t-16 text-center tab1'>(ตราประทับ บริษัท)</div>");
+            
             sealAdded = true;
         }
 

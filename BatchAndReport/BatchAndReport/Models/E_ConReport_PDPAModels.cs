@@ -35,11 +35,6 @@
         public string Flag_Delete { get; set; } // nvarchar(1)
         public string Request_ID { get; set; } // nvarchar(50)
         public string Contract_Status { get; set; } // nvarchar(10)
-        public bool? AttorneyFlag { get; set; } // bit
-        public string? OSMEP_NAME { get; set; }
-        public string? OSMEP_POSITION { get; set; }
-        public string? AttorneyLetterNumber { get; set; }
-        public DateTime? Grant_Date { get; set; }
     }
 
 

@@ -391,12 +391,7 @@ namespace BatchAndReport.DAO
                 UpdateBy = reader["UpdateBy"] as string ?? "",
                 Flag_Delete = reader["Flag_Delete"] as string ?? "",
                 Request_ID = reader["Request_ID"] as string ?? "",
-                Contract_Status = reader["Contract_Status"] as string ?? "",
-                AttorneyLetterNumber = reader["AttorneyLetterNumber"] as string,
-                OSMEP_NAME = reader["OSMEP_NAME"] as string,
-                OSMEP_POSITION = reader["OSMEP_POSITION"] as string,
-                AttorneyFlag = reader["AttorneyFlag"] as bool?,
-                Grant_Date = reader["Grant_Date"] as DateTime?,
+                Contract_Status = reader["Contract_Status"] as string ?? ""
             };
 
             return detail;
@@ -677,7 +672,15 @@ namespace BatchAndReport.DAO
                 UpdateBy = reader["UpdateBy"] as string,
                 Flag_Delete = reader["Flag_Delete"] is bool flag ? flag : false,
                 Request_ID = reader["Request_ID"] as string,
-                Contract_Status = reader["Contract_Status"] as string
+                Contract_Status = reader["Contract_Status"] as string,
+                AttorneyLetterNumber = reader["AttorneyLetterNumber"] as string,
+                OSMEP_NAME = reader["OSMEP_NAME"] as string,
+                OSMEP_POSITION = reader["OSMEP_POSITION"] as string,
+
+                CP_S_AttorneyFlag = reader["CP_S_AttorneyFlag"] as bool?,
+                CP_S_AttorneyLetterDate = reader["CP_S_AttorneyLetterDate"] as DateTime?,
+                CP_S_NAME = reader["CP_S_NAME"] as string,
+                CP_S_POSITION = reader["CP_S_POSITION"] as string,
             };
 
             return detail;
