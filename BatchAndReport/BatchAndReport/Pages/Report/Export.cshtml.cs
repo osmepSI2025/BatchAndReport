@@ -6391,7 +6391,7 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
         }
-        public async Task<IActionResult> OnGetWordContact_JOA_PDF(string ContractId = "79", string Name = "สมใจ ทดสอบ")
+        public async Task OnGetWordContact_JOA_PDF(string ContractId = "79", string Name = "สมใจ ทดสอบ")
         {
             // 1. Get HTML content
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
@@ -6438,7 +6438,7 @@ namespace BatchAndReport.Pages.Report
 
             // 6. Return the PDF file as download
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(resultBytes, "application/pdf", $"JOA_{ContractId}.pdf");
+          //  return File(resultBytes, "application/pdf", $"JOA_{ContractId}.pdf");
         }
 
         public async Task<IActionResult> OnGetWordContact_JOA_PDF_Preview(string ContractId = "79", string Name = "สมใจ ทดสอบ")
