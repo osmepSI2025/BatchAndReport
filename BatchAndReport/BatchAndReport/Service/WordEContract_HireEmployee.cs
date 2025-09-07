@@ -39,7 +39,7 @@ EContractDAO eContractDAO
     public async Task<byte[]> OnGetWordContact_HireEmployee(string id)
     {
         try {
-            var result =await _e.GetECAsync(id);
+            var result = await _e.GetECAsync(id);
             var stream = new MemoryStream();
             using (var wordDoc = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document, true))
             {
@@ -74,19 +74,19 @@ EContractDAO eContractDAO
 
                 body.AppendChild(WordServiceSetting.CenteredBoldColoredParagraph("สัญญาจ้างลูกจ้าง", "000000", "36"));
                 string strcontractsign = CommonDAO.ToArabicDateStringCovert(result.ContractSignDate ?? DateTime.Now);
-                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สัญญาฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เลขที่ 21 ถนนวิภาวดีรังสิต เขตจตุจักร กรุงเทพมหานคร เมื่อ"+ strcontractsign + "", null, "32"));
+                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สัญญาฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เลขที่ 21 ถนนวิภาวดีรังสิต เขตจตุจักร กรุงเทพมหานคร เมื่อ" + strcontractsign + "", null, "32"));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย........................................." +
                     "ผู้อำนวยการฝ่ายศูนย์ให้บริการ SMEs ครบวงจร สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ผู้รับมอบหมายตามคำสั่งสำนักงานฯ ที่ 629/2564 ลงวันที่ 30 กันยายน 2564 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้ว่าจ้าง”", null, "32"));
-                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ฝ่ายหนึ่ง กับ "+result.SignatoryName+" เลขประจำตัวประชาชน " + result.IdenID + " อยู่บ้านเลขที่ "+result.EmpAddress+" " +
+                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ฝ่ายหนึ่ง กับ " + result.SignatoryName + " เลขประจำตัวประชาชน " + result.IdenID + " อยู่บ้านเลขที่ " + result.EmpAddress + " " +
                     "ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ลูกจ้าง” อีกฝ่ายหนึ่ง โดยทั้งสองฝ่ายได้ตกลงทำร่วมกัน</br>ดังมีรายละเอียดต่อไปนี้", null, "32"));
 
-                string strHiringStart = CommonDAO.ToArabicDateStringCovert(result.HiringStartDate??DateTime.Now);
+                string strHiringStart = CommonDAO.ToArabicDateStringCovert(result.HiringStartDate ?? DateTime.Now);
                 string strHiringEnd = CommonDAO.ToArabicDateStringCovert(result.HiringEndDate ?? DateTime.Now);
-                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("1.ผู้ว่าจ้างตกลงจ้างลูกจ้างปฏิบัติงานกับผู้ว่าจ้าง โดยให้ปฏิบัติงานภายใต้งาน "+result.WorkDetail+"  ในตำแหน่ง "+result.WorkPosition+" ปฏิบัติหน้าที่ ณ ศูนย์กลุ่มจังหวัดให้บริการ SME ครบวงจร ..... " +
-                    "โดยมีรายละเอียดหน้าที่ความรับผิดชอบปรากฏตามเอกสารแนบท้ายสัญญาจ้าง ตั้งแต่"+ strHiringStart + " ถึง"+ strHiringEnd + "", null, "32"));
+                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("1.ผู้ว่าจ้างตกลงจ้างลูกจ้างปฏิบัติงานกับผู้ว่าจ้าง โดยให้ปฏิบัติงานภายใต้งาน " + result.WorkDetail + "  ในตำแหน่ง " + result.WorkPosition + " ปฏิบัติหน้าที่ ณ ศูนย์กลุ่มจังหวัดให้บริการ SME ครบวงจร ..... " +
+                    "โดยมีรายละเอียดหน้าที่ความรับผิดชอบปรากฏตามเอกสารแนบท้ายสัญญาจ้าง ตั้งแต่" + strHiringStart + " ถึง" + strHiringEnd + "", null, "32"));
 
-                string strSalary = CommonDAO.NumberToThaiText(result.Salary??0);
-                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("2.ผู้ว่าจ้างจะจ่ายค่าจ้างให้แก่ลูกจ้างในระหว่างระยะเวลาการปฏิบัติงานของลูกจ้างตามสัญญานี้ในอัตราเดือนละ "+result.Salary+"บาท ("+ strSalary + ")" +
+                string strSalary = CommonDAO.NumberToThaiText(result.Salary ?? 0);
+                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("2.ผู้ว่าจ้างจะจ่ายค่าจ้างให้แก่ลูกจ้างในระหว่างระยะเวลาการปฏิบัติงานของลูกจ้างตามสัญญานี้ในอัตราเดือนละ " + result.Salary + "บาท (" + strSalary + ")" +
                     "โดยจะจ่ายให้ในวันทำการก่อนวันทำการสุดท้ายของธนาคารในเดือนนั้นสามวันทำการ และนำเข้าบัญชีเงินฝากของลูกจ้าง ณ ที่ทำการของผู้ว่าจ้าง หรือ ณ ที่อื่นใดตามที่ผู้ว่าจ้างกำหนด", null, "32"));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("3.ในการจ่ายค่าจ้าง และ/หรือ เงินในลักษณะอื่นให้แก่ลูกจ้าง ลูกจ้างตกลงยินยอมให้ผู้ว่าจ้างหักภาษี ณ ที่จ่าย และ/หรือ เงินอื่นใดที่ต้องหักโดยชอบด้วยระเบียบ ข้อบังคับของผู้ว่าจ้างหรือตามกฎหมายที่เกี่ยวข้อง", null, "32"));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("4.ตลอดระยะเวลาการปฏิบัติงานตามสัญญานี้ ลูกจ้างมีสิทธิได้รับสิทธิประโยชน์อื่น ๆ ตามที่กำหนดไว้ใน ระเบียบ ข้อบังคับ คำสั่ง หรือประกาศใด ๆ ตามที่ผู้ว่าจ้างกำหนด", null, "32"));
@@ -245,48 +245,47 @@ EContractDAO eContractDAO
             throw new Exception("Error in OnGetWordContact_HireEmployee: " + ex.Message, ex);
         }
 
-    
+
     }
-    public async Task<string> OnGetWordContact_HireEmployee_ToPDF(string id,string typeContact)
+    public async Task<string> OnGetWordContact_HireEmployee_ToPDF(string id, string typeContact)
     {
         try
         {
+            // ── 0) validate args / DI ───────────────────────────────────────────────
+            if (string.IsNullOrWhiteSpace(id))
+                throw new ArgumentException("id is required.", nameof(id));
+            if (string.IsNullOrWhiteSpace(typeContact))
+                throw new ArgumentException("typeContact is required.", nameof(typeContact));
 
+            if (_e == null) throw new NullReferenceException("_e is null");
+            if (_eContractReportDAO == null) throw new NullReferenceException("_eContractReportDAO is null");
+            // if (_pdfConverter == null)       throw new NullReferenceException("_pdfConverter is null"); // ถ้าใช้ convert จริงค่อยเปิด
+
+            // ── 1) โหลดข้อมูลหลัก (กัน result = null) ─────────────────────────────
+            var result = await _e.GetECAsync(id);
+            if (result == null)
+                throw new InvalidOperationException($"No data found for id '{id}'.");
+
+            // ── 2) path ต่าง ๆ ─────────────────────────────────────────────────────
             var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
             var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg").Replace("\\", "/");
-            var result = await _e.GetECAsync(id);
 
-            #region checkมอบอำนาจ
+            // ── 3) ข้อความ/วันที่ (ป้องกัน null ด้วย ??) ────────────────────────────
             string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(result.AttorneyLetterDate ?? DateTime.Now);
-            string strAttorney= "";
-            var HtmlAttorney = new StringBuilder();
-            if (result.AttorneyFlag==true) 
-            {
-                strAttorney = "ผู้รับมอบหมายตามคำสั่งสำนักงานฯ ที่ "+result.AttorneyLetterNumber+" ลง "+ strAttorneyLetterDate + "";
-           
-            }
-            else
-            {
-                strAttorney = "";
-            }
-            #endregion
-
+            string strAttorney =
+                result.AttorneyFlag == true
+                ? $"ผู้รับมอบหมายตามคำสั่งสำนักงานฯ ที่ {result.AttorneyLetterNumber ?? ""} ลง {strAttorneyLetterDate}"
+                : "";
 
             string strcontractsign = CommonDAO.ToArabicDateStringCovert(result.ContractSignDate ?? DateTime.Now);
             string strHiringStart = CommonDAO.ToArabicDateStringCovert(result.HiringStartDate ?? DateTime.Now);
             string strHiringEnd = CommonDAO.ToArabicDateStringCovert(result.HiringEndDate ?? DateTime.Now);
             string strSalary = CommonDAO.NumberToThaiText(result.Salary ?? 0);
-            #region  signlist
-            var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
-            var signatoryHtml = new StringBuilder();
 
-            // แปลงเป็นรายการที่เข้าถึงด้วย dynamic ได้ + กัน null
-            var safeList = (signlist ?? Enumerable.Empty<object>())
-                .Cast<object>()
-                .Where(s => s != null)
-                .ToList();
+            // ── 4) signers (กัน null) + render 2 คอลัมน์ + ตราประทับ 1 อัน ────────
+            var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact) ?? new List<E_ConReport_SignatoryModels?>();
+            var safeList = signlist.Where(s => s != null).ToList();
 
-            // แมพป้ายกำกับตาม Signatory_Type
             var roleByType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["OSMEP_S"] = "ผู้ว่าจ้าง",
@@ -295,7 +294,6 @@ EContractDAO eContractDAO
                 ["CP_W"] = "พยาน"
             };
 
-            // เลือกคนลงนามซ้าย/ขวา + เรียงลำดับ S ก่อน W
             var leftSigners = safeList
                 .Where(s => {
                     var t = (s as dynamic)?.Signatory_Type as string;
@@ -312,68 +310,67 @@ EContractDAO eContractDAO
                 .OrderBy(s => ((s as dynamic)?.Signatory_Type as string) == "CP_S" ? 0 : 1)
                 .ToList();
 
-            // ฟังก์ชันเรนเดอร์บล็อกลายเซ็น + ป้ายกำกับ
+            // ✅ ให้ตราประทับออก "แค่ 1 อัน" ทั้งเอกสาร
+            bool sealAdded = false;
+
             string RenderSignatureBlock(dynamic signer, bool isCompanySide)
             {
                 string signType = signer?.Signatory_Type as string ?? "";
                 roleByType.TryGetValue(signType, out var roleLabel);
                 roleLabel ??= "";
 
-                // รูปลายเซ็นหรือ placeholder
+                // ลายเซ็น
                 string signatureHtml;
-                if (!string.IsNullOrEmpty((string)signer?.DS_FILE) && ((string)signer.DS_FILE).Contains("<content>"))
+                string ds = (string)(signer?.DS_FILE ?? "");
+                if (!string.IsNullOrEmpty(ds) && ds.IndexOf("<content>", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     try
                     {
-                        var ds = (string)signer.DS_FILE;
-                        var contentStart = ds.IndexOf("<content>") + "<content>".Length;
-                        var contentEnd = ds.IndexOf("</content>");
-                        var base64 = ds.Substring(contentStart, contentEnd - contentStart);
-
-                        signatureHtml = $@"<div class='sign-img'>
-    <img src='data:image/png;base64,{base64}' alt='signature' />
-</div>";
+                        int s1 = ds.IndexOf("<content>", StringComparison.OrdinalIgnoreCase) + "<content>".Length;
+                        int s2 = ds.IndexOf("</content>", StringComparison.OrdinalIgnoreCase);
+                        string b64 = ds.Substring(s1, s2 - s1).Trim();
+                        signatureHtml = "<div class='sign-img'><img src='data:image/png;base64," + b64 + "' alt='signature' /></div>";
                     }
                     catch
                     {
-                        signatureHtml = $@"<div class='sign-line'>ลงชื่อ....................{roleLabel}</div>";
+                        signatureHtml = "<div class='sign-line'>ลงชื่อ...................." + roleLabel + "</div>";
                     }
                 }
                 else
                 {
-                    signatureHtml = $@"<div class='sign-line'>ลงชื่อ....................{roleLabel}</div>";
+                    signatureHtml = "<div class='sign-line'>ลงชื่อ...................." + roleLabel + "</div>";
                 }
 
-                // ชื่อ/หน่วยงาน
-                var name = System.Net.WebUtility.HtmlEncode((string)signer?.Signatory_Name ?? "");
-                var unit = System.Net.WebUtility.HtmlEncode((string)signer?.BU_UNIT ?? "");
+                string name = System.Net.WebUtility.HtmlEncode((string)(signer?.Signatory_Name ?? ""));
+                string unit = System.Net.WebUtility.HtmlEncode((string)(signer?.BU_UNIT ?? ""));
 
-                // ตราประทับ (เฉพาะ CP_S ฝั่งขวา)
+                // ตราประทับ: แสดงเฉพาะครั้งแรกที่พบ CP_S ฝั่งขวา
                 string sealBlock = "";
-                if (isCompanySide && string.Equals(signType, "CP_S", StringComparison.OrdinalIgnoreCase)
-                    && !string.IsNullOrEmpty((string)signer?.Company_Seal) && ((string)signer.Company_Seal).Contains("<content>"))
+                if (!sealAdded && isCompanySide && string.Equals(signType, "CP_S", StringComparison.OrdinalIgnoreCase))
                 {
-                    try
+                    string rawSeal = (string)(signer?.Company_Seal ?? "");
+                    if (!string.IsNullOrEmpty(rawSeal) && rawSeal.IndexOf("<content>", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        var seal = (string)signer.Company_Seal;
-                        var s1 = seal.IndexOf("<content>") + "<content>".Length;
-                        var s2 = seal.IndexOf("</content>");
-                        var base64 = seal.Substring(s1, s2 - s1);
+                        try
+                        {
+                            int s1 = rawSeal.IndexOf("<content>", StringComparison.OrdinalIgnoreCase) + "<content>".Length;
+                            int s2 = rawSeal.IndexOf("</content>", StringComparison.OrdinalIgnoreCase);
+                            string b64 = rawSeal.Substring(s1, s2 - s1).Trim();
 
-                        sealBlock = $@"
-<div class='seal-img'>
-    <img src='data:image/png;base64,{base64}' alt='company-seal' />
-</div>
+                            sealBlock =
+    $@"<div class='seal-img'><img src='data:image/png;base64,{b64}' alt='company-seal' /></div>
 <div class='seal-caption'>(ตราประทับ บริษัท)</div>";
-                    }
-                    catch
-                    {
-                        sealBlock = "<div class='seal-caption'>(ตราประทับ บริษัท)</div>";
+                            sealAdded = true;
+                        }
+                        catch
+                        {
+                            // ถ้าแตกก็ไม่ใส่ seal และไม่ set flag จะปล่อยให้ signer ถัดไปลองได้
+                        }
                     }
                 }
 
-                return $@"
-<div class='sign-block'>
+                return
+    $@"<div class='sign-block'>
     {signatureHtml}
     <div class='sign-name'>({name})</div>
     <div class='sign-unit'>{unit}</div>
@@ -381,38 +378,26 @@ EContractDAO eContractDAO
 </div>";
             }
 
-            // ประกอบคอลัมน์ซ้าย/ขวา
             var leftColumnHtml = new StringBuilder();
-            foreach (dynamic s in leftSigners)
-                leftColumnHtml.Append(RenderSignatureBlock(s, isCompanySide: false));
+            foreach (dynamic s in leftSigners) leftColumnHtml.Append(RenderSignatureBlock(s, isCompanySide: false));
+            if (leftColumnHtml.Length == 0) leftColumnHtml.Append("<div class='sign-block placeholder'></div>");
 
             var rightColumnHtml = new StringBuilder();
-            foreach (dynamic s in rightSigners)
-                rightColumnHtml.Append(RenderSignatureBlock(s, isCompanySide: true));
-
-            // กันคอลัมน์ว่างให้เว้นที่ไว้
-            if (leftColumnHtml.Length == 0) leftColumnHtml.Append("<div class='sign-block placeholder'></div>");
+            foreach (dynamic s in rightSigners) rightColumnHtml.Append(RenderSignatureBlock(s, isCompanySide: true));
             if (rightColumnHtml.Length == 0) rightColumnHtml.Append("<div class='sign-block placeholder'></div>");
 
-            // ตาราง 2 คอลัมน์ “กึ่งกลางหน้า”
+            var signatoryHtml = new StringBuilder();
             signatoryHtml.Append($@"
 <table class='signature-2col'>
   <tr>
-    <td class='sign-col left'>
-      {leftColumnHtml}
-    </td>
-    <td class='sign-col right'>
-      {rightColumnHtml}
-    </td>
+    <td class='sign-col left'>{leftColumnHtml}</td>
+    <td class='sign-col right'>{rightColumnHtml}</td>
   </tr>
 </table>");
 
-            #endregion signlist
-
-
-            var htmlBody = $@"
-
-<div style='margin-bottom: 24px; text-align: center;'>
+            // ── 5) เนื้อหา HTML (ใช้ ?? "" กัน null string) ────────────────────────
+            string htmlBody = $@"
+<div style='margin-bottom:24px;text-align:center;'>
     {(System.IO.File.Exists(logoPath) ? $"<img src='file:///{logoPath}' style='width:240px;height:80px;margin-bottom:24px;' />" : "")}
 </div>
 <div class='text-center t-22'><b>สัญญาจ้างลูกจ้าง</b></div>
@@ -420,13 +405,13 @@ EContractDAO eContractDAO
     สัญญาฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ตำบล/แขวง ทุ่งสองห้อง อำเภอ/เขต หลักสี่ กรุงเทพมหานคร เมื่อ {strcontractsign}
 </p>
 <p class='tab3 t-16'>
-    ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย {result.SignatoryName} ผู้อำนวยการฝ่ายศูนย์ให้บริการ SMEs ครบวงจร สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม {strAttorney} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้ว่าจ้าง”
+    ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย {result.OSMEP_NAME ?? ""} ตำแหน่ง {result.OSMEP_POSITION ?? ""} {strAttorney} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้ว่าจ้าง”
 </p>
 <p class='tab3 t-16'>
-    ฝ่ายหนึ่ง กับ {result.EmploymentName} เลขประจำตัวประชาชน {result.IdenID} อยู่บ้านเลขที่ {result.EmpAddress} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ลูกจ้าง” อีกฝ่ายหนึ่ง โดยทั้งสองฝ่ายได้ตกลงทำร่วมกันดังมีรายละเอียดต่อไปนี้
+    ฝ่ายหนึ่ง กับ {result.EmploymentName ?? ""} เลขประจำตัวประชาชน {result.IdenID ?? ""} อยู่บ้านเลขที่ {result.EmpAddress ?? ""} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ลูกจ้าง” อีกฝ่ายหนึ่ง โดยทั้งสองฝ่ายได้ตกลงทำร่วมกันดังมีรายละเอียดต่อไปนี้
 </p>
 <p class='tab3 t-16'>
-    1.ผู้ว่าจ้างตกลงจ้างลูกจ้างปฏิบัติงานกับผู้ว่าจ้าง โดยให้ปฏิบัติงานภายใต้งาน {result.WorkDetail} ในตำแหน่ง {result.WorkPosition} ปฏิบัติหน้าที่ ณ ศูนย์กลุ่มจังหวัดให้บริการ SME ครบวงจร โดยมีรายละเอียดหน้าที่ความรับผิดชอบปรากฏตามเอกสารแนบท้ายสัญญาจ้าง ตั้งแต่ {strHiringStart} ถึง {strHiringEnd}
+    1.ผู้ว่าจ้างตกลงจ้างลูกจ้างปฏิบัติงานกับผู้ว่าจ้าง โดยให้ปฏิบัติงานภายใต้งาน {result.WorkDetail ?? ""} ในตำแหน่ง {result.WorkPosition ?? ""} ปฏิบัติหน้าที่ ณ {result.Work_Location ?? ""} โดยมีรายละเอียดหน้าที่ความรับผิดชอบปรากฏตามเอกสารแนบท้ายสัญญาจ้าง ตั้งแต่ {strHiringStart} ถึง {strHiringEnd}
 </p>
 <p class='tab3 t-16'>
     2.ผู้ว่าจ้างจะจ่ายค่าจ้างให้แก่ลูกจ้างในระหว่างระยะเวลาการปฏิบัติงานของลูกจ้างตามสัญญานี้ในอัตราเดือนละ {result.Salary} บาท ({strSalary}) โดยจะจ่ายให้ในวันทำการก่อนวันทำการสุดท้ายของธนาคารในเดือนนั้นสามวันทำการ และนำเข้าบัญชีเงินฝากของลูกจ้าง ณ ที่ทำการของผู้ว่าจ้าง หรือ ณ ที่อื่นใดตามที่ผู้ว่าจ้างกำหนด
@@ -641,49 +626,11 @@ EContractDAO eContractDAO
 <body>
     {htmlBody}
 </body>
-</html>
-";
+</html>";
 
-        //    if (_pdfConverter == null)
-        //        throw new Exception("PDF service is not available.");
-
-        //    var doc = new HtmlToPdfDocument()
-        //    {
-        //        GlobalSettings = {
-        //    PaperSize = PaperKind.A4,
-        //    Orientation = DinkToPdf.Orientation.Portrait,
-        //    Margins = new MarginSettings
-        //    {
-        //        Top = 20,
-        //        Bottom = 20,
-        //        Left = 20,
-        //        Right = 20
-        //    }
-        //},
-        //        Objects = {
-        //    new ObjectSettings() {
-        //        HtmlContent = html,
-        //        FooterSettings = new FooterSettings
-        //        {
-        //            FontName = "THSarabunNew",
-        //            FontSize = 6,
-        //            Line = false,
-        //            Center = "[page] / [toPage]"
-        //        }
-        //    }
-        //}
-        //    };
-
-        //    var pdfBytes = _pdfConverter.Convert(doc);
             return html;
         }
-        catch (Exception ex)
-        {
-            throw new Exception("Error in OnGetWordContact_HireEmployee: " + ex.Message, ex);
-        }
-
-
+        catch (Exception ex) { throw new Exception("Error in OnGetWordContact_HireEmployee: " + ex.Message, ex); }
     }
     #endregion    4.1.3.3. สัญญาจ้างลูกจ้าง
-
 }

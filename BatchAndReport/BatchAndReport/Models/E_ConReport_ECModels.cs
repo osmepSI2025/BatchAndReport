@@ -30,5 +30,9 @@ namespace BatchAndReport.Models
         public bool? AttorneyFlag { get; set; }
         public DateTime? AttorneyLetterDate { get; set; }
         public string? AttorneyLetterNumber { get; set; } // nvarchar(50)
+        public string? OSMEP_NAME { get; set; }
+        public string? OSMEP_POSITION { get; set; }
+        public string? Work_Location { get; set; }
+        public string? Work_Detail { get; set; }
     }
 }
