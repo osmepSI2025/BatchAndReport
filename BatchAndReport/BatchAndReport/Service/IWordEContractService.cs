@@ -8,6 +8,7 @@ namespace BatchAndReport.Services
     {
         byte[] GenJointContractAgreement(ConJointContractModels model);
         byte[] ConvertWordToPdf(byte[] wordBytes);
-        
+        byte[] GenImportContract(IEnumerable<ImportContractModels> model);
+
     }
 }

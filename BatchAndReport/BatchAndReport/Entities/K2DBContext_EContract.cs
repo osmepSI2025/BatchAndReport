@@ -15,6 +15,7 @@ namespace BatchAndReport.Entities
         public virtual DbSet<EmployeeProfile> EmployeeProfiles { get; set; }
         public virtual DbSet<ContractParty> ContractParties { get; set; }
         public virtual DbSet<ContractFilePassword> ContractFilePasswords { get; set; }
+        public virtual DbSet<ImportContract> ImportContracts { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -331,6 +332,109 @@ namespace BatchAndReport.Entities
                     .IsRequired()
                     .UseCollation("Thai_CI_AS");
             });
+            modelBuilder.Entity<ImportContract>(entity =>
+            {
+                entity.ToTable("Import_Contract");
+
+                entity.HasKey(e => e.IcId);
+
+                entity.Property(e => e.IcId)
+                    .HasColumnName("IC_ID")
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ImportRunningNum)
+                    .HasColumnName("Import_Running_Num")
+                    .HasMaxLength(20)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.ContractNumber)
+                    .HasColumnName("ContractNumber")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.ContractType)
+                    .HasColumnName("ContractType")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.ProjectName)
+                    .HasColumnName("ProjectName")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.Owner)
+                    .HasColumnName("Owner")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.ContractParty)
+                    .HasColumnName("ContractParty")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.Domicile)
+                    .HasColumnName("Domicile")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.StartDate)
+                    .HasColumnName("Start_Date")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.EndDate)
+                    .HasColumnName("End_Date")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.Status)
+                    .HasColumnName("Status")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.Amount)
+                    .HasColumnName("Amount")
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Installment)
+                    .HasColumnName("Installment");
+
+                entity.Property(e => e.ContractStorage)
+                    .HasColumnName("Contract_Storage")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.InstallmentNo)
+                    .HasColumnName("InstallmentNo");
+
+                entity.Property(e => e.PaymentDate)
+                    .HasColumnName("PaymentDate")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.InstallmentAmount)
+                    .HasColumnName("InstallmentAmount")
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.CreateDate)
+                    .HasColumnName("Create_Date")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.CreateBy)
+                    .HasColumnName("Create_By")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.UpdateDate)
+                    .HasColumnName("Update_Date")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.UpdateBy)
+                    .HasColumnName("Update_By")
+                    .HasMaxLength(50)
+                    .UseCollation("Thai_CI_AS");
+
+                entity.Property(e => e.FlagDelete)
+                    .HasColumnName("Flag_Delete");
+            });
+
 
         }
     }

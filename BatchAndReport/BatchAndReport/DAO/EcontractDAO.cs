@@ -295,5 +295,66 @@ namespace BatchAndReport.DAO
             // ไม่พบใน DB -> ใช้ fallback จาก config
             return string.IsNullOrWhiteSpace(pwd) ? _fallbackPassword : pwd;
         }
+        public async Task<List<ImportContractModels>> FindImportContractsAsync(string? contractNumber, CancellationToken ct = default)
+        {
+            var list = new List<ImportContractModels>();
+
+            const string sql = @"
+SELECT
+    [ContractNumber],
+    [ProjectName],
+    [ContractParty],
+    [Domicile],
+    [Start_Date],
+    [End_Date],
+    [Status],
+    [Amount],
+    [Installment],
+    [Owner],
+    [Contract_Storage],
+    [ContractType],
+    [InstallmentNo],
+    [PaymentDate],
+    [InstallmentAmount]
+FROM [E-Contract].[dbo].[Import_Contract]
+WHERE (@ContractNumber IS NULL OR [ContractNumber] LIKE '%' + @ContractNumber + '%')
+ORDER BY [ContractNumber];";
+
+            await using var conn = _connectionDAO.GetConnectionK2Econctract(); // ให้ชี้ไป DB E-Contract
+            await conn.OpenAsync(ct);
+
+            await using var cmd = new SqlCommand(sql, conn)
+            {
+                CommandType = CommandType.Text
+            };
+            // ถ้าอยาก exact match ให้ใช้ '=' ที่ WHERE และเปลี่ยนค่านี้เป็น contractNumber ตรง ๆ
+            cmd.Parameters.Add("@ContractNumber", SqlDbType.NVarChar, 50).Value =
+                string.IsNullOrWhiteSpace(contractNumber) ? (object)DBNull.Value : contractNumber.Trim();
+
+            using var rd = await cmd.ExecuteReaderAsync(ct);
+            while (await rd.ReadAsync(ct))
+            {
+                list.Add(new ImportContractModels
+                {
+                    ContractNumber = rd["ContractNumber"] as string,
+                    ProjectName = rd["ProjectName"] as string,
+                    ContractParty = rd["ContractParty"] as string,
+                    Domicile = rd["Domicile"] as string,
+                    StartDate = rd["Start_Date"] == DBNull.Value ? null : (DateTime?)rd.GetDateTime(rd.GetOrdinal("Start_Date")),
+                    EndDate = rd["End_Date"] == DBNull.Value ? null : (DateTime?)rd.GetDateTime(rd.GetOrdinal("End_Date")),
+                    Status = rd["Status"] as string,
+                    Amount = rd["Amount"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(rd["Amount"]),
+                    Installment = rd["Installment"] == DBNull.Value ? null : (int?)Convert.ToInt32(rd["Installment"]),
+                    Owner = rd["Owner"] as string,
+                    ContractStorage = rd["Contract_Storage"] as string,   // ← ชื่อใน DB มี underscore
+                    ContractType = rd["ContractType"] as string,
+                    InstallmentNo = rd["InstallmentNo"] == DBNull.Value ? null : (int?)Convert.ToInt32(rd["InstallmentNo"]),
+                    PaymentDate = rd["PaymentDate"] == DBNull.Value ? null : (DateTime?)rd.GetDateTime(rd.GetOrdinal("PaymentDate")),
+                    InstallmentAmount = rd["InstallmentAmount"] == DBNull.Value ? null : (decimal?)Convert.ToDecimal(rd["InstallmentAmount"])
+                });
+            }
+
+            return list;
+        }
     }
 }

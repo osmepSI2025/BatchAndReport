@@ -370,5 +370,21 @@ namespace BatchAndReport.Controllers
 
             return decryptedString;
         }
+
+        [HttpGet("ExportImportContract")]
+        public async Task<IActionResult> ExportImportContract([FromQuery] string? contractNumber = null)
+        {
+            var details = await _eContractDao.FindImportContractsAsync(contractNumber);
+
+            if (details == null || !details.Any())
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+            var generator = _serviceWord.GenImportContract(details);
+            var excelBytes = generator; // Assuming `GenImportContract` already returns a byte array.
+
+            return File(excelBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"ExportContract_{contractNumber}.xlsx");
+        }
     }
 }

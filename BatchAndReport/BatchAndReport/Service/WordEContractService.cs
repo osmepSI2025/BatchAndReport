@@ -224,4 +224,86 @@ public class WordEContractService : IWordEContractService
                 new Text(text))));
     }
 
+    public byte[] GenImportContract(IEnumerable<ImportContractModels> items)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+        using var package = new ExcelPackage();
+        var ws = package.Workbook.Worksheets.Add("Contract");
+
+        // ===== Header (Row 1) =====
+        string[] headers = new[]
+        {
+        "ContractNumber","ProjectName","ContractParty","Domicile",
+        "Start_Date","End_Date","Status","Amount","Installment","Owner",
+        "ContractStorage","ContractType","InstallmentNo","PaymentDate","InstallmentAmount"
+    };
+
+        for (int i = 0; i < headers.Length; i++)
+            ws.Cells[1, i + 1].Value = headers[i];
+
+        using (var rng = ws.Cells[1, 1, 1, headers.Length])
+        {
+            rng.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            rng.Style.Font.Bold = true;
+            rng.Style.Fill.PatternType = ExcelFillStyle.None;
+        }
+
+        // ===== Data Rows (starting Row 2) =====
+        int r = 2;
+        foreach (var x in items ?? Enumerable.Empty<ImportContractModels>())
+        {
+            ws.Cells[r, 1].Value = x.ContractNumber ?? "";
+            ws.Cells[r, 2].Value = x.ProjectName ?? "";
+            ws.Cells[r, 3].Value = x.ContractParty ?? "";
+            ws.Cells[r, 4].Value = x.Domicile ?? "";
+
+            // วันที่
+            if (x.StartDate.HasValue) ws.Cells[r, 5].Value = x.StartDate.Value;
+            if (x.EndDate.HasValue) ws.Cells[r, 6].Value = x.EndDate.Value;
+
+            ws.Cells[r, 7].Value = x.Status ?? "";
+
+            // ตัวเลข
+            if (x.Amount.HasValue) ws.Cells[r, 8].Value = x.Amount.Value;
+            if (x.Installment.HasValue) ws.Cells[r, 9].Value = x.Installment.Value;
+            ws.Cells[r, 10].Value = x.Owner ?? "";
+
+            // ชื่อคอลัมน์ในชีต = ContractStorage (ไม่มี underscore)
+            ws.Cells[r, 11].Value = x.ContractStorage ?? "";
+
+            ws.Cells[r, 12].Value = x.ContractType ?? "";
+            if (x.InstallmentNo.HasValue) ws.Cells[r, 13].Value = x.InstallmentNo.Value;
+            if (x.PaymentDate.HasValue) ws.Cells[r, 14].Value = x.PaymentDate.Value;
+            if (x.InstallmentAmount.HasValue) ws.Cells[r, 15].Value = x.InstallmentAmount.Value;
+
+            r++;
+        }
+
+        // ===== Number formats / Alignment =====
+        ws.Column(5).Style.Numberformat.Format = "yyyy-mm-dd"; // Start_Date
+        ws.Column(6).Style.Numberformat.Format = "yyyy-mm-dd"; // End_Date
+        ws.Column(14).Style.Numberformat.Format = "yyyy-mm-dd"; // PaymentDate
+
+        ws.Column(8).Style.Numberformat.Format = "#,##0.00";   // Amount
+        ws.Column(15).Style.Numberformat.Format = "#,##0.00";   // InstallmentAmount
+
+        ws.Column(9).Style.Numberformat.Format = "0";          // Installment
+        ws.Column(13).Style.Numberformat.Format = "0";          // InstallmentNo
+
+        // ตัวเลขจัดขวา
+        ws.Column(8).Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+        ws.Column(9).Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+        ws.Column(13).Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+        ws.Column(15).Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+        // Freeze header
+        ws.View.FreezePanes(2, 1);
+
+        // Autosize
+        ws.Cells[ws.Dimension.Address].AutoFitColumns();
+
+        return package.GetAsByteArray();
+    }
+
 }
