@@ -1,4 +1,5 @@
 ﻿using BatchAndReport.DAO;
+using BatchAndReport.Models;
 using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -281,18 +282,29 @@ public class WordEContract_MemorandumService
         var purposeList = await _eContractReportDAO.GetMOUPoposeAsync(id);
 
 
-        #region  signlist
+        #region signlist MOU
         var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
         var signatoryHtml = new StringBuilder();
         var companySealHtml = new StringBuilder();
-        bool sealAdded = false; // กันซ้ำ
+        bool sealAdded = false;
 
-        foreach (var signer in signlist)
+        // Prepare No-sign.png base64
+        var noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "No-sign.png");
+        string noSignBase64 = "";
+        if (System.IO.File.Exists(noSignPath))
+        {
+            var bytes = System.IO.File.ReadAllBytes(noSignPath);
+            noSignBase64 = Convert.ToBase64String(bytes);
+        }
+
+        // Group signatories
+        var smeSignatories = signlist.Where(s => s?.Signatory_Type == "OSMEP_S" || s?.Signatory_Type == "OSMEP_W").ToList();
+        var partnerSignatories = signlist.Where(s => s?.Signatory_Type == "CP_S" || s?.Signatory_Type == "CP_W").ToList();
+
+        // Helper to render a signatory block
+        string RenderSignatory(E_ConReport_SignatoryModels signer)
         {
             string signatureHtml;
-            string companySeal = ""; // กัน warning
-
-            // ► ลายเซ็นรายบุคคล (เดิม)
             if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
             {
                 try
@@ -307,72 +319,94 @@ public class WordEContract_MemorandumService
                 }
                 catch
                 {
-                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                    signatureHtml = $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-sign' style='max-height: 80px;' />
+</div>";
                 }
             }
             else
             {
-                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                signatureHtml = $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-sign' style='max-height: 80px;' />
+</div>";
             }
-            // ► ตราประทับ: ให้พิจารณาเมื่อเจอ CP_S เท่านั้น (ไม่เช็ค null/empty ตรง if ชั้นนอก)
-            if (!sealAdded && signer?.Signatory_Type == "CP_S")
-            {
-                if (!string.IsNullOrEmpty(signer.Company_Seal) && signer.Company_Seal.Contains("<content>"))
-                {
-                    try
-                    {
-                        var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
-                        var contentEnd = signer.Company_Seal.IndexOf("</content>");
-                        var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
 
-                        companySeal = $@"
+            string name = signer?.Signatory_Name ?? "";
+            string nameBlock = signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W")
+                ? $"({name})พยาน"
+                : $"({name})";
+
+            return $@"
+<div class='sign-single-right'>
+    {signatureHtml}
+    <div class='t-22 text-center tab1'>{nameBlock}</div>
+    <div class='t-22 text-center tab1'>{signer?.Position}</div>
+</div>";
+        }
+
+        // Build HTML for each column
+        var smeSignHtml = new StringBuilder();
+        foreach (var signer in smeSignatories)
+        {
+            smeSignHtml.AppendLine(RenderSignatory(signer));
+        }
+
+        var partnerSignHtml = new StringBuilder();
+        foreach (var signer in partnerSignatories)
+        {
+            partnerSignHtml.AppendLine(RenderSignatory(signer));
+        }
+
+        // Company seal (ตราประทับ)
+        var companySealSignatory = partnerSignatories.FirstOrDefault(e => !string.IsNullOrEmpty(e?.Company_Seal) && e.Company_Seal.Contains("<content>"));
+        if (companySealSignatory != null)
+        {
+            try
+            {
+                var contentStart = companySealSignatory.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                var contentEnd = companySealSignatory.Company_Seal.IndexOf("</content>");
+                var base64 = companySealSignatory.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                var companySeal = $@"
 <div class='t-16 text-center tab1'>
-    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+    <img src='data:image/png;base64,{base64}' alt='seal' style='max-height: 80px;' />
 </div>";
 
-                        companySealHtml.AppendLine($@"
+                companySealHtml.AppendLine($@"
 <div class='text-center'>
     {companySeal}
 </div>
 ");
-                        sealAdded = true;
-                    }
-                    catch
-                    {
-                        
-                        sealAdded = true;
-                    }
-                }
-                else
-                {
-                    // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
-                    
-                    sealAdded = true;
-                }
+                sealAdded = true;
             }
-
-            signatoryHtml.AppendLine($@"
-<div class='sign-single-right'>
-    {signatureHtml}
-    <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
-    <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
-</div>");
+            catch
+            {
+                companySealHtml.AppendLine("<div class='t-16 text-center tab1'></div>");
+                sealAdded = true;
+            }
         }
-
-        // ► Fallback: ถ้าจบลูปแล้วยังไม่มีตราประทับ แต่คุณ “ต้องการให้มีอย่างน้อย placeholder 1 ครั้ง”
-        if (!sealAdded)
+        else
         {
-            
+            companySealHtml.AppendLine("<div class='t-16 text-center tab1'></div>");
             sealAdded = true;
         }
 
-        // ► ประกอบผลลัพธ์
-        var signatoryWithLogoHtml = new StringBuilder();
-        if (companySealHtml.Length > 0) signatoryWithLogoHtml.Append(companySealHtml);
-        signatoryWithLogoHtml.Append(signatoryHtml);
-
-
-
+        // Output as a table
+        var signatoryWithLogoHtml = $@"
+<table class='signature-table'>
+    <tr>
+        <td style='width:50%; vertical-align:top;'>
+            <div class='t-22 text-center'></div>
+         {smeSignHtml}
+        </td>
+        <td style='width:50%; vertical-align:top;'>
+            <div class='t-22 text-center'></div>
+           {partnerSignHtml}
+            {companySealHtml}
+        </td>
+    </tr>
+</table>
+";
         #endregion signlist
 
         var html = $@"
