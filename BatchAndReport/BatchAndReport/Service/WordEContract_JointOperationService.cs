@@ -278,6 +278,9 @@ public class WordEContract_JointOperationService
         var strDateTH = CommonDAO.ToThaiDateString(dataResult.Contract_SignDate ?? DateTime.Now);
         var purposeList = await _eContractReportDAO.GetJOAPoposeAsync(conId);
 
+        #region signlist joa
+
+       
         var signatoryHtml = new StringBuilder();
         var companySealHtml = new StringBuilder();
         bool sealAdded = false; // กันซ้ำ
@@ -295,6 +298,14 @@ public class WordEContract_JointOperationService
         string RenderSignatory(E_ConReport_SignatoryModels signer)
         {
             string signatureHtml;
+            string noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "No-sign.png");
+            string noSignBase64 = "";
+            if (File.Exists(noSignPath))
+            {
+                var bytes = File.ReadAllBytes(noSignPath);
+                noSignBase64 = Convert.ToBase64String(bytes);
+            }
+
             if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
             {
                 try
@@ -309,30 +320,32 @@ public class WordEContract_JointOperationService
                 }
                 catch
                 {
-                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                    signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                        ? $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+</div>"
+                        : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
                 }
             }
             else
             {
-                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                    ? $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+</div>"
+                    : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
             }
 
             string name = signer?.Signatory_Name ?? "";
-            string nameBlock;
-            if (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
-            {
-                nameBlock = $"({name})พยาน";
-            }
-            else
-            {
-                nameBlock = $"({name})";
-            }
+            string nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
+                ? $"({name})พยาน"
+                : $"({name})";
 
             return $@"
 <div class='sign-single-right'>
     {signatureHtml}
     <div class='t-16 text-center tab1'>{nameBlock}</div>
-    <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
+    <div class='t-16 text-center tab1'>{signer?.Position}</div>
 </div>";
         }
 
@@ -388,11 +401,11 @@ public class WordEContract_JointOperationService
 <table class='signature-table'>
     <tr>
         <td style='width:50%; vertical-align:top;'>
-            <div class='t-22 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</b></div>
+            
             {smeSignHtml}
         </td>
         <td style='width:50%; vertical-align:top;'>
-            <div class='t-22 text-center'><b>{dataResult.Organization ?? "หน่วยงานร่วม"}</b></div>
+           
             {customerSignHtml}
      {companySealHtml}
         </td>
@@ -400,8 +413,8 @@ public class WordEContract_JointOperationService
 </table>
 
 ";
+        #endregion signlist
 
-     
 
 
         // Use signatoryTableHtml in your final HTML output
@@ -418,9 +431,9 @@ public class WordEContract_JointOperationService
             font-weight: normal;
             font-style: normal;
         }}
-         body {{
+         body, table, th, td, span, strong, i, u {{
             font-size: 22px;
-            font-family: 'THSarabunNew', Arial, sans-serif;
+           font-family: 'THSarabunNew', Arial, sans-serif !important;
         }}
         /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
         body, p, div {{
@@ -510,7 +523,7 @@ public class WordEContract_JointOperationService
 </table>
 </br>
 </br>
-    <div class='t-22 text-center'><b>สัญญาร่วมดำเนินการ</b></div>
+    <div class='t-22 text-center'>สัญญาร่วมดำเนินการ</div>
     <div class='t-22 text-center'><b>โครงการ {dataResult.Project_Name}</b></div>
     <div class='t-16 text-center'><b>ระหว่าง</b></div>
     <div class='t-18 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</b></div>
