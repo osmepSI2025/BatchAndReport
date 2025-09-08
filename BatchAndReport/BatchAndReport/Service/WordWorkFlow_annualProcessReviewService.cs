@@ -449,7 +449,7 @@ public class WordWorkFlow_annualProcessReviewService
         // Header
         htmlBody.Append($@"
         <div class='t-16 text-center'>
-            <b>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
+            <b>การทบทวนกลุ่มกระบวนการหลักและกลุ่มกระบวนการสนับสนุน {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
         </div>
     ");
 
