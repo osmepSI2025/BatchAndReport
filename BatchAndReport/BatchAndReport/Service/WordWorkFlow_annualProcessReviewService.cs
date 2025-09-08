@@ -41,9 +41,9 @@ public class WordWorkFlow_annualProcessReviewService
 
         // Heading
         htmlBody.Append($@"
-        <div class='text-center t-18'>
-            <b>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
-        </div>
+        <div class='text-center t-20'>
+    <b>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
+</div>
     ");
 
         // Numbered review details
@@ -74,25 +74,27 @@ public class WordWorkFlow_annualProcessReviewService
         </div>
     ");
 
-        // Three-column table
-        htmlBody.Append("<table class='w-100 t-18' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px;'>");
-        htmlBody.Append($@"
-        <tr style='background:#DDEBF7;font-weight:bold; vertical-align: top; '>
-            <td >กระบวนการ ปี {detail.FiscalYearPrevious} (เดิม)</td>
-            <td >กระบวนการ ปี {detail.FiscalYear} (ทบทวน)</td>
-            <td  >กระบวนการที่กำหนดกิจกรรมควบคุม (Control Activity) ส่งกรมบัญชีกลาง</td>
-        </tr>
-    ");
+        // Three-column table (styled to match your sample)
+        htmlBody.Append(@"
+<table class='w-100 t-18' border='1' cellpadding='3' style='border-collapse:collapse;margin-bottom:6px;table-layout:fixed;'>
+    <tr style='background:#DDEBF7;font-weight:bold;'>
+        <th style='width:33%;text-align:center;vertical-align:middle;'>กระบวนการ ปี " + detail.FiscalYearPrevious + @" (เดิม)</th>
+        <th style='width:33%;text-align:center;vertical-align:middle;'>กระบวนการ ปี " + detail.FiscalYear + @" (ทบทวน)</th>
+        <th style='width:34%;text-align:center;vertical-align:middle;'>กระบวนการที่กำหนดกิจกรรมควบคุม<br/>(Control Activity)<br/>ส่งกรมบัญชีกลาง</th>
+    </tr>
+");
+
         int rowCount = Math.Max(
             Math.Max(detail.PrevProcesses?.Count ?? 0, detail.CurrentProcesses?.Count ?? 0),
             detail.ControlActivities?.Count ?? 0
         );
+
         for (int i = 0; i < rowCount; i++)
         {
             htmlBody.Append("<tr>");
-            htmlBody.Append($"<td >{System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
-            htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
-            htmlBody.Append($"<td >{System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "")}</td>");
+            htmlBody.Append($"<td style='vertical-align:top;'>{System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
+            htmlBody.Append($"<td style='vertical-align:top;'>{System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
+            htmlBody.Append($"<td style='vertical-align:top;'>{System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "")}</td>");
             htmlBody.Append("</tr>");
         }
         htmlBody.Append("</table>");
@@ -103,21 +105,27 @@ public class WordWorkFlow_annualProcessReviewService
         // Workflow processes
         if (detail.WorkflowProcesses?.Count > 0)
         {
-            htmlBody.Append("<div>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>");
+            htmlBody.Append("<div class='t-18'>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>");
             foreach (var wf in detail.WorkflowProcesses)
-                htmlBody.Append($"<div style='margin-left:32px;'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>");
+                htmlBody.Append($"<div class='t-18' style='margin-left:32px;'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>");
         }
 
         // Comments
         htmlBody.Append("<div class='t-18' >ความคิดเห็น</div>");
         htmlBody.Append("<div class='t-18' style='margin-left:32px;'>☐ เห็นชอบการปรับปรุง</div>");
         htmlBody.Append("<div class='t-18' style='margin-left:32px;'>☐ มีความเห็นเพิ่มเติม</div>");
-
+        htmlBody.Append("</br>");
+        htmlBody.Append($@"
+        <div  class='t-18 tab2' >
+    {detail.commentDetial} 
+        </div>
+    ");
+        htmlBody.Append("</br>");
         // Approve remarks
         if (detail.ApproveRemarks?.Length > 0)
         {
             foreach (var r in detail.ApproveRemarks)
-                htmlBody.Append($"<div class='t-18' style='margin-left:32px;'>{System.Net.WebUtility.HtmlEncode(r)}</div>");
+                htmlBody.Append($"<div class='t-18' >{System.Net.WebUtility.HtmlEncode(r)}</div>");
         }
 
         // Signature section
@@ -142,73 +150,47 @@ public class WordWorkFlow_annualProcessReviewService
 
         // Compose full HTML
         var html = $@"
-    <html>
-    <head>
-        <meta charset='utf-8'>
-        <style>
-            @font-face {{
-                font-family: 'THSarabunNew';
-                src: url('file:///{fontPath}') format('truetype');
-                font-weight: normal;
-                font-style: normal;
-            }}
-            body {{
-                font-size: 22px;
-                font-family: 'THSarabunNew', Arial, sans-serif;
-            }}
-            .t-18 {{ font-size: 1.5em; }}
-            .t-18 {{ font-size: 1.7em; }}
-            .t-22 {{ font-size: 1.9em; }}
-                 .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
-        .tab2 {{ text-indent: 96px;  word-break: break-all; }}
-        .tab3 {{ text-indent: 144px;  word-break: break-all; }}
-        .tab4 {{ text-indent: 192px;  word-break: break-all;}}
-            .d-flex {{ display: flex; }}
-            .w-100 {{ width: 100%; }}
-            .w-40 {{ width: 40%; }}
-            .w-50 {{ width: 50%; }}
-            .w-60 {{ width: 60%; }}
-            .text-center {{ text-align: center; }}
-            .sign-single-right {{
-                display: flex;
-                flex-direction: column;
-                position: relative;
-                left: 20%;
-            }}
-            .sign-double {{ display: flex; }}
-            .text-center-right-brake {{
-                margin-left: 50%;
-                word-break: break-all;
-            }}
-            .text-right {{ text-align: right; }}
-            .contract, .section {{
-                margin: 12px 0;
-                line-height: 1.7;
-            }}
-            .section {{
-                font-weight: bold;
-                font-size: 1.2em;
-                text-align: left;
-                margin-top: 24px;
-            }}
-            .signature-table {{
-                width: 100%;
-                margin-top: 32px;
-                border-collapse: collapse;
-            }}
-            .signature-table td {{
-                padding: 16px;
-                text-align: center;
-                vertical-align: top;
-                font-size: 1.1em;
-            }}
-        </style>
-    </head>
-    <body>
-        {htmlBody}
-    </body>
-    </html>
-    ";
+<html>
+<head>
+    <meta charset='utf-8'>
+    <style>
+        @font-face {{
+            font-family: 'THSarabunNew';
+            src: url('file:///{fontPath}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }}
+        body {{
+            font-size: 16px;
+            font-family: 'THSarabunNew', Arial, sans-serif;
+        }}
+        .t-18 {{ font-size: 1.4em; }}
+ .t-20 {{ font-size: 2.0em; }}
+        td, th {{
+            word-break: break-word;
+            white-space: normal;
+            vertical-align: top;
+        }}
+        .w-100 {{ width: 100%; }}
+        .signature-table td {{
+            padding: 8px;
+            font-size: 1em;
+        }}
+.text-center {{text - align: center;
+    width: 100%;
+}}
+.t-24 {{font - size: 2em;
+    font-family: 'THSarabunNew', Arial, sans-serif;
+    font-weight: bold;
+}}
+ .tab2 {{ text-indent: 96px;    }}
+    </style>
+</head>
+<body>
+    {htmlBody}
+</body>
+</html>
+";
 
         var doc = new HtmlToPdfDocument()
         {
@@ -217,10 +199,10 @@ public class WordWorkFlow_annualProcessReviewService
             Orientation = Orientation.Portrait,
             Margins = new MarginSettings
             {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
+                Top = 10,
+                Bottom = 10,
+                Left = 10,
+                Right = 10
             }
         },
             Objects = {

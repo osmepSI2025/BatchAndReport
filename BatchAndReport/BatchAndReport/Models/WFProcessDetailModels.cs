@@ -25,6 +25,8 @@
         public string? PROCESS_REVIEW_DETAIL { get; set; }
 
         public string? PROCESS_BACKGROUND { get; set; }
+
+        public string? commentDetial { get; set; }
     }
 
     public class ProcessGroupItem
