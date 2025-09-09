@@ -185,7 +185,7 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_HtmlToWord(detail);
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
 
             // Convert HTML to Word document using Spire.Doc
             var document = new Spire.Doc.Document();
