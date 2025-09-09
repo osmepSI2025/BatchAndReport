@@ -22,61 +22,64 @@ public class WordWorkFlow_annualProcessReviewService
     }
 
 
-public async Task<byte[]> GenAnnualWorkProcesses_HtmlToPDF(WFProcessDetailModels detail)
-{
-    // Read logo and convert to Base64 (if needed in HTML)
-    var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
-    string logoBase64 = "";
-    if (System.IO.File.Exists(logoPath))
+    public async Task<string> GenAnnualWorkProcesses_Html(WFProcessDetailModels detail)
     {
-        var bytes = await System.IO.File.ReadAllBytesAsync(logoPath);
-        logoBase64 = Convert.ToBase64String(bytes);
-    }
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+        string logoBase64 = "";
+        if (System.IO.File.Exists(logoPath))
+        {
+            var bytes = await System.IO.File.ReadAllBytesAsync(logoPath);
+            logoBase64 = Convert.ToBase64String(bytes);
+        }
 
-    // Absolute font path for PDF rendering
-    var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+        var htmlBody = new StringBuilder();
+        var htmlTable = new StringBuilder();
+        htmlTable.Append(@"
+<table border='1' cellpadding='6' style='border-collapse:collapse;width:100%;'>
+    <tr>
+        <td class='t-18' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYearPrevious + @" (เดิม)</td>
+        <td class='t-18' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYear + @" (ทบทวน)</td>
+        <td class='t-18' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการที่กำหนด กิจกรรมควบคุม<br/>(Control Activity)<br/>ส่งกรมบัญชีกลาง</td>
+    </tr>");
+        int rowCount = Math.Max(
+            Math.Max(detail.PrevProcesses?.Count ?? 0, detail.CurrentProcesses?.Count ?? 0),
+            detail.ControlActivities?.Count ?? 0
+        );
+        for (int i = 0; i < rowCount; i++)
+        {
+            htmlTable.Append("<tr>");
+            htmlTable.Append("<td class='t-18'>" + System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("<td class='t-18'>" + System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("<td class='t-18'>" + System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("</tr>");
+        }
+        htmlTable.Append("</table>");
 
-    // Build HTML content
-    var htmlBody = new StringBuilder();
-
-    // Heading
-    htmlBody.Append($@"
+        htmlBody.Append($@"
     <div class='text-center t-20'>
         <b>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
     </div>
-    <div class='section-title'>ความเป็นมา</div>
+    <div class='t-18'>ความเป็นมา</div>
     <div>
-        {(string.IsNullOrEmpty(detail.PROCESS_BACKGROUND) 
-            ? "" 
-            : string.Join("", detail.PROCESS_BACKGROUND
-                .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
-                .Select(line => $"<div class='tab1 t-18'>{System.Net.WebUtility.HtmlEncode(line)}</div>")))}
+        {(string.IsNullOrEmpty(detail.PROCESS_BACKGROUND)
+                ? ""
+                : string.Join("", detail.PROCESS_BACKGROUND
+                    .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
+                    .Select(line => $"<div class='tab1 t-18'>{System.Net.WebUtility.HtmlEncode(line)}</div>")))}
     </div>
-    <div class='section-title'>รายละเอียดประเด็นการทบทวน</div>
-
+    <div class='t-18'>รายละเอียดประเด็นการทบทวน</div>
     <div class='section-divider'></div>
-    <div class='section-title'>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้</div>
+    <div class='t-18'>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้</div>
     <div class='table-container'>
-        <table class='t-18'>
-            <tr>
-                <th style='width:33%;'>กระบวนการ ปี {detail.FiscalYearPrevious} (เดิม)</th>
-                <th style='width:33%;'>กระบวนการ ปี {detail.FiscalYear} (ทบทวน)</th>
-                <th style='width:34%;'>กระบวนการที่กำหนดกิจกรรมควบคุม<br/>(Control Activity)<br/>ส่งกรมบัญชีกลาง</th>
-            </tr>
-            {string.Join("", Enumerable.Range(0, Math.Max(Math.Max(detail.PrevProcesses?.Count ?? 0, detail.CurrentProcesses?.Count ?? 0), detail.ControlActivities?.Count ?? 0))
-                .Select(i => $@"<tr>
-                    <td>{System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "")}</td>
-                    <td>{System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "")}</td>
-                    <td>{System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "")}</td>
-                </tr>"))}
-        </table>
+      {htmlTable}
     </div>
-    <div class='note t-18'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>
+    <div class='note t-14'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>
     {(detail.WorkflowProcesses?.Count > 0
-        ? $@"<div class='section-title'>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>
+            ? $@"<div class='t-18'>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>
             <div class='workflow-list'>{string.Join("", detail.WorkflowProcesses.Select(wf => $"<div class='t-18'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>"))}</div>"
-        : "")}
-    <div class='section-title'>ความคิดเห็น</div>
+            : "")}
+    <div class='t-18'>ความคิดเห็น</div>
     <div class='comment-section'>
         <div class='t-18'>☐ เห็นชอบการปรับปรุง</div>
         <div class='t-18'>☐ มีความเห็นเพิ่มเติม</div>
@@ -101,8 +104,7 @@ public async Task<byte[]> GenAnnualWorkProcesses_HtmlToPDF(WFProcessDetailModels
     </table>
     ");
 
-    // Compose full HTML
-    var html = $@"
+        var html = $@"
 <html>
 <head>
     <meta charset='utf-8'>
@@ -116,12 +118,20 @@ public async Task<byte[]> GenAnnualWorkProcesses_HtmlToPDF(WFProcessDetailModels
         body {{
             font-size: 16px;
             font-family: 'THSarabunNew', Arial, sans-serif;
-          
             margin: 0;
             padding: 24px;
         }}
-        .t-18 {{ font-size: 1.4em; }}
-        .t-20 {{ font-size: 2.0em; }}
+        body, p, div, th, td {{
+            word-break: keep-all;
+            overflow-wrap: break-word;
+            -webkit-line-break: after-white-space;
+            hyphens: none;
+        }}
+        .t-14 {{ font-size: 1.3em; }}
+        .t-16 {{ font-size: 1.5em; }}
+        .t-18 {{ font-size: 1.7em; }}
+        .t-20 {{ font-size: 1.9em; }}
+        .t-22 {{ font-size: 2.1em; }}
         .section-title {{
             font-size: 1.2em;
             font-weight: bold;
@@ -140,7 +150,6 @@ public async Task<byte[]> GenAnnualWorkProcesses_HtmlToPDF(WFProcessDetailModels
         table {{
             width: 100%;
             border-collapse: collapse;
-          
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             overflow: hidden;
@@ -150,11 +159,6 @@ public async Task<byte[]> GenAnnualWorkProcesses_HtmlToPDF(WFProcessDetailModels
             border: 1px solid #dee2e6;
             word-break: break-word;
             vertical-align: top;
-        }}
-        th {{
-            background: #DDEBF7;
-            font-weight: bold;
-            text-align: center;
         }}
         .signature-table td {{
             padding: 16px;
@@ -170,7 +174,6 @@ public async Task<byte[]> GenAnnualWorkProcesses_HtmlToPDF(WFProcessDetailModels
         .tab1 {{ text-indent: 48px; }}
         .tab2 {{ text-indent: 96px; }}
         .comment-section {{
-          
             border-radius: 6px;
             padding: 12px 18px;
             margin: 12px 0;
@@ -193,38 +196,10 @@ public async Task<byte[]> GenAnnualWorkProcesses_HtmlToPDF(WFProcessDetailModels
 </html>
 ";
 
-    var doc = new HtmlToPdfDocument()
+        return html;
+    }
+    public async Task<string> GenAnnualWorkProcesses_HtmlToWord(WFProcessDetailModels detail)
     {
-        GlobalSettings = {
-            PaperSize = PaperKind.A4,
-            Orientation = Orientation.Portrait,
-            Margins = new MarginSettings
-            {
-                Top = 10,
-                Bottom = 10,
-                Left = 10,
-                Right = 10
-            }
-        },
-        Objects = {
-            new ObjectSettings() {
-                HtmlContent = html,
-                FooterSettings = new FooterSettings
-                {
-                    FontName = "THSarabunNew",
-                    FontSize = 6,
-                    Line = false,
-                    Center = "[page] / [toPage]"
-                }
-            }
-        }
-    };
-
-    var pdfBytes = _pdfConverter.Convert(doc);
-    return pdfBytes;
-}    public async Task<string> GenAnnualWorkProcesses_Html(WFProcessDetailModels detail)
-    {
-        // Read logo and convert to Base64 (if needed in HTML)
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
         string logoBase64 = "";
         if (System.IO.File.Exists(logoPath))
@@ -233,185 +208,173 @@ public async Task<byte[]> GenAnnualWorkProcesses_HtmlToPDF(WFProcessDetailModels
             logoBase64 = Convert.ToBase64String(bytes);
         }
 
-        // Absolute font path for PDF rendering
         var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
-
-        // Build HTML content
         var htmlBody = new StringBuilder();
-
-        // Heading
-        htmlBody.Append($@"
-        <div class='text-center t-18'>
-            <b>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
-        </div>
-    ");
-
-        // Numbered review details
-        if (detail.ReviewDetails?.Length > 0)
-        {
-            htmlBody.Append("</br>");
-            htmlBody.Append("<div  class=' t-18'>ความเป็นมา</div>");
-            if (!string.IsNullOrEmpty(detail.PROCESS_BACKGROUND))
-            {
-                var lines = detail.PROCESS_BACKGROUND
-                    .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
-                    .Select(line => $"<div class='tab1 t-18'>{System.Net.WebUtility.HtmlEncode(line)}</div>");
-                htmlBody.Append(string.Join("", lines));
-            }
-
-            htmlBody.Append("</br>");
-            htmlBody.Append("<div  class='t-18' >รายละเอียดประเด็นการทบทวน</div>");
-            htmlBody.Append("<ol   style='margin-left:32px;'>");
-            foreach (var item in detail.ReviewDetails)
-                htmlBody.Append($"<li  class='t-18'>{System.Net.WebUtility.HtmlEncode(item)}</li>");
-            htmlBody.Append("</ol>");
-        }
-
-        // Section heading
-        htmlBody.Append($@"
-        <div  class='t-18' >
-            การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้
-        </div>
-    ");
-
-        // Three-column table
-        htmlBody.Append("<table class='w-100 t-18' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px;'>");
-        htmlBody.Append($@"
-        <tr style='background:#DDEBF7;font-weight:bold; vertical-align: top; '>
-            <td >กระบวนการ ปี {detail.FiscalYearPrevious} (เดิม)</td>
-            <td >กระบวนการ ปี {detail.FiscalYear} (ทบทวน)</td>
-            <td  >กระบวนการที่กำหนดกิจกรรมควบคุม (Control Activity) ส่งกรมบัญชีกลาง</td>
-        </tr>
-    ");
+        var htmlTable = new StringBuilder();
+        htmlTable.Append(@"
+<table border='1' cellpadding='6' style='border-collapse:collapse;width:100%;'>
+    <tr>
+        <td class='t-18' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYearPrevious + @" (เดิม)</td>
+        <td class='t-18' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYear + @" (ทบทวน)</td>
+        <td class='t-18' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการที่กำหนด กิจกรรมควบคุม<br/>(Control Activity)<br/>ส่งกรมบัญชีกลาง</td>
+    </tr>");
         int rowCount = Math.Max(
             Math.Max(detail.PrevProcesses?.Count ?? 0, detail.CurrentProcesses?.Count ?? 0),
             detail.ControlActivities?.Count ?? 0
         );
         for (int i = 0; i < rowCount; i++)
         {
-            htmlBody.Append("<tr>");
-            htmlBody.Append($"<td >{System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
-            htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
-            htmlBody.Append($"<td >{System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "")}</td>");
-            htmlBody.Append("</tr>");
+            htmlTable.Append("<tr>");
+            htmlTable.Append("<td >" + System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("<td >" + System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("<td '>" + System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("</tr>");
         }
-        htmlBody.Append("</table>");
+        htmlTable.Append("</table>");
 
-        // Note
-        htmlBody.Append("<div class='t-18' style='font-style:italic;margin-bottom:12px;'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>");
-
-        // Workflow processes
-        if (detail.WorkflowProcesses?.Count > 0)
-        {
-            htmlBody.Append("<div>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>");
-            foreach (var wf in detail.WorkflowProcesses)
-                htmlBody.Append($"<div style='margin-left:32px;'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>");
-        }
-
-        // Comments
-        htmlBody.Append("<div class='t-18' >ความคิดเห็น</div>");
-        htmlBody.Append("<div class='t-18' style='margin-left:32px;'>☐ เห็นชอบการปรับปรุง</div>");
-        htmlBody.Append("<div class='t-18' style='margin-left:32px;'>☐ มีความเห็นเพิ่มเติม</div>");
-
-        // Approve remarks
-        if (detail.ApproveRemarks?.Length > 0)
-        {
-            foreach (var r in detail.ApproveRemarks)
-                htmlBody.Append($"<div class='t-18' style='margin-left:32px;'>{System.Net.WebUtility.HtmlEncode(r)}</div>");
-        }
-
-        // Signature section
-        htmlBody.Append(@"
-        <table class='signature-table t-18'>
-            <tr>
-                <td>
-                    <div>ลงชื่อ....................................................</div>
-                    <div>(" + (detail.Approver1Name ?? "(ชื่อผู้ลงนาม 1)") + @")</div>
-                    <div>" + (detail.Approver1Position ?? "ตำแหน่ง") + @"</div>
-                    <div>วันที่ " + (detail.Approve1Date ?? "ไม่พบข้อมูล") + @"</div>
-                </td>
-                <td>
-                    <div>ลงชื่อ....................................................</div>
-                    <div>(" + (detail.Approver2Name ?? "(ชื่อผู้ลงนาม 2)") + @")</div>
-                    <div>" + (detail.Approver2Position ?? "ตำแหน่ง") + @"</div>
-                    <div>วันที่ " + (detail.Approve2Date ?? "ไม่พบข้อมูล") + @"</div>
-                </td>
-            </tr>
-        </table>
+        htmlBody.Append($@"
+    <div class='text-center t-20'>
+        <b>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
+    </div>
+    <div class='t-18'>ความเป็นมา</div>
+    <div>
+        {(string.IsNullOrEmpty(detail.PROCESS_BACKGROUND)
+                ? ""
+                : string.Join("", detail.PROCESS_BACKGROUND
+                    .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
+                    .Select(line => $"<div class='tab1 t-18'>{System.Net.WebUtility.HtmlEncode(line)}</div>")))}
+    </div>
+    <div class='t-18'>รายละเอียดประเด็นการทบทวน</div>
+    <div class='section-divider'></div>
+    <div class='t-18'>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้</div>
+    <div class='table-container'>
+      {htmlTable}
+    </div>
+    <div class='note t-14'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>
+    {(detail.WorkflowProcesses?.Count > 0
+            ? $@"<div class='t-18'>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>
+            <div class='workflow-list'>{string.Join("", detail.WorkflowProcesses.Select(wf => $"<div class='t-18'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>"))}</div>"
+            : "")}
+    <div class='t-18'>ความคิดเห็น</div>
+    <div class='comment-section'>
+        <div class='t-18'>☐ เห็นชอบการปรับปรุง</div>
+        <div class='t-18'>☐ มีความเห็นเพิ่มเติม</div>
+        <div class='tab2 t-18'>{detail.commentDetial}</div>
+    </div>
+    <div class='section-divider'></div>
+    <table class='signature-table t-18'>
+        <tr>
+            <td>
+                <div>ลงชื่อ....................................................</div>
+                <div>({detail.Approver1Name ?? "(ชื่อผู้ลงนาม 1)"})</div>
+                <div>{detail.Approver1Position ?? "ตำแหน่ง"}</div>
+                <div>วันที่ {detail.Approve1Date ?? "ไม่พบข้อมูล"}</div>
+            </td>
+            <td>
+                <div>ลงชื่อ....................................................</div>
+                <div>({detail.Approver2Name ?? "(ชื่อผู้ลงนาม 2)"})</div>
+                <div>{detail.Approver2Position ?? "ตำแหน่ง"}</div>
+                <div>วันที่ {detail.Approve2Date ?? "ไม่พบข้อมูล"}</div>
+            </td>
+        </tr>
+    </table>
     ");
 
-        // Compose full HTML
         var html = $@"
-    <html>
-    <head>
-        <meta charset='utf-8'>
-        <style>
-            @font-face {{
-                font-family: 'THSarabunNew';
-                src: url('file:///{fontPath}') format('truetype');
-                font-weight: normal;
-                font-style: normal;
-            }}
-            body {{
-                font-size: 22px;
-                font-family: 'THSarabunNew', Arial, sans-serif;
-            }}
-            .t-18 {{ font-size: 1.5em; }}
-            .t-18 {{ font-size: 1.7em; }}
-            .t-22 {{ font-size: 1.9em; }}
-                 .tab1 {{ text-indent: 48px;  word-break: break-all;  }}
-        .tab2 {{ text-indent: 96px;  word-break: break-all; }}
-        .tab3 {{ text-indent: 144px;  word-break: break-all; }}
-        .tab4 {{ text-indent: 192px;  word-break: break-all;}}
-            .d-flex {{ display: flex; }}
-            .w-100 {{ width: 100%; }}
-            .w-40 {{ width: 40%; }}
-            .w-50 {{ width: 50%; }}
-            .w-60 {{ width: 60%; }}
-            .text-center {{ text-align: center; }}
-            .sign-single-right {{
-                display: flex;
-                flex-direction: column;
-                position: relative;
-                left: 20%;
-            }}
-            .sign-double {{ display: flex; }}
-            .text-center-right-brake {{
-                margin-left: 50%;
-                word-break: break-all;
-            }}
-            .text-right {{ text-align: right; }}
-            .contract, .section {{
-                margin: 12px 0;
-                line-height: 1.7;
-            }}
-            .section {{
-                font-weight: bold;
-                font-size: 1.2em;
-                text-align: left;
-                margin-top: 24px;
-            }}
-            .signature-table {{
-                width: 100%;
-                margin-top: 32px;
-                border-collapse: collapse;
-            }}
-            .signature-table td {{
-                padding: 16px;
-                text-align: center;
-                vertical-align: top;
-                font-size: 1.1em;
-            }}
-        </style>
-    </head>
-    <body>
-        {htmlBody}
-    </body>
-    </html>
-    ";
+<html>
+<head>
+    <meta charset='utf-8'>
+    <style>
+        @font-face {{
+            font-family: 'THSarabunNew';
+            src: url('file:///{fontPath}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }}
+        body {{
+            font-size: 16px;
+            font-family: 'THSarabunNew', Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+        }}
+        body, p, div, th, td {{
+            word-break: keep-all;
+            overflow-wrap: break-word;
+            -webkit-line-break: after-white-space;
+            hyphens: none;
+        }}
+        .t-14 {{ font-size: 1.3em; }}
+        .t-16 {{ font-size: 1.5em; }}
+        .t-18 {{ font-size: 1.7em; }}
+        .t-20 {{ font-size: 1.9em; }}
+        .t-22 {{ font-size: 2.1em; }}
+        .section-title {{
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: #0056b3;
+        }}
+        .text-center {{
+            text-align: center;
+            width: 100%;
+            margin-bottom: 24px;
+        }}
+        .table-container {{
+            margin: 24px 0;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }}
+        th, td {{
+            padding: 10px 8px;
+            border: 1px solid #dee2e6;
+            word-break: break-word;
+            vertical-align: top;
+        }}
+        .signature-table td {{
+            padding: 16px;
+            font-size: 1em;
+            text-align: center;
+            border: none;
+        }}
+        .note {{
+            font-style: italic;
+            margin-bottom: 12px;
+            color: #888;
+        }}
+        .tab1 {{ text-indent: 48px; }}
+        .tab2 {{ text-indent: 96px; }}
+        .comment-section {{
+            border-radius: 6px;
+            padding: 12px 18px;
+            margin: 12px 0;
+        }}
+        .workflow-list {{
+            margin-left: 32px;
+        }}
+        ol {{
+            margin-left: 32px;
+        }}
+        .section-divider {{
+            border-bottom: 2px solid #e3e3e3;
+            margin: 24px 0 16px 0;
+        }}
+    </style>
+</head>
+<body>
+    {htmlBody}
+</body>
+</html>
+";
 
         return html;
     }
+
     public async Task<byte[]> GenExportWorkProcesses_HtmlToPDF(WFProcessDetailModels detail)
     {
         // Read logo and convert to Base64 (if needed in HTML)

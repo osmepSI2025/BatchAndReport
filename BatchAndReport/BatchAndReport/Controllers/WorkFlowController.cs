@@ -3,6 +3,7 @@ using BatchAndReport.Entities;
 using BatchAndReport.Models;
 using BatchAndReport.Repository;
 using BatchAndReport.Services;
+using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -27,6 +28,7 @@ namespace BatchAndReport.Controllers
         private readonly WordWorkFlow_annualProcessReviewService _wordWorkFlow_AnnualProcessReviewService;
        private readonly WordSME_ReportService _ReportService;
         private readonly IConfiguration _configuration; // Add this line
+        private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
         public WorkflowController(
             WorkflowDAO workflowDao,
             IApiInformationRepository repositoryApi,
@@ -35,7 +37,9 @@ namespace BatchAndReport.Controllers
             IWordWFService serviceWFWord,
             WordSME_ReportService reportService,
             WordWorkFlow_annualProcessReviewService wordWorkFlow_AnnualProcessReviewService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IConverter pdfConverter // เพิ่มพารามิเตอร์สำหรับ PDF Converter
+            )
         {
             _workflowDao = workflowDao;
             _repositoryApi = repositoryApi;
@@ -45,6 +49,7 @@ namespace BatchAndReport.Controllers
             this._wordWorkFlow_AnnualProcessReviewService = wordWorkFlow_AnnualProcessReviewService;
             _ReportService = reportService;
             _configuration = configuration;
+            _pdfConverter = pdfConverter; // กำหนดค่าให้กับฟิลด์
         }
 
         [HttpGet("ExportAnnualWorkProcesses")]
@@ -54,24 +59,33 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");     
 
-            var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_HtmlToPDF(detail);
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
+
             return File(pdfBytes, "application/pdf", "AnnualWorkProcesses.pdf");
         }
 
-        [HttpGet("ExportAnnualWorkProcessesWord")]
-        public async Task<IActionResult> ExportAnnualWorkProcessesWord([FromQuery] int annualProcessReviewId)
-        {
-            var detail = await _workflowDao.GetProcessDetailAsync(annualProcessReviewId);
-            if (detail == null)
-                return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
-
-            // 2. Convert HTML to Word document (byte array)
-            var wordBytes = _ReportService.ConvertHtmlToWord(pdfBytes);
-
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "AnnualWorkProcesses.docx");
-        }
 
         [HttpGet("ExportAnnualWorkProcessesJPEG")]
         public async Task<IActionResult> ExportAnnualWorkProcessesJPEG([FromQuery] int annualProcessReviewId)
@@ -80,8 +94,28 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_HtmlToPDF(detail);
-
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
+            var doc = new DinkToPdf.HtmlToPdfDocument()
+            {
+                GlobalSettings = {
+    PaperSize = DinkToPdf.PaperKind.A4,
+    Orientation = DinkToPdf.Orientation.Portrait,
+    Margins = new DinkToPdf.MarginSettings
+    {
+        Top = 20,
+        Bottom = 20,
+        Left = 20,
+        Right = 20
+    }
+},
+                Objects = {
+    new DinkToPdf.ObjectSettings()
+    {
+        HtmlContent = htmlContent
+    }
+}
+            };
+            var pdfBytes = _pdfConverter.Convert(doc);
             // Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "WorkflowDocument", "AnnualWorkProcesses", "AnnualWorkProcesses_JPEG");
             if (!Directory.Exists(folderPath))
@@ -143,7 +177,51 @@ namespace BatchAndReport.Controllers
             return File(zipBytes, "application/zip", $"AnnualWorkProcesses_JPEG.zip");
         }
 
+        
+        [HttpGet("ExportAnnualWorkProcessesWORD")]
+        public async Task<IActionResult> ExportAnnualWorkProcessesWord([FromQuery] int annualProcessReviewId)
+        {
+            var detail = await _workflowDao.GetProcessDetailAsync(annualProcessReviewId);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
 
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_HtmlToWord(detail);
+
+            // Convert HTML to Word document using Spire.Doc
+            var document = new Spire.Doc.Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+
+            // Set A4 size and margins for all sections
+            foreach (Spire.Doc.Section section in document.Sections)
+            {
+                section.PageSetup.PageSize = Spire.Doc.Documents.PageSize.A4;
+                section.PageSetup.Orientation = Spire.Doc.Documents.PageOrientation.Portrait;
+
+                // With these lines:
+                section.PageSetup.Margins.Top = 20f;
+                section.PageSetup.Margins.Bottom = 20f;
+                section.PageSetup.Margins.Left = 20f;
+                section.PageSetup.Margins.Right = 20f;
+            }
+
+            using var ms = new MemoryStream();
+            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            var wordBytes = ms.ToArray();
+
+            // Save to disk (optional)
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "WorkflowDocument", "AnnualWorkProcesses", "AnnualWorkProcesses_Word");
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            var filePath = Path.Combine(folderPath, "AnnualWorkProcesses.docx");
+            if (System.IO.File.Exists(filePath))
+                System.IO.File.Delete(filePath);
+
+            await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
+
+            // Return as download
+            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "AnnualWorkProcesses.docx");
+        }
         [HttpGet("ExportWorkSystem")]
         public async Task<IActionResult> ExportWorkSystem(
             [FromQuery] int? fiscalYear = null,
