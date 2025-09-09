@@ -393,9 +393,11 @@ public class WordWorkFlow_annualProcessReviewService
 
         // Header
         htmlBody.Append($@"
-        <div class='t-16 text-center'>
-            <b>การทบทวนกลุ่มกระบวนการหลักและกลุ่มกระบวนการสนับสนุน {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
-        </div>
+        <div class='t-20 text-center'>
+           <!-- <b>การทบทวนกลุ่มกระบวนการหลักและกลุ่มกระบวนการสนับสนุน {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b> -->
+                 <b>แผนภาพระบบงาน(Work System) ประจำปี {detail.FiscalYear}</b>
+
+</div>
     ");
 
         // Core Process Table
@@ -448,7 +450,7 @@ public class WordWorkFlow_annualProcessReviewService
 
         // Section heading
         htmlBody.Append($@"
-        <div>
+        <div class='t-16'>
             การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้
         </div>
     ");
@@ -460,7 +462,7 @@ public class WordWorkFlow_annualProcessReviewService
         );
         htmlBody.Append("<table class='w-100' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px;'>");
         htmlBody.Append($@"
-        <tr style='background:#DDEBF7;font-weight:bold;text-align:center;'>
+        <tr class='t-16' style='background:#DDEBF7;font-weight:bold;text-align:center;'>
             <td>กระบวนการ ปี {detail.FiscalYearPrevious} (เดิม)</td>
             <td>กระบวนการ ปี {detail.FiscalYear} (ทบทวน)</td>
             <td>กิจกรรมควบคุม (Control Activity)</td>
@@ -468,7 +470,7 @@ public class WordWorkFlow_annualProcessReviewService
     ");
         for (int i = 0; i < rowCount; i++)
         {
-            htmlBody.Append("<tr>");
+            htmlBody.Append("<tr class='t-16'>");
             htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
             htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "")}</td>");
             htmlBody.Append($"<td>{System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "")}</td>");
@@ -488,9 +490,9 @@ public class WordWorkFlow_annualProcessReviewService
         }
 
         // Comments
-        htmlBody.Append("<div>ความคิดเห็น</div>");
-        htmlBody.Append("<div style='margin-left:32px;'>☐ เห็นชอบการปรับปรุง</div>");
-        htmlBody.Append("<div style='margin-left:32px;'>☐ มีความเห็นเพิ่มเติม</div>");
+        htmlBody.Append("<div class='t-16'>ความคิดเห็น</div>");
+        htmlBody.Append("<div class='t-16'>☐ เห็นชอบการปรับปรุง</div>");
+        htmlBody.Append("<div class='t-16'>☐ มีความเห็นเพิ่มเติม</div>");
 
         // Approve remarks
         if (detail.ApproveRemarks?.Length > 0)
@@ -504,16 +506,16 @@ public class WordWorkFlow_annualProcessReviewService
         <table class='signature-table'>
             <tr>
                 <td>
-                    <div>ลงชื่อ....................................................</div>
-                    <div>(" + (detail.Approver1Name ?? "(ชื่อผู้ลงนาม 1)") + @")</div>
-                    <div>" + (detail.Approver1Position ?? "ตำแหน่ง") + @"</div>
-                    <div>วันที่ " + (detail.Approve1Date ?? "ไม่พบข้อมูล") + @"</div>
+                    <div class='t-16'>ลงชื่อ....................................................</div>
+                    <div class='t-16'>(" + (detail.Approver1Name ?? "(ชื่อผู้ลงนาม 1)") + @")</div>
+                    <div class='t-16'>" + (detail.Approver1Position ?? "ตำแหน่ง") + @"</div>
+                    <div class='t-16'>วันที่ " + (detail.Approve1Date ?? "ไม่พบข้อมูล") + @"</div>
                 </td>
                 <td>
-                    <div>ลงชื่อ....................................................</div>
-                    <div>(" + (detail.Approver2Name ?? "(ชื่อผู้ลงนาม 2)") + @")</div>
-                    <div>" + (detail.Approver2Position ?? "ตำแหน่ง") + @"</div>
-                    <div>วันที่ " + (detail.Approve2Date ?? "ไม่พบข้อมูล") + @"</div>
+                    <div class='t-16'>ลงชื่อ....................................................</div>
+                    <div class='t-16'>(" + (detail.Approver2Name ?? "(ชื่อผู้ลงนาม 2)") + @")</div>
+                    <div class='t-16'>" + (detail.Approver2Position ?? "ตำแหน่ง") + @"</div>
+                    <div class='t-16'>วันที่ " + (detail.Approve2Date ?? "ไม่พบข้อมูล") + @"</div>
                 </td>
             </tr>
         </table>
@@ -524,64 +526,87 @@ public class WordWorkFlow_annualProcessReviewService
     <html>
     <head>
         <meta charset='utf-8'>
-        <style>
-            @font-face {{
-                font-family: 'THSarabunNew';
-                src: url('file:///{fontPath}') format('truetype');
-                font-weight: normal;
-                font-style: normal;
-            }}
-            body {{
-                font-size: 22px;
-                font-family: 'THSarabunNew', Arial, sans-serif;
-            }}
-            .t-16 {{ font-size: 1.5em; }}
-            .t-18 {{ font-size: 1.7em; }}
-            .t-22 {{ font-size: 1.9em; }}
-            .tab1 {{ text-indent: 48px; }}
-            .tab2 {{ text-indent: 96px; }}
-            .tab3 {{ text-indent: 144px; }}
-            .tab4 {{ text-indent: 192px; }}
-            .d-flex {{ display: flex; }}
-            .w-100 {{ width: 100%; }}
-            .w-40 {{ width: 40%; }}
-            .w-50 {{ width: 50%; }}
-            .w-60 {{ width: 60%; }}
-            .text-center {{ text-align: center; }}
-            .sign-single-right {{
-                display: flex;
-                flex-direction: column;
-                position: relative;
-                left: 20%;
-            }}
-            .sign-double {{ display: flex; }}
-            .text-center-right-brake {{
-                margin-left: 50%;
-                word-break: break-all;
-            }}
-            .text-right {{ text-align: right; }}
-            .contract, .section {{
-                margin: 12px 0;
-                line-height: 1.7;
-            }}
-            .section {{
-                font-weight: bold;
-                font-size: 1.2em;
-                text-align: left;
-                margin-top: 24px;
-            }}
-            .signature-table {{
-                width: 100%;
-                margin-top: 32px;
-                border-collapse: collapse;
-            }}
-            .signature-table td {{
-                padding: 16px;
-                text-align: center;
-                vertical-align: top;
-                font-size: 1.1em;
-            }}
-        </style>
+         <style>
+        @font-face {{
+            font-family: 'THSarabunNew';
+            src: url('file:///{fontPath}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }}
+        body {{
+            font-size: 16px;
+            font-family: 'THSarabunNew', Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+        }}
+        body, p, div, th, td {{
+            word-break: keep-all;
+            overflow-wrap: break-word;
+            -webkit-line-break: after-white-space;
+            hyphens: none;
+        }}
+        .t-14 {{ font-size: 1.3em; }}
+        .t-16 {{ font-size: 1.5em; }}
+        .t-18 {{ font-size: 1.7em; }}
+        .t-20 {{ font-size: 1.9em; }}
+        .t-22 {{ font-size: 2.1em; }}
+        .section-title {{
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: #0056b3;
+        }}
+        .text-center {{
+            text-align: center;
+            width: 100%;
+            margin-bottom: 24px;
+        }}
+        .table-container {{
+            margin: 24px 0;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }}
+        th, td {{
+            padding: 10px 8px;
+            border: 1px solid #dee2e6;
+            word-break: break-word;
+            vertical-align: top;
+        }}
+        .signature-table td {{
+            padding: 16px;
+            font-size: 1em;
+            text-align: center;
+            border: none;
+        }}
+        .note {{
+            font-style: italic;
+            margin-bottom: 12px;
+            color: #888;
+        }}
+        .tab1 {{ text-indent: 48px; }}
+        .tab2 {{ text-indent: 96px; }}
+        .comment-section {{
+            border-radius: 6px;
+            padding: 12px 18px;
+            margin: 12px 0;
+        }}
+        .workflow-list {{
+            margin-left: 32px;
+        }}
+        ol {{
+            margin-left: 32px;
+        }}
+        .section-divider {{
+            border-bottom: 2px solid #e3e3e3;
+            margin: 24px 0 16px 0;
+        }}
+    </style>
     </head>
     <body>
         {htmlBody}
