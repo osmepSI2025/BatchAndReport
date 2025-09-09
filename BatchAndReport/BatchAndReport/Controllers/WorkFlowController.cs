@@ -6,6 +6,9 @@ using BatchAndReport.Services;
 using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Spire.Doc;
+using Spire.Doc.Fields;
+using Spire.Doc.Documents;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO.Compression;
@@ -187,28 +190,55 @@ namespace BatchAndReport.Controllers
 
             var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
 
-            // Convert HTML to Word document using Spire.Doc
-            var document = new Spire.Doc.Document();
-            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), Spire.Doc.FileFormat.Html);
+            var document = new Document();
+            document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), FileFormat.Html);
 
-            // Set A4 size and margins for all sections
-            foreach (Spire.Doc.Section section in document.Sections)
+            foreach (Section section in document.Sections)
             {
-                section.PageSetup.PageSize = Spire.Doc.Documents.PageSize.A4;
-                section.PageSetup.Orientation = Spire.Doc.Documents.PageOrientation.Portrait;
-
-                // With these lines:
+                // Setup page
+                //section.PageSetup.PageSize = PageSize.A4;
+                //section.PageSetup.Orientation = PageOrientation.Portrait;
                 section.PageSetup.Margins.Top = 20f;
                 section.PageSetup.Margins.Bottom = 20f;
                 section.PageSetup.Margins.Left = 20f;
                 section.PageSetup.Margins.Right = 20f;
+
+                // Set font for paragraphs
+                foreach (Paragraph para in section.Paragraphs)
+                {
+                    para.ApplyStyle("Normal");
+                    foreach (TextRange tr in para.ChildObjects.OfType<TextRange>())
+                    {
+                        tr.CharacterFormat.FontName = "TH Sarabun New";
+                        tr.CharacterFormat.FontSize = 16;
+                    }
+                }
+
+                // Set font for table cells
+                foreach (Table table in section.Tables.OfType<Table>())
+                {
+                    foreach (TableRow row in table.Rows)
+                    {
+                        foreach (TableCell cell in row.Cells)
+                        {
+                            foreach (Paragraph para in cell.Paragraphs)
+                            {
+                                para.ApplyStyle("Normal");
+                                foreach (TextRange tr in para.ChildObjects.OfType<TextRange>())
+                                {
+                                    tr.CharacterFormat.FontName = "TH Sarabun New";
+                                    tr.CharacterFormat.FontSize = 16;
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             using var ms = new MemoryStream();
-            document.SaveToStream(ms, Spire.Doc.FileFormat.Docx);
+            document.SaveToStream(ms, FileFormat.Docx);
             var wordBytes = ms.ToArray();
 
-            // Save to disk (optional)
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "WorkflowDocument", "AnnualWorkProcesses", "AnnualWorkProcesses_Word");
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
@@ -219,9 +249,10 @@ namespace BatchAndReport.Controllers
 
             await System.IO.File.WriteAllBytesAsync(filePath, wordBytes);
 
-            // Return as download
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "AnnualWorkProcesses.docx");
         }
+
+
         [HttpGet("ExportWorkSystem")]
         public async Task<IActionResult> ExportWorkSystem(
             [FromQuery] int? fiscalYear = null,

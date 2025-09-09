@@ -141,89 +141,88 @@ public class WordWorkFlow_annualProcessReviewService
 <html>
 <head>
     <meta charset='utf-8'>
-    <style>
-        @font-face {{
-            font-family: 'THSarabunNew';
-            src: url('file:///{fontPath}') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }}
-        body {{
-            font-size: 16px;
-            font-family: 'THSarabunNew', Arial, sans-serif;
-            margin: 0;
-            padding: 24px;
-        }}
-        body, p, div, th, td {{
-            word-break: keep-all;
-            overflow-wrap: break-word;
-            -webkit-line-break: after-white-space;
-            hyphens: none;
-        }}
-        .t-14 {{ font-size: 1.3em; }}
-        .t-16 {{ font-size: 1.5em; }}
-        .t-18 {{ font-size: 1.7em; }}
-        .t-20 {{ font-size: 1.9em; }}
-        .t-22 {{ font-size: 2.1em; }}
-        .section-title {{
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-top: 24px;
-            margin-bottom: 8px;
-            color: #0056b3;
-        }}
-        .text-center {{
-            text-align: center;
-            width: 100%;
-            margin-bottom: 24px;
-        }}
-        .table-container {{
-            margin: 24px 0;
-        }}
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            overflow: hidden;
-        }}
-        th, td {{
-            padding: 10px 8px;
-            border: 1px solid #dee2e6;
-            word-break: break-word;
-            vertical-align: top;
-        }}
-        .signature-table td {{
-            padding: 16px;
-            font-size: 1em;
-            text-align: center;
-            border: none;
-        }}
-        .note {{
-            font-style: italic;
-            margin-bottom: 12px;
-            color: #888;
-        }}
-        .tab1 {{ text-indent: 48px; }}
-        .tab2 {{ text-indent: 96px; }}
-        .comment-section {{
-            border-radius: 6px;
-            padding: 12px 18px;
-            margin: 12px 0;
-        }}
-        .workflow-list {{
-            margin-left: 32px;
-        }}
-        ol {{
-            margin-left: 32px;
-        }}
-        .section-divider {{
-            border-bottom: 2px solid #e3e3e3;
-            margin: 24px 0 16px 0;
-        }}
-.signature-table td {{border: none !important;
-}}
-    </style>
+   <style>
+    @font-face {{
+        font-family: 'TH Sarabun New';
+        src: url('file:///{{fontPath}}') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }}
+    body {{
+        font-size: 16px;
+        font-family: 'TH Sarabun New', Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+    }}
+    body, p, div, th, td {{
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        -webkit-line-break: after-white-space;
+        hyphens: none;
+    }}
+    .t-14 {{ font-size: 1.3em; }}
+    .t-16 {{ font-size: 1.5em; }}
+    .t-18 {{ font-size: 1.7em; }}
+    .t-20 {{ font-size: 1.9em; }}
+    .t-22 {{ font-size: 2.1em; }}
+    .section-title {{
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-top: 24px;
+        margin-bottom: 8px;
+        color: #0056b3;
+    }}
+    .text-center {{
+        text-align: center;
+        width: 100%;
+        margin-bottom: 24px;
+    }}
+    .table-container {{
+        margin: 24px 0;
+    }}
+    table {{
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        overflow: hidden;
+    }}
+    th, td {{
+        padding: 10px 8px;
+        border: 1px solid #dee2e6;
+        word-break: break-word;
+        vertical-align: top;
+    }}
+    .signature-table td {{
+        padding: 16px;
+        font-size: 1em;
+        text-align: center;
+        border: none !important;
+    }}
+    .note {{
+        font-style: italic;
+        margin-bottom: 12px;
+        color: #888;
+    }}
+    .tab1 {{ text-indent: 48px; }}
+    .tab2 {{ text-indent: 96px; }}
+    .comment-section {{
+        border-radius: 6px;
+        padding: 12px 18px;
+        margin: 12px 0;
+    }}
+    .workflow-list {{
+        margin-left: 32px;
+    }}
+    ol {{
+        margin-left: 32px;
+    }}
+    .section-divider {{
+        border-bottom: 2px solid #e3e3e3;
+        margin: 24px 0 16px 0;
+    }}
+</style>
+
 </head>
 <body>
     {htmlBody}
