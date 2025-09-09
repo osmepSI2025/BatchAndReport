@@ -36,6 +36,7 @@ public class WordWorkFlow_annualProcessReviewService
         var htmlBody = new StringBuilder();
         var htmlTable = new StringBuilder();
         var htmlComment = new StringBuilder();
+        var htmlDescript = new StringBuilder();
 
         htmlTable.Append(@"
 <table border='1' cellpadding='6' style='border-collapse:collapse;width:100%;table-layout:fixed;'>
@@ -82,6 +83,15 @@ public class WordWorkFlow_annualProcessReviewService
 
         #endregion
 
+        #region
+        htmlDescript.Append("</br>");
+        htmlDescript.Append("<div  class='t-16' >รายละเอียดประเด็นการทบทวน</div>");
+        htmlDescript.Append("<ol   style='margin-left:32px;'>");
+        foreach (var item in detail.ReviewDetails)
+            htmlDescript.Append($"<li  class='t-16'>{System.Net.WebUtility.HtmlEncode(item)}</li>");
+        htmlDescript.Append("</ol>");
+        #endregion
+
 
         htmlBody.Append($@"
     <div class='text-center t-20'>
@@ -95,7 +105,8 @@ public class WordWorkFlow_annualProcessReviewService
                     .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
                     .Select(line => $"<div class='tab1 t-16'>{System.Net.WebUtility.HtmlEncode(line)}</div>")))}
     </div>
-    <div class='t-16'>รายละเอียดประเด็นการทบทวน</div>
+{htmlDescript}
+   
     <div class='section-divider'></div>
     <div class='t-16'>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้</div>
     <div class='table-container'>
@@ -108,15 +119,15 @@ public class WordWorkFlow_annualProcessReviewService
             : "")}
     {htmlComment}
 </br>   
-    <table class='t-16'>
+<table class='t-16' style='width:100%; border:none;'>
         <tr>
-            <td>
+                <td style='border:none;'>
                 <div>ลงชื่อ....................................................</div>
                 <div>({detail.Approver1Name ?? "(ชื่อผู้ลงนาม 1)"})</div>
                 <div>{detail.Approver1Position ?? "ตำแหน่ง"}</div>
                 <div>วันที่ {detail.Approve1Date ?? "ไม่พบข้อมูล"}</div>
             </td>
-            <td>
+                <td style='border:none;'>
                 <div>ลงชื่อ....................................................</div>
                 <div>({detail.Approver2Name ?? "(ชื่อผู้ลงนาม 2)"})</div>
                 <div>{detail.Approver2Position ?? "ตำแหน่ง"}</div>
@@ -210,6 +221,8 @@ public class WordWorkFlow_annualProcessReviewService
             border-bottom: 2px solid #e3e3e3;
             margin: 24px 0 16px 0;
         }}
+.signature-table td {{border: none !important;
+}}
     </style>
 </head>
 <body>
