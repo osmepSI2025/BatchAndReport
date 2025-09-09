@@ -281,9 +281,9 @@ public class WordEContractService : IWordEContractService
         }
 
         // ===== Number formats / Alignment =====
-        ws.Column(5).Style.Numberformat.Format = "yyyy-mm-dd"; // Start_Date
-        ws.Column(6).Style.Numberformat.Format = "yyyy-mm-dd"; // End_Date
-        ws.Column(14).Style.Numberformat.Format = "yyyy-mm-dd"; // PaymentDate
+        ws.Column(5).Style.Numberformat.Format = "dd/mm/yyyy"; // Start_Date
+        ws.Column(6).Style.Numberformat.Format = "dd/mm/yyyy"; // End_Date
+        ws.Column(14).Style.Numberformat.Format = "dd/mm/yyyy"; // PaymentDate
 
         ws.Column(8).Style.Numberformat.Format = "#,##0.00";   // Amount
         ws.Column(15).Style.Numberformat.Format = "#,##0.00";   // InstallmentAmount

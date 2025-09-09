@@ -329,7 +329,7 @@ EContractDAO eContractDAO
                         int s1 = ds.IndexOf("<content>", StringComparison.OrdinalIgnoreCase) + "<content>".Length;
                         int s2 = ds.IndexOf("</content>", StringComparison.OrdinalIgnoreCase);
                         string b64 = ds.Substring(s1, s2 - s1).Trim();
-                        signatureHtml = "<div class='sign-img'><img src='data:image/png;base64," + b64 + "' alt='signature' /></div>";
+                        signatureHtml = "<div class='sign-img'>ลงชื่อ <img src='data:image/png;base64," + b64 + "' alt='signature' />" + roleLabel + "</div>";
                     }
                     catch
                     {
@@ -377,23 +377,51 @@ EContractDAO eContractDAO
     {sealBlock}
 </div>";
             }
+            
 
+            string RenderFixedSignatureBlock()
+            {
+                var empName = string.IsNullOrWhiteSpace(result?.EmploymentName)
+                ? "........................................."
+                : System.Net.WebUtility.HtmlEncode(result.EmploymentName);
+
+                return $@"
+<div class='sign-block' style='margin-top:60px;'>
+    <div class='sign-line'> </div>
+    <div class='sign-line'>ลงชื่อ_______________________ลูกจ้าง</div>
+    <div class='sign-name'>({empName})</div>
+</div>
+<div class='sign-block' style='margin-top:60px;'>
+    <div class='sign-line'> </div>
+    <div class='sign-line'>ลงชื่อ_______________________พยาน</div>
+    <div class='sign-name'>(.........................................)</div>
+</div>";
+            }
+
+            // ===== สร้างคอลัมน์ซ้ายจากลายเซ็นเดิม =====
             var leftColumnHtml = new StringBuilder();
-            foreach (dynamic s in leftSigners) leftColumnHtml.Append(RenderSignatureBlock(s, isCompanySide: false));
-            if (leftColumnHtml.Length == 0) leftColumnHtml.Append("<div class='sign-block placeholder'></div>");
+            foreach (dynamic s in leftSigners)
+                leftColumnHtml.Append(RenderSignatureBlock(s, isCompanySide: false));
+            if (leftColumnHtml.Length == 0)
+                leftColumnHtml.Append("<div class='sign-block placeholder'></div>");
 
-            var rightColumnHtml = new StringBuilder();
-            foreach (dynamic s in rightSigners) rightColumnHtml.Append(RenderSignatureBlock(s, isCompanySide: true));
-            if (rightColumnHtml.Length == 0) rightColumnHtml.Append("<div class='sign-block placeholder'></div>");
+            // ===== คอลัมน์ขวาเป็นแบบ fixed =====
+            var rightFixedHtml = RenderFixedSignatureBlock();
 
-            var signatoryHtml = new StringBuilder();
-            signatoryHtml.Append($@"
+            // ===== ประกอบตาราง 2 คอลัมน์ =====
+            var signatory2ColHtml = $@"
 <table class='signature-2col'>
   <tr>
-    <td class='sign-col left'>{leftColumnHtml}</td>
-    <td class='sign-col right'>{rightColumnHtml}</td>
+    <td class='sign-col left' style='width:50%; vertical-align:top;'>
+      {leftColumnHtml}
+    </td>
+    <td class='sign-col right' style='width:50%; vertical-align:top;'>
+      {rightFixedHtml}
+    </td>
   </tr>
-</table>");
+</table>";
+
+
 
             // ── 5) เนื้อหา HTML (ใช้ ?? "" กัน null string) ────────────────────────
             string htmlBody = $@"
@@ -465,12 +493,12 @@ EContractDAO eContractDAO
 
 </br>
 </br>
-{signatoryHtml} 
+{signatory2ColHtml} 
 
 <div style='page-break-before: always;'></div>
 <p class='text-center t-22' style='font-weight:bold;'>เอกสารแนบท้ายสัญญาจ้างลูกจ้าง</p>
 <p class='text-center t-22' style='font-weight:bold;'>งานศูนย์ให้บริการ SMEs ครบวงจร</p>
-<p class='tab2 t-16'>หน้าที่ความรับผิดชอบ : เจ้าหน้าที่ศูนย์กลุ่มจังหวัดให้บริการ SMEs ครบวงจร และ</p>
+<p class='tab2 t-16'>หน้าที่ความรับผิดชอบ : {result.Work_Detail ?? ""}</p>
 <p class='tab2 t-16'>เจ้าหน้าที่ศูนย์ให้บริการ SMEs ครบวงจร กรุงเทพมหานคร</p>
 <p class='tab2 t-16'>- การปรับปรุงข้อมูลผู้ประกอบการ SME (ไม่น้อยกว่า 30 ราย/เดือน)</p>
 <p class='tab2 t-16'>- การให้บริการคำปรึกษา แนะนำทางธุรกิจ อาทิเช่น ด้านบัญชี การเงิน การตลาด การบริหารจัดการ การผลิต กฎหมาย เทคโนโลยีสารสนเทศ และอื่น ๆ ที่เกี่ยวข้องทางธุรกิจ (ไม่น้อยกว่า 30 ราย/เดือน)</p>
