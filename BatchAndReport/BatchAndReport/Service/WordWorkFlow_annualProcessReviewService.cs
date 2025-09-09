@@ -35,12 +35,19 @@ public class WordWorkFlow_annualProcessReviewService
         var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
         var htmlBody = new StringBuilder();
         var htmlTable = new StringBuilder();
+        var htmlComment = new StringBuilder();
+
         htmlTable.Append(@"
-<table border='1' cellpadding='6' style='border-collapse:collapse;width:100%;'>
+<table border='1' cellpadding='6' style='border-collapse:collapse;width:100%;table-layout:fixed;'>
+    <colgroup>
+        <col style='width:33.33%;'/>
+        <col style='width:33.33%;'/>
+        <col style='width:33.33%;'/>
+    </colgroup>
     <tr>
-        <td class='t-18' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYearPrevious + @" (เดิม)</td>
-        <td class='t-18' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYear + @" (ทบทวน)</td>
-        <td class='t-18' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการที่กำหนด กิจกรรมควบคุม<br/>(Control Activity)<br/>ส่งกรมบัญชีกลาง</td>
+        <td class='t-16' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYearPrevious + @" (เดิม)</td>
+        <td class='t-16' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYear + @" (ทบทวน)</td>
+        <td class='t-16' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการที่กำหนด กิจกรรมควบคุม<br/>(Control Activity)<br/>ส่งกรมบัญชีกลาง</td>
     </tr>");
         int rowCount = Math.Max(
             Math.Max(detail.PrevProcesses?.Count ?? 0, detail.CurrentProcesses?.Count ?? 0),
@@ -49,44 +56,59 @@ public class WordWorkFlow_annualProcessReviewService
         for (int i = 0; i < rowCount; i++)
         {
             htmlTable.Append("<tr>");
-            htmlTable.Append("<td class='t-18'>" + System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
-            htmlTable.Append("<td class='t-18'>" + System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
-            htmlTable.Append("<td class='t-18'>" + System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("<td class='t-16'>" + System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("<td class='t-16'>" + System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("<td class='t-16'>" + System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "") + "</td>");
             htmlTable.Append("</tr>");
         }
         htmlTable.Append("</table>");
+
+        #region ความคิดเห็น
+
+        htmlComment.Append(@"
+<div class='comment-section'>
+    <div class='t-16'>
+        <input type='checkbox' style='transform:scale(1.3);margin-right:8px;' " + (string.IsNullOrWhiteSpace(detail.commentDetial) ? "checked" : "") + @" /> เห็นชอบการปรับปรุง
+    </div>
+    <div class='t-16'>
+        <input type='checkbox' style='transform:scale(1.3);margin-right:8px;' " + (!string.IsNullOrWhiteSpace(detail.commentDetial) ? "checked" : "") + @" /> มีความเห็นเพิ่มเติม
+    </div>"
+    + (!string.IsNullOrWhiteSpace(detail.commentDetial)
+        ? "<div class='tab2 t-16'>" + System.Net.WebUtility.HtmlEncode(detail.commentDetial) + "</div>"
+        : "")
++ @"
+</div>
+");
+
+        #endregion
+
 
         htmlBody.Append($@"
     <div class='text-center t-20'>
         <b>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
     </div>
-    <div class='t-18'>ความเป็นมา</div>
+    <div class='t-16'>ความเป็นมา</div>
     <div>
         {(string.IsNullOrEmpty(detail.PROCESS_BACKGROUND)
                 ? ""
                 : string.Join("", detail.PROCESS_BACKGROUND
                     .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
-                    .Select(line => $"<div class='tab1 t-18'>{System.Net.WebUtility.HtmlEncode(line)}</div>")))}
+                    .Select(line => $"<div class='tab1 t-16'>{System.Net.WebUtility.HtmlEncode(line)}</div>")))}
     </div>
-    <div class='t-18'>รายละเอียดประเด็นการทบทวน</div>
+    <div class='t-16'>รายละเอียดประเด็นการทบทวน</div>
     <div class='section-divider'></div>
-    <div class='t-18'>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้</div>
+    <div class='t-16'>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้</div>
     <div class='table-container'>
       {htmlTable}
     </div>
     <div class='note t-14'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>
     {(detail.WorkflowProcesses?.Count > 0
-            ? $@"<div class='t-18'>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>
-            <div class='workflow-list'>{string.Join("", detail.WorkflowProcesses.Select(wf => $"<div class='t-18'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>"))}</div>"
+            ? $@"<div class='t-16'>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>
+            <div class='workflow-list'>{string.Join("", detail.WorkflowProcesses.Select(wf => $"<div class='t-16'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>"))}</div>"
             : "")}
-    <div class='t-18'>ความคิดเห็น</div>
-    <div class='comment-section'>
-        <div class='t-18'>☐ เห็นชอบการปรับปรุง</div>
-        <div class='t-18'>☐ มีความเห็นเพิ่มเติม</div>
-        <div class='tab2 t-18'>{detail.commentDetial}</div>
-    </div>
-    <div class='section-divider'></div>
-    <table class='signature-table t-18'>
+    {htmlComment}
+</br>   
+    <table class='t-16'>
         <tr>
             <td>
                 <div>ลงชื่อ....................................................</div>
