@@ -1,4 +1,5 @@
 ﻿using BatchAndReport.DAO;
+using BatchAndReport.Models;
 using DinkToPdf.Contracts;
 using System.Text;
 public class WordEContract_AMJOAService
@@ -6,22 +7,25 @@ public class WordEContract_AMJOAService
     private readonly WordServiceSetting _w;
     private readonly E_ContractReportDAO _eContractReportDAO;
     private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
+    private readonly Econtract_Report_AMJOADAO _eContractReportAMJOADAO;
 
     public WordEContract_AMJOAService(
         WordServiceSetting ws,
         E_ContractReportDAO eContractReportDAO
       , IConverter pdfConverter
+        , Econtract_Report_AMJOADAO eContractReportAMJOADAO
     )
     {
         _w = ws;
         _eContractReportDAO = eContractReportDAO;
         _pdfConverter = pdfConverter;
+        _eContractReportAMJOADAO = eContractReportAMJOADAO;
     }
 
 
     public async Task<string> OnGetWordContact_AMJOAServiceHtmlToPDF(string conId)
     {
-        var dataResult = await _eContractReportDAO.GetJOAAsync(conId);
+        var dataResult = await _eContractReportAMJOADAO.GetAMJOAAsync(conId);
         if (dataResult == null)
             throw new Exception("JOA data not found.");
         var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
@@ -57,18 +61,18 @@ public class WordEContract_AMJOAService
             contractLogoHtml = "";
         }
         #region checkมอบอำนาจ
-        string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(dataResult.Grant_Date ?? DateTime.Now);
-        string strAttorney = "";
-        var HtmlAttorney = new StringBuilder();
-        if (dataResult.AttorneyFlag == true)
-        {
-            strAttorney = "ผู้มีอำนาจ กระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+       // string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(dataResult.Grant_Date ?? DateTime.Now);
+        //string strAttorney = "";
+        //var HtmlAttorney = new StringBuilder();
+        //if (dataResult.AttorneyFlag == true)
+        //{
+        //    strAttorney = "ผู้มีอำนาจ กระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate + "";
 
-        }
-        else
-        {
-            strAttorney = "";
-        }
+        //}
+        //else
+        //{
+        //    strAttorney = "";
+        //}
         #endregion
 
         // data mock 6. ตัวชี้วัดความสำเร็จของโครงการ
@@ -118,19 +122,38 @@ public class WordEContract_AMJOAService
         }
         indicatorTable.AppendLine("</table>");
 
-        var strDateTH = CommonDAO.ToThaiDateString(dataResult.Contract_SignDate ?? DateTime.Now);
+        var strDateTH = CommonDAO.ToThaiDateString(dataResult.ContractSignDate ?? DateTime.Now);
         var purposeList = await _eContractReportDAO.GetJOAPoposeAsync(conId);
 
+
+        #region signlist 
+
+        var signlist = await _eContractReportDAO.GetSignNameAsync(conId, "AMJOA");
         var signatoryHtml = new StringBuilder();
         var companySealHtml = new StringBuilder();
         bool sealAdded = false; // กันซ้ำ
 
-        foreach (var signer in dataResult.Signatories)
+        var dataSignatories = signlist.Where(e => e?.Signatory_Type != null).ToList();
+        // Group signatories
+        var dataSignatoriesTypeOSMEP = dataSignatories
+            .Where(e => e.Signatory_Type == "OSMEP_S" || e.Signatory_Type == "OSMEP_W")
+            .ToList();
+        var dataSignatoriesTypeCP = dataSignatories
+            .Where(e => e.Signatory_Type == "CP_S" || e.Signatory_Type == "CP_W")
+            .ToList();
+
+        // Helper to render a signatory block
+        string RenderSignatory(E_ConReport_SignatoryModels signer)
         {
             string signatureHtml;
-            string companySeal = ""; // กัน warning
+            string noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "No-sign.png");
+            string noSignBase64 = "";
+            if (File.Exists(noSignPath))
+            {
+                var bytes = File.ReadAllBytes(noSignPath);
+                noSignBase64 = Convert.ToBase64String(bytes);
+            }
 
-            // ► ลายเซ็นรายบุคคล (เดิม)
             if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
             {
                 try
@@ -145,69 +168,100 @@ public class WordEContract_AMJOAService
                 }
                 catch
                 {
-                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                    signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                        ? $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+</div>"
+                        : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
                 }
             }
             else
             {
-                signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                    ? $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+</div>"
+                    : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
             }
-            // ► ตราประทับ: ให้พิจารณาเมื่อเจอ CP_S เท่านั้น (ไม่เช็ค null/empty ตรง if ชั้นนอก)
-            if (!sealAdded && signer?.Signatory_Type == "CP_S")
-            {
-                if (!string.IsNullOrEmpty(signer.Company_Seal) && signer.Company_Seal.Contains("<content>"))
-                {
-                    try
-                    {
-                        var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
-                        var contentEnd = signer.Company_Seal.IndexOf("</content>");
-                        var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
 
-                        companySeal = $@"
+            string name = signer?.Signatory_Name ?? "";
+            string nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
+                ? $"({name})พยาน"
+                : $"({name})";
+
+            return $@"
+<div class='sign-single-right'>
+    {signatureHtml}
+    <div class='t-16 text-center tab1'>{nameBlock}</div>
+    <div class='t-16 text-center tab1'>{signer?.Position}</div>
+</div>";
+        }
+
+        // Build HTML for each column
+        var smeSignHtml = new StringBuilder();
+        foreach (var signer in dataSignatoriesTypeOSMEP)
+        {
+            smeSignHtml.AppendLine(RenderSignatory(signer));
+        }
+
+        var customerSignHtml = new StringBuilder();
+        foreach (var signer in dataSignatoriesTypeCP)
+        {
+            customerSignHtml.AppendLine(RenderSignatory(signer));
+        }
+        //คราประทับ
+        var companySealSignatory = dataSignatoriesTypeCP.Where(e => e.Company_Seal != null).FirstOrDefault();
+        if (companySealSignatory != null && !string.IsNullOrEmpty(companySealSignatory.Company_Seal) && companySealSignatory.Company_Seal.Contains("<content>"))
+        {
+            try
+            {
+                var contentStart = companySealSignatory.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                var contentEnd = companySealSignatory.Company_Seal.IndexOf("</content>");
+                var base64 = companySealSignatory.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                var companySeal = $@"
 <div class='t-16 text-center tab1'>
     <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
 </div>";
 
-                        companySealHtml.AppendLine($@"
+                companySealHtml.AppendLine($@"
 <div class='text-center'>
     {companySeal}
 </div>
 ");
-                        sealAdded = true;
-                    }
-                    catch
-                    {
-                        
-                        sealAdded = true;
-                    }
-                }
-                else
-                {
-                    // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
-                    
-                    sealAdded = true;
-                }
+                sealAdded = true;
             }
-
-            signatoryHtml.AppendLine($@"
-<div class='sign-single-right'>
-    {signatureHtml}
-    <div class='t-16 text-center tab1'>({signer?.Signatory_Name})</div>
-    <div class='t-16 text-center tab1'>{signer?.BU_UNIT}</div>
-</div>");
+            catch
+            {
+                companySealHtml.AppendLine("<div class='t-16 text-center tab1'></div>");
+                sealAdded = true;
+            }
         }
-
-        // ► Fallback: ถ้าจบลูปแล้วยังไม่มีตราประทับ แต่คุณ “ต้องการให้มีอย่างน้อย placeholder 1 ครั้ง”
-        if (!sealAdded)
+        else
         {
-            
+            // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
+            companySealHtml.AppendLine("<div class='t-16 text-center tab1'></div>");
             sealAdded = true;
         }
 
-        // ► ประกอบผลลัพธ์
-        var signatoryWithLogoHtml = new StringBuilder();
-        if (companySealHtml.Length > 0) signatoryWithLogoHtml.Append(companySealHtml);
-        signatoryWithLogoHtml.Append(signatoryHtml);
+        // Output as a table
+        var signatoryTableHtml = $@"
+<table class='signature-table'>
+    <tr>
+        <td style='width:50%; vertical-align:top;'>
+            
+            {smeSignHtml}
+        </td>
+        <td style='width:50%; vertical-align:top;'>
+           
+            {customerSignHtml}
+     {companySealHtml}
+        </td>
+    </tr>
+</table>
+
+";
+        #endregion signlist
 
 
 
@@ -318,11 +372,11 @@ public class WordEContract_AMJOAService
     <div class='t-22 text-center'><b>แนวทางการจัดทำ</b></div>
     <div class='t-22 text-center'><b>เอกสารแนบท้ายบันทึกข้อตกลงความร่วมมือและสัญญาร่วมดำเนินการ</b></div>
     <div class='t-18 text-center'><b>ข้อกำหนดของการดำเนินงาน</b></div>
-  <div class='t-18 text-center'><b>โครงการ………………………………………………………………….………………………………………..</b></div>
+  <div class='t-18 text-center'><b>โครงการ {dataResult.Contract_Name}</b></div>
   <div class='t-18 text-center'><b>ระหว่าง</b></div>
    <div class='t-18 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ( สสว. )</b></div>
  <div class='t-18 text-center'><b>กับ</b></div>
-<div class='t-18 text-center'><b>ชื่อหน่วยร่วมดำเนินการ………………….………………( ชื่อย่อ )………..</b></div>
+<div class='t-18 text-center'><b>ชื่อหน่วยร่วมดำเนินการ {dataResult.Start_Unit} </b></div>
 </br>
 <p class='t-16 tab0'><b>๑. หลักการและเหตุผล</b></p>
     <P class='t-16 tab3'>
@@ -478,7 +532,7 @@ SMEs ที่เข้าร่วมโครงการอย่างใก
 </P>
 
 </div>
-{signatoryWithLogoHtml}
+{signatoryTableHtml}
 </body>
 </html>
 ";

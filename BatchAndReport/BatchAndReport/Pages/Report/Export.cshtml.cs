@@ -137,7 +137,7 @@ namespace BatchAndReport.Pages.Report
 
         }
 
-        public async Task OnGetWordContact_EC_PDF(string ContractId = "8")
+        public async Task OnGetWordContact_EC_PDF(string ContractId = "55")
         {
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
             var doc = new DinkToPdf.HtmlToPdfDocument()
@@ -179,7 +179,7 @@ namespace BatchAndReport.Pages.Report
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_EC_PDF_Preview(string ContractId = "8", string Name = "สมใจ ทดสอบ")
+        public async Task<IActionResult> OnGetWordContact_EC_PDF_Preview(string ContractId = "55", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
             var doc = new DinkToPdf.HtmlToPdfDocument()
@@ -276,7 +276,7 @@ namespace BatchAndReport.Pages.Report
             }
         }
 
-        public async Task<IActionResult> OnGetWordContact_EC_JPEG(string ContractId = "7")
+        public async Task<IActionResult> OnGetWordContact_EC_JPEG(string ContractId = "55")
         {
             // 1. Generate PDF from EC contract
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
@@ -359,7 +359,7 @@ namespace BatchAndReport.Pages.Report
             return File(zipBytes, "application/zip", $"EC_{ContractId}_JPEG.zip");
         }
 
-        public async Task<IActionResult> OnGetWordContact_EC_JPEG_Preview(string ContractId = "7")
+        public async Task<IActionResult> OnGetWordContact_EC_JPEG_Preview(string ContractId = "55")
         {
             // 1. Generate PDF from EC contract
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
@@ -458,7 +458,7 @@ namespace BatchAndReport.Pages.Report
             return File(zipBytes, "application/zip", $"EC_{ContractId}_JPEG_Preview.zip");
         }
 
-        public async Task<IActionResult> OnGetWordContact_EC_Word(string ContractId = "7")
+        public async Task<IActionResult> OnGetWordContact_EC_Word(string ContractId = "55")
         {
             // 1. Get HTML content for EC contract
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
@@ -491,7 +491,7 @@ namespace BatchAndReport.Pages.Report
             var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"EC_{ContractId}.docx");
         }
-        public async Task<IActionResult> OnGetWordContact_EC_Word_Preview(string ContractId = "7")
+        public async Task<IActionResult> OnGetWordContact_EC_Word_Preview(string ContractId = "55")
         {
             // 1. Get HTML content for EC contract
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
@@ -6845,7 +6845,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.16 แบบฟอร์มบันทึกข้อตกลงเป็นหนังสือ MIW
 
-        public async Task OnGetWordContact_MIW_PDF(string ContractId = "70")
+        public async Task OnGetWordContact_MIW_PDF(string ContractId = "12")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
@@ -6891,7 +6891,7 @@ namespace BatchAndReport.Pages.Report
             // Optionally, return the file as a download:
             // return File(pdfBytes, "application/pdf", "MIW_" + ContractId + ".pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_MIW_PDF_Preview(string ContractId = "70", string Name = "สมใจ ทดสอบ")
+        public async Task<IActionResult> OnGetWordContact_MIW_PDF_Preview(string ContractId = "12", string Name = "สมใจ ทดสอบ")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
@@ -6990,7 +6990,7 @@ namespace BatchAndReport.Pages.Report
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
         }
-        public async Task<IActionResult> OnGetWordContact_MIW_JPEG(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_MIW_JPEG(string ContractId = "12")
         {
             // 1. Get HTML content and convert to PDF bytes
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
@@ -7072,7 +7072,7 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"MIW_{ContractId}_JPEG.zip");
         }
-        public async Task<IActionResult> OnGetWordContact_MIW_JPEG_Preview(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_MIW_JPEG_Preview(string ContractId = "12")
         {
             // 1. Get HTML content and convert to PDF bytes
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
@@ -7170,7 +7170,7 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"MIW_{ContractId}_JPEG_Preview.zip");
         }
-        public async Task<IActionResult> OnGetWordContact_MIW_Word(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_MIW_Word(string ContractId = "12")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
@@ -7202,7 +7202,7 @@ namespace BatchAndReport.Pages.Report
             // 6. Return the Word file as download
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"MIW_{ContractId}.docx");
         }
-        public async Task<IActionResult> OnGetWordContact_MIW_Word_Preview(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_MIW_Word_Preview(string ContractId = "12")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
@@ -7255,7 +7255,7 @@ namespace BatchAndReport.Pages.Report
 
         #region  4.1.6 เอกสารแนบท้ายบันทึกข้อตกลงความร่วมมือและสัญญาร่วมดำเนินการ AMJOA
 
-        public async Task OnGetWordContact_AMJOA_PDF(string ContractId = "70")
+        public async Task OnGetWordContact_AMJOA_PDF(string ContractId = "12")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
@@ -7301,7 +7301,7 @@ namespace BatchAndReport.Pages.Report
             // Optionally, return the file as a download:
             // return File(pdfBytes, "application/pdf", "AMJOA_" + ContractId + ".pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_AMJOA_PDF_Preview(string ContractId = "70", string Name = "สมใจ ทดสอบ")
+        public async Task<IActionResult> OnGetWordContact_AMJOA_PDF_Preview(string ContractId = "12", string Name = "สมใจ ทดสอบ")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
@@ -7400,7 +7400,7 @@ namespace BatchAndReport.Pages.Report
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
         }
-        public async Task<IActionResult> OnGetWordContact_AMJOA_JPEG(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_AMJOA_JPEG(string ContractId = "12")
         {
             // 1. Get HTML content and convert to PDF bytes
             var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
@@ -7482,7 +7482,7 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"AMJOA_{ContractId}_JPEG.zip");
         }
-        public async Task<IActionResult> OnGetWordContact_AMJOA_JPEG_Preview(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_AMJOA_JPEG_Preview(string ContractId = "12")
         {
             // 1. Get HTML content and convert to PDF bytes
             var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
@@ -7580,7 +7580,7 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"AMJOA_{ContractId}_JPEG_Preview.zip");
         }
-        public async Task<IActionResult> OnGetWordContact_AMJOA_Word(string ContractId = "70")
+        public async Task<IActionResult> OnGetWordContact_AMJOA_Word(string ContractId = "12")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);

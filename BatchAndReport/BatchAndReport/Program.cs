@@ -123,6 +123,9 @@ builder.Services.AddScoped<Econtract_Report_CTRDAO>();
 builder.Services.AddScoped<Econtract_Report_PDSADAO>();
 builder.Services.AddScoped<Econtract_Report_CWADAO>();
 builder.Services.AddScoped<Econtract_Report_GADAO>();
+builder.Services.AddScoped<Econtract_Report_MIWDAO>();
+builder.Services.AddScoped<Econtract_Report_AMJOADAO>();
+
 
 
 builder.Services.AddSingleton<IConverter, SynchronizedConverter>(provider =>
