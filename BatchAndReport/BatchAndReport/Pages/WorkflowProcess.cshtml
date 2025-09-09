@@ -50,7 +50,7 @@
         <table class="table table-bordered text-center align-middle" style="table-layout: fixed; width: 100%;">
             <thead class="header-green">
                 <tr>
-                    <td rowspan="2" class="align-middle bg-white text-start text-dark" style="width: 250px; font-size: inherit;">
+                    <td rowspan="2" class="align-top bg-white text-start text-dark" style="width: 250px; font-size: inherit;">
                         กลุ่มกระบวนการหลัก<br>(Core Process)
                     </td>
                     @foreach (var core in detail.CoreProcesses)
@@ -61,7 +61,7 @@
                 <tr>
                     @foreach (var core in detail.CoreProcesses)
                     {
-                        <td style="font-size: inherit;">@core.ProcessGroupName</td>
+                        <td style="font-size: inherit;" class="align-top bg-white text-start text-dark">@core.ProcessGroupName</td>
                     }
                 </tr>
             </thead>
