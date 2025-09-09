@@ -282,29 +282,34 @@ public class WordEContract_MemorandumService
         var purposeList = await _eContractReportDAO.GetMOUPoposeAsync(id);
 
 
-        #region signlist MOU
+        #region signlist 
+
         var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
         var signatoryHtml = new StringBuilder();
         var companySealHtml = new StringBuilder();
-        bool sealAdded = false;
+        bool sealAdded = false; // กันซ้ำ
 
-        // Prepare No-sign.png base64
-        var noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "No-sign.png");
-        string noSignBase64 = "";
-        if (System.IO.File.Exists(noSignPath))
-        {
-            var bytes = System.IO.File.ReadAllBytes(noSignPath);
-            noSignBase64 = Convert.ToBase64String(bytes);
-        }
-
+        var dataSignatories = signlist.Where(e => e?.Signatory_Type != null).ToList();
         // Group signatories
-        var smeSignatories = signlist.Where(s => s?.Signatory_Type == "OSMEP_S" || s?.Signatory_Type == "OSMEP_W").ToList();
-        var partnerSignatories = signlist.Where(s => s?.Signatory_Type == "CP_S" || s?.Signatory_Type == "CP_W").ToList();
+        var dataSignatoriesTypeOSMEP = dataSignatories
+            .Where(e => e.Signatory_Type == "OSMEP_S" || e.Signatory_Type == "OSMEP_W")
+            .ToList();
+        var dataSignatoriesTypeCP = dataSignatories
+            .Where(e => e.Signatory_Type == "CP_S" || e.Signatory_Type == "CP_W")
+            .ToList();
 
         // Helper to render a signatory block
         string RenderSignatory(E_ConReport_SignatoryModels signer)
         {
             string signatureHtml;
+            string noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "No-sign.png");
+            string noSignBase64 = "";
+            if (File.Exists(noSignPath))
+            {
+                var bytes = File.ReadAllBytes(noSignPath);
+                noSignBase64 = Convert.ToBase64String(bytes);
+            }
+
             if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
             {
                 try
@@ -319,47 +324,50 @@ public class WordEContract_MemorandumService
                 }
                 catch
                 {
-                    signatureHtml = $@"<div class='t-16 text-center tab1'>
-    <img src='data:image/png;base64,{noSignBase64}' alt='no-sign' style='max-height: 80px;' />
-</div>";
+                    signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                        ? $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+</div>"
+                        : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
                 }
             }
             else
             {
-                signatureHtml = $@"<div class='t-16 text-center tab1'>
-    <img src='data:image/png;base64,{noSignBase64}' alt='no-sign' style='max-height: 80px;' />
-</div>";
+                signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                    ? $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+</div>"
+                    : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
             }
 
             string name = signer?.Signatory_Name ?? "";
-            string nameBlock = signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W")
+            string nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
                 ? $"({name})พยาน"
                 : $"({name})";
 
             return $@"
 <div class='sign-single-right'>
     {signatureHtml}
-    <div class='t-22 text-center tab1'>{nameBlock}</div>
-    <div class='t-22 text-center tab1'>{signer?.Position}</div>
+    <div class='t-16 text-center tab1'>{nameBlock}</div>
+    <div class='t-16 text-center tab1'>{signer?.Position}</div>
 </div>";
         }
 
         // Build HTML for each column
         var smeSignHtml = new StringBuilder();
-        foreach (var signer in smeSignatories)
+        foreach (var signer in dataSignatoriesTypeOSMEP)
         {
             smeSignHtml.AppendLine(RenderSignatory(signer));
         }
 
-        var partnerSignHtml = new StringBuilder();
-        foreach (var signer in partnerSignatories)
+        var customerSignHtml = new StringBuilder();
+        foreach (var signer in dataSignatoriesTypeCP)
         {
-            partnerSignHtml.AppendLine(RenderSignatory(signer));
+            customerSignHtml.AppendLine(RenderSignatory(signer));
         }
-
-        // Company seal (ตราประทับ)
-        var companySealSignatory = partnerSignatories.FirstOrDefault(e => !string.IsNullOrEmpty(e?.Company_Seal) && e.Company_Seal.Contains("<content>"));
-        if (companySealSignatory != null)
+        //คราประทับ
+        var companySealSignatory = dataSignatoriesTypeCP.Where(e => e.Company_Seal != null).FirstOrDefault();
+        if (companySealSignatory != null && !string.IsNullOrEmpty(companySealSignatory.Company_Seal) && companySealSignatory.Company_Seal.Contains("<content>"))
         {
             try
             {
@@ -369,7 +377,7 @@ public class WordEContract_MemorandumService
 
                 var companySeal = $@"
 <div class='t-16 text-center tab1'>
-    <img src='data:image/png;base64,{base64}' alt='seal' style='max-height: 80px;' />
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
 </div>";
 
                 companySealHtml.AppendLine($@"
@@ -387,25 +395,27 @@ public class WordEContract_MemorandumService
         }
         else
         {
+            // ไม่มีไฟล์ตรา/ไม่มี <content> ⇒ ใส่ placeholder ครั้งเดียว
             companySealHtml.AppendLine("<div class='t-16 text-center tab1'></div>");
             sealAdded = true;
         }
 
         // Output as a table
-        var signatoryWithLogoHtml = $@"
+        var signatoryTableHtml = $@"
 <table class='signature-table'>
     <tr>
         <td style='width:50%; vertical-align:top;'>
-            <div class='t-22 text-center'></div>
-         {smeSignHtml}
+            
+            {smeSignHtml}
         </td>
         <td style='width:50%; vertical-align:top;'>
-            <div class='t-22 text-center'></div>
-           {partnerSignHtml}
-            {companySealHtml}
+           
+            {customerSignHtml}
+     {companySealHtml}
         </td>
     </tr>
 </table>
+
 ";
         #endregion signlist
 
@@ -413,22 +423,22 @@ public class WordEContract_MemorandumService
 <html>
 <head>
     <meta charset='utf-8'>
-   <style>
+  <style>
         @font-face {{
             font-family: 'THSarabunNew';
             src: url('file:///{fontPath}') format('truetype');
             font-weight: normal;
             font-style: normal;
         }}
-         body {{
+        body, p, div, table, th, td {{
+            font-family: 'THSarabunNew', Arial, sans-serif !important;
             font-size: 22px;
-            font-family: 'THSarabunNew', Arial, sans-serif;
         }}
         /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
         body, p, div {{
-            word-break: keep-all;            /* ห้ามตัดกลางคำ */
-            overflow-wrap: break-word;       /* ตัดเฉพาะเมื่อจำเป็น (ยาวจนล้นบรรทัด) */
-            -webkit-line-break: after-white-space; /* ช่วย WebKit เก่าจัดบรรทัด */
+            word-break: keep-all;
+            overflow-wrap: break-word;
+            -webkit-line-break: after-white-space;
             hyphens: none;
         }}
         .t-16 {{
@@ -440,10 +450,10 @@ public class WordEContract_MemorandumService
         .t-22 {{
             font-size: 1.9em;
         }}
-        .tab1 {{ text-indent: 48px;     }}
-        .tab2 {{ text-indent: 96px;    }}
-        .tab3 {{ text-indent: 144px;    }}
-        .tab4 {{ text-indent: 192px;   }}
+        .tab1 {{ text-indent: 48px; }}
+        .tab2 {{ text-indent: 96px; }}
+        .tab3 {{ text-indent: 144px; }}
+        .tab4 {{ text-indent: 192px; }}
         .d-flex {{ display: flex; }}
         .w-100 {{ width: 100%; }}
         .w-40 {{ width: 40%; }}
@@ -456,13 +466,19 @@ public class WordEContract_MemorandumService
             position: relative;
             left: 20%;
         }}
-        .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
-        .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
-
+        .table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 28pt;
+        }}
+        .table th, .table td {{
+            border: 1px solid #000;
+            padding: 8px;
+        }}
         .sign-double {{ display: flex; }}
         .text-center-right-brake {{
             margin-left: 50%;
-             
         }}
         .text-right {{ text-align: right; }}
         .contract, .section {{
@@ -485,8 +501,13 @@ public class WordEContract_MemorandumService
             text-align: center;
             vertical-align: top;
             font-size: 1.1em;
+            font-family: 'THSarabunNew', Arial, sans-serif !important;
         }}
-     .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
+        .logo-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+        }}
         .logo-table td {{ border: none; }}
         p {{
             margin: 0;
@@ -518,7 +539,7 @@ public class WordEContract_MemorandumService
     <div class='t-22 text-center'><B>กับ</B></div>
     <div class='t-18 text-center'><B>{result.OrgName ?? ""}</B></div>
     <br/>
-     <P class='t-16 tab2'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เมื่อ {strSign_Date} ระหว่าง</P>
+     <P class='t-16 tab2'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลาง และขนาดย่อม เมื่อ {strSign_Date} ระหว่าง</P>
     <P class='t-16 tab2'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B>  โดย {result.OSMEP_NAME} ตำแหน่ง {result.OSMEP_POSITION} {strAttorneyOsmep} สำนักงานตั้งอยู่เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550. (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ</P>
     <P class='t-16 tab2'>“{result.OrgCommonName ?? ""}” {result.CP_S_NAME} ตำแหน่ง {result.CP_S_POSITION} {strAttorney} สำนักงานตั้งอยู่เลขที่ {result.Office_Loc} ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “{result.OrgName ?? ""}” อีกฝ่ายหนึ่ง</P>
     <P class='t-16 tab2'>วัตถุประสงค์ของความร่วมมือ</P>
@@ -527,62 +548,37 @@ public class WordEContract_MemorandumService
     ? $"<div class='t-16 tab3'>{string.Join("<br/>", purposeList.Select(p => p.Detail))}</div>"
     : "")}
   <P class='t-16 tab2'><b>ข้อ 1 ขอบเขตความร่วมมือของ “สสว.”</b></P>
-    <P class='t-16 tab3'>1.1 ตกลงร่วมดำเนินการโครงการโดยสนับสนุนงบประมาณ จำนวน {result.Contract_Value?.ToString("N2") ?? "0.00"} บาท </br>( {strContract_Value} ) ซึ่งได้รวมภาษีมูลค่าเพิ่ม ตลอดจนค่าภาษีอากรอื่น ๆ แล้วให้กับ “{result.OrgName ?? ""}” และการใช้จ่ายเงินให้เป็นไปตามแผนการจ่ายเงินตามเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้</P>
+    <P class='t-16 tab3'>1.1 ตกลงร่วมดำเนินการโครงการโดยสนับสนุนงบประมาณ จำนวน {result.Contract_Value?.ToString("N2") ?? "0.00"} บาท  ( {strContract_Value} ) ซึ่งได้รวมภาษีมูลค่าเพิ่ม ตลอดจนค่าภาษีอากรอื่น ๆ แล้วให้กับ “{result.OrgName ?? ""}” และการใช้จ่ายเงินให้เป็นไปตามแผน การจ่ายเงินตามเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้</P>
     <P class='t-16 tab3'>1.2 ประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์</P>
     <P class='t-16 tab3'>1.3 กำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ</P>
     <P class='t-16 tab2'><b>ข้อ 2 ขอบเขตความร่วมมือของ “{result.OrgName ?? ""}”</b></P>
-    <P class='t-16 tab3'>2.1 ตกลงที่จะร่วมดำเนินการโครงการตามวัตถุประสงค์ของการโครงการและขอบเขต</br>การดำเนินการตามรายละเอียดโครงการ แผนการดำเนินการ และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ที่แนบท้ายบันทึกข้อตกลงฉบับนี้</P>
-    <P class='t-16 tab3'>2.2 ต้องดำเนินโครงการ ปฏิบัติตามแผนการดำเนินงาน แผนการใช้จ่ายเงิน (หรืออาจมีคู่มือ</br>การดำเนินโครงการก็ได้) อย่างเคร่งครัดและให้แล้วเสร็จภายในระยะเวลาโครงการ</P>
-    <P class='t-16 tab3'>2.3 ต้องประสานการดำเนินโครงการ เพื่อให้โครงการบรรลุวัตถุประสงค์ เป้าหมายผลผลิต</br>และผลลัพธ์</P>
-    <P class='t-16 tab3'>2.4 ต้องให้ความร่วมมือกับ สสว.ในการกำกับ ติดตามและประเมินผลการดำเนินงานของ</br>โครงการ</P>
+    <P class='t-16 tab3'>2.1 ตกลงที่จะร่วมดำเนินการโครงการตามวัตถุประสงค์ของการโครงการ 
+และขอบเขต การดำเนินการตามรายละเอียดโครงการ แผนการดำเนินการ และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ที่แนบท้ายบันทึกข้อตกลงฉบับนี้</P>
+    <P class='t-16 tab3'>2.2 ต้องดำเนินโครงการ ปฏิบัติตามแผนการดำเนินงาน แผนการใช้จ่ายเงิน (หรืออาจมีคู่มือ การดำเนินโครงการก็ได้) อย่างเคร่งครัดและให้แล้วเสร็จภายในระยะเวลาโครงการ</P>
+    <P class='t-16 tab3'>2.3 ต้องประสานการดำเนินโครงการ เพื่อให้โครงการบรรลุวัตถุประสงค์ เป้าหมายผลผลิต และผลลัพธ์</P>
+    <P class='t-16 tab3'>2.4 ต้องให้ความร่วมมือกับ สสว.ในการกำกับ ติดตามและประเมินผลการ ดำเนินงานของโครงการ</P>
     <P class='t-16 tab2'><b>ข้อ 3 อื่น ๆ</b></P>
-    <P class='t-16 tab3'>3.1 หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอแก้ไข เปลี่ยนแปลง ขยายระยะเวลาของโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษร และต้องได้รับความยินยอมเป็นลาย</br>ลักษณ์อักษรจากอีกฝ่ายหนึ่ง และต้องทำบันทึกข้อตกลงแก้ไข เปลี่ยนแปลง ขยายระยะเวลา เพื่อลงนาม</br>ยินยอมทั้งสองฝ่าย</P>
+    <P class='t-16 tab3'>3.1 หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอแก้ไข เปลี่ยนแปลง ขยายระยะเวลาของโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษร และต้องได้รับความยินยอมเป็นลาย ลักษณ์อักษรจากอีกฝ่ายหนึ่ง และต้องทำบันทึกข้อตกลงแก้ไข เปลี่ยนแปลง ขยายระยะเวลา เพื่อลงนาม ยินยอมทั้งสองฝ่าย</P>
    
-<P class='t-16 tab3'>3.2 หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอบอกเลิกบันทึกข้อตกลงความร่วมมือก่อนครบกำหนด</br>ระยะเวลาดำเนินโครงการจะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษรไม่น้อยกว่า 30 วัน และต้องได้รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และ “{result.OrgName ?? ""}” จะต้องคืนเงินในส่วน</br>ที่ยังไม่ได้ใช้จ่ายหรือส่วนที่เหลือทั้งหมดพร้อมดอกผล (ถ้ามี) ให้แก่ สสว. ภายใน 15 วัน นับจากวันที่ได้รับ</br>หนังสือของฝ่ายที่ยินยอมให้บอกเลิก</P>
+<P class='t-16 tab3'>3.2 หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอบอกเลิกบันทึกข้อตกลงความร่วมมือก่อนครบ 
+กำหนดระยะเวลาดำเนินโครงการจะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษรไม่น้อยกว่า 30 วัน และต้องได้รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และ “{result.OrgName ?? ""}” จะต้องคืนเงินในส่วน ที่ยังไม่ได้ใช้จ่ายหรือส่วนที่เหลือทั้งหมดพร้อมดอกผล (ถ้ามี) ให้แก่ สสว. ภายใน 15 วัน นับจากวันที่ได้รับ หนังสือของฝ่ายที่ยินยอมให้บอกเลิก</P>
  
-<P class='t-16 tab3'>3.3 สสว. อาจบอกเลิกบันทึกข้อตกลงความร่วมมือได้ทันที หากตรวจสอบ หรือปรากฏ</br>ข้อเท็จจริงว่า การใช้จ่ายเงินของ “{result.OrgName ?? ""}” ไม่เป็นไปตามวัตถุประสงค์ของโครงการ แผนการดำเนินงาน และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ทั้งมีสิทธิเรียกเงินคงเหลือพร้อมดอกผล (ถ้ามี) คืนทั้งหมดได้ทันที</P>
+<P class='t-16 tab3'>3.3 สสว. อาจบอกเลิกบันทึกข้อตกลงความร่วมมือได้ทันที หากตรวจสอบ หรือปรากฏ ข้อเท็จจริงว่า การใช้จ่ายเงินของ “{result.OrgName ?? ""}” ไม่เป็นไปตามวัตถุประสงค์ของโครงการ แผนการดำเนินงาน และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ทั้งมีสิทธิเรียกเงินคงเหลือพร้อมดอกผล (ถ้ามี) คืนทั้งหมดได้ทันที</P>
     <P class='t-16 tab3'>3.4 ทรัพย์สินใด ๆ และ/หรือ สิทธิใด ๆ ที่ได้มาจากเงินสนับสนุนตามบันทึกข้อตกลงฉบับนี้ เมื่อสิ้นสุดโครงการให้ตกได้แก่ สสว. ทั้งสิ้น เว้นแต่ สสว. จะกำหนดให้เป็นอย่างอื่น</P>
     <P class='t-16 tab3'>3.5 “ชื่อหน่วยร่วม” ต้องไม่ดำเนินการในลักษณะการจ้างเหมา กับหน่วยงาน องค์กร หรือบุคคลอื่น ๆ ยกเว้นกรณีการจัดหา จัดจ้าง เป็นกิจกรรมหรือเป็นเรื่อง ๆ</P>
-    <P class='t-16 tab3'>3.6 ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับข้อมูลส่วนบุคคล และ</br>การคุ้มครองทรัพย์สินทางปัญญา “ชื่อหน่วยร่วม” จะต้องปฏิบัติตามกฎหมายว่าด้วยการคุ้มครองข้อมูล</br>ส่วนบุคคลและการคุ้มครองทรัพย์สินทางปัญญาอย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้อง</br>ร้องใดๆ “ชื่อหน่วยร่วม” จะต้องเป็นผู้รับผิดชอบต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าว</br>แต่เพียงฝ่ายเดียวโดยสิ้นเชิง</P>
-    <P class='t-16 tab3'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน ทั้งสองฝ่าย</br>ได้อ่านและเข้าใจข้อความโดยละเอียดแล้ว จึงได้ลงลายมือชื่อพร้อมประทับตรา(ถ้ามี) ไว้เป็นสำคัญต่อหน้า</br>พยาน และยึดถือไว้ฝ่ายละฉบับ</P>
+    <P class='t-16 tab3'>3.6 ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับข้อมูลส่วนบุคคล และ การคุ้มครองทรัพย์สินทางปัญญา “ชื่อหน่วยร่วม” จะต้องปฏิบัติตามกฎหมายว่าด้วยการคุ้มครองข้อมูล ส่วนบุคคลและการคุ้มครองทรัพย์สินทางปัญญาอย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้อง ร้องใดๆ “ชื่อหน่วยร่วม” จะต้องเป็นผู้รับผิดชอบต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าว แต่เพียงฝ่ายเดียวโดยสิ้นเชิง</P>
+    <P class='t-16 tab3'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้นเป็นสองฉบับ มีข้อความถูกต้องตรงกัน ทั้งสองฝ่าย ได้อ่านและเข้าใจข้อความโดยละเอียดแล้ว จึงได้ลงลายมือชื่อพร้อมประทับตรา(ถ้ามี) ไว้เป็นสำคัญต่อหน้า พยาน และยึดถือไว้ฝ่ายละฉบับ</P>
 
 
 </br>
 </br>
-{signatoryWithLogoHtml}
+{signatoryTableHtml}
 </body>
 </html>
 ";
 
-        //// You need to inject IConverter _pdfConverter in the constructor for PDF generation
-        //var doc = new DinkToPdf.HtmlToPdfDocument()
-        //{
-        //    GlobalSettings = {
-        //    PaperSize = DinkToPdf.PaperKind.A4,
-        //    Orientation = DinkToPdf.Orientation.Portrait,
-        //    Margins = new DinkToPdf.MarginSettings
-        //    {
-        //        Top = 20,
-        //        Bottom = 20,
-        //        Left = 20,
-        //        Right = 20
-        //    }
-        //},
-        //    Objects = {
-        //    new DinkToPdf.ObjectSettings() {
-        //        HtmlContent = html,
-        //        FooterSettings = new DinkToPdf.FooterSettings
-        //        {
-        //            FontName = "THSarabunNew",
-        //            FontSize = 6,
-        //            Line = false,
-        //            Center = "[page] / [toPage]"
-        //        }
-        //    }
-        //}
-        //};
 
-        //var pdfBytes = _pdfConverter.Convert(doc);
+
         return html;
     }
     #endregion
