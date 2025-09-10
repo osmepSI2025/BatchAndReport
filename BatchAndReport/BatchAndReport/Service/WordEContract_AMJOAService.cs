@@ -275,11 +275,11 @@ public class WordEContract_AMJOAService
     -webkit-line-break: after-white-space;
     hyphens: none;
     }}
-    .t-16 {{ font-size: 1.5em; !important;
-line-height: 1.6; !important;
+    .t-16 {{ 
+    font-size: 24pt !important;
 }}
-    .t-18 {{ font-size: 1.7em; }}
-    .t-22 {{ font-size: 1.9em; }}
+    .t-18 {{ font-size: 1.7em; !important; }}
+    .t-22 {{ font-size: 1.9em;!important; }}
     .tab0 {{ text-indent: 0px; }}
     .tab1 {{ text-indent: 48px; }}
     .tab2 {{ text-indent: 96px; }}
@@ -313,7 +313,7 @@ line-height: 1.6; !important;
 .editor-content p,
 .editor-content span,
 .editor-content li {{
- font: inherit !important;
+
     color: inherit !important;
 }}
     body, p, div, span, li, td, th, table, b, strong, h1, h2, h3, h4, h5, h6 {{
@@ -338,17 +338,15 @@ line-height: 1.6; !important;
         </td>
     </tr>
 </table>
-</br>
 
-</br>
-    <div class='t-22 text-center'><b>แนวทางการจัดทำ</b></div>
-    <div class='t-22 text-center'><b>เอกสารแนบท้ายบันทึกข้อตกลงความร่วมมือและสัญญาร่วมดำเนินการ</b></div>
-    <div class='t-18 text-center'><b>ข้อกำหนดของการดำเนินงาน</b></div>
-  <div class='t-18 text-center'><b>โครงการ {dataResult.Contract_Name}</b></div>
-  <div class='t-18 text-center'><b>ระหว่าง</b></div>
-   <div class='t-18 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ( สสว. )</b></div>
- <div class='t-18 text-center'><b>กับ</b></div>
-<div class='t-18 text-center'><b>ชื่อหน่วยร่วมดำเนินการ {dataResult.Start_Unit} </b></div>
+   <h2 class='t-22 text-center'><strong>แนวทางการจัดทำ</strong></h2>
+    <h2  class='t-22 text-center'><b>เอกสารแนบท้ายบันทึกข้อตกลงความร่วมมือและสัญญาร่วมดำเนินการ</b></h2 >
+    <h2  class='t-18 text-center'><b>ข้อกำหนดของการดำเนินงาน</b></h2 >
+  <h2  class='t-18 text-center'><b>โครงการ {dataResult.Contract_Name}</b></h2 >
+  <h2  class='t-18 text-center'><b>ระหว่าง</b></div>
+   <h2  class='t-18 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ( สสว. )</b></h2 >
+ <h2  class='t-18 text-center'><b>กับ</b></div>
+<h2  class='t-18 text-center'><b>ชื่อหน่วยร่วมดำเนินการ {dataResult.Start_Unit} </b></h2 >
 </br>
 
 <p class='t-16 tab0'><b>๑.รายละเอียด</b></p>
