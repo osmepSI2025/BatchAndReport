@@ -2,6 +2,7 @@
 using BatchAndReport.Models;
 using DinkToPdf.Contracts;
 using System.Text;
+using System.Text.RegularExpressions;
 public class WordEContract_AMJOAService
 {
     private readonly WordServiceSetting _w;
@@ -27,7 +28,7 @@ public class WordEContract_AMJOAService
     {
         var dataResult = await _eContractReportAMJOADAO.GetAMJOAAsync(conId);
         if (dataResult == null)
-            throw new Exception("JOA data not found.");
+            throw new Exception("AMJOA data not found.");
         var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
         var cssPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css", "contract.css").Replace("\\", "/");
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
@@ -60,70 +61,8 @@ public class WordEContract_AMJOAService
         {
             contractLogoHtml = "";
         }
-        #region checkมอบอำนาจ
-       // string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(dataResult.Grant_Date ?? DateTime.Now);
-        //string strAttorney = "";
-        //var HtmlAttorney = new StringBuilder();
-        //if (dataResult.AttorneyFlag == true)
-        //{
-        //    strAttorney = "ผู้มีอำนาจ กระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate + "";
 
-        //}
-        //else
-        //{
-        //    strAttorney = "";
-        //}
-        #endregion
-
-        // data mock 6. ตัวชี้วัดความสำเร็จของโครงการ
-        var mockIndicators = GenerateMockData();
-
-        // Build the HTML table for section 6 using mockIndicators
-        var indicatorTable = new StringBuilder();
-        indicatorTable.AppendLine("<table style='width:100%; border-collapse:collapse; margin-top:10px; font-size:1.2em;'>");
-        indicatorTable.AppendLine("<tr>");
-        indicatorTable.AppendLine("<th style='border:1px solid #000;'>ผลผลิต</th>");
-        indicatorTable.AppendLine("<th style='border:1px solid #000;'>หน่วยนับ</th>");
-        indicatorTable.AppendLine("<th style='border:1px solid #000;'>เป้าหมาย</th>");
-        indicatorTable.AppendLine("<th style='border:1px solid #000;'>วิธีการวัด</th>");
-        indicatorTable.AppendLine("</tr>");
-
-        // Outputs
-        for (int i = 0; i < mockIndicators.Outputs.Count; i++)
-        {
-            var o = mockIndicators.Outputs[i];
-            indicatorTable.AppendLine("<tr>");
-            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{i + 1}. {o.Description}</td>");
-            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.UnitOfMeasurement}</td>");
-            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.Target}</td>");
-            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.MeasurementMethod}</td>");
-            indicatorTable.AppendLine("</tr>");
-        }
-
-        // Outcomes header
-        indicatorTable.AppendLine("<tr>");
-
-        indicatorTable.AppendLine("<th style='border:1px solid #000;'>ผลลัพธ์</th>");
-        indicatorTable.AppendLine("<th style='border:1px solid #000;'>หน่วยนับ</th>");
-        indicatorTable.AppendLine("<th style='border:1px solid #000;'>เป้าหมาย</th>");
-        indicatorTable.AppendLine("<th style='border:1px solid #000;'>วิธีการวัด</th>");
-        indicatorTable.AppendLine("</tr>");
-
-        // Outcomes
-        for (int i = 0; i < mockIndicators.Outcomes.Count; i++)
-        {
-            var o = mockIndicators.Outcomes[i];
-            indicatorTable.AppendLine("<tr>");
-            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{i + 1}. {o.Description}</td>");
-            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.UnitOfMeasurement}</td>");
-            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.Target}</td>");
-            indicatorTable.AppendLine($"<td style='border:1px solid #000;'>{o.MeasurementMethod}</td>");
-            indicatorTable.AppendLine("</tr>");
-        }
-        indicatorTable.AppendLine("</table>");
-
-        var strDateTH = CommonDAO.ToThaiDateString(dataResult.ContractSignDate ?? DateTime.Now);
-        var purposeList = await _eContractReportDAO.GetJOAPoposeAsync(conId);
+      
 
 
         #region signlist 
@@ -263,96 +202,126 @@ public class WordEContract_AMJOAService
 ";
         #endregion signlist
 
+        #region
+        // ตัวอย่างการใช้ Regex เพื่อลบ style attribute ออก
+        var cleanDescription = Regex.Replace(dataResult.Contract_Description, "style=\"[^\"]*\"", string.Empty);
 
+        // หรือใช้ HtmlAgilityPack ที่แนะนำมากกว่า
+        var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+        htmlDoc.LoadHtml(cleanDescription);
+
+        // ลบ style และ dir attributes ออกจากทุก element
+        foreach (var element in htmlDoc.DocumentNode.DescendantsAndSelf())
+        {
+            if (element.Attributes.Contains("style"))
+            {
+                element.Attributes["style"].Remove();
+            }
+            if (element.Attributes.Contains("dir"))
+            {
+                element.Attributes["dir"].Remove();
+            }
+        }
+
+        // ลบ tag <span> ที่ไม่มี attribute หรือ class และคงไว้แต่ข้อความ
+        foreach (var span in htmlDoc.DocumentNode.Descendants("span").ToList())
+        {
+            // ตรวจสอบว่า tag <span> ไม่มี attributes และไม่มี child nodes ที่เป็น element (มีแค่ text)
+            if (!span.HasAttributes && !span.ChildNodes.Any(n => n.NodeType == HtmlAgilityPack.HtmlNodeType.Element))
+            {
+                var textNode = htmlDoc.CreateTextNode(span.InnerText);
+                span.ParentNode.ReplaceChild(textNode, span);
+            }
+        }
+        // ⭐ เพิ่ม class="t-16" ให้กับทุก <p>
+        foreach (var p in htmlDoc.DocumentNode.Descendants("p"))
+        {
+            var existingClass = p.GetAttributeValue("class", "");
+            if (!existingClass.Contains("t-16"))
+            {
+                p.SetAttributeValue("class", (existingClass + " t-16").Trim());
+            }
+        }
+
+        string cleanedHtml = htmlDoc.DocumentNode.OuterHtml;
+
+        #endregion
 
         var html = $@"<html>
 <head>
     <meta charset='utf-8'>
   
-     <style>
-        @font-face {{
-            font-family: 'THSarabunNew';
-            src: url('file:///{fontPath}') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }}
-         body {{
-            font-size: 22px;
-            font-family: 'THSarabunNew', Arial, sans-serif;
-        }}
-        /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
-        body, p, div {{
-            word-break: keep-all;            /* ห้ามตัดกลางคำ */
-            overflow-wrap: break-word;       /* ตัดเฉพาะเมื่อจำเป็น (ยาวจนล้นบรรทัด) */
-            -webkit-line-break: after-white-space; /* ช่วย WebKit เก่าจัดบรรทัด */
-            hyphens: none;
-        }}
-        .t-16 {{
-            font-size: 1.5em;
-        }}
-        .t-18 {{
-            font-size: 1.7em;
-        }}
-        .t-22 {{
-            font-size: 1.9em;
-        }}
-        .tab0 {{ text-indent: 0px;     }}
-        .tab1 {{ text-indent: 48px;     }}
-        .tab2 {{ text-indent: 96px;    }}
-        .tab3 {{ text-indent: 144px;    }}
-        .tab4 {{ text-indent: 192px;   }}
-        .d-flex {{ display: flex; }}
-        .w-100 {{ width: 100%; }}
-        .w-40 {{ width: 40%; }}
-        .w-50 {{ width: 50%; }}
-        .w-60 {{ width: 60%; }}
-        .text-center {{ text-align: center; }}
-        .sign-single-right {{
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            left: 20%;
-        }}
-        .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
-        .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
-
-        .sign-double {{ display: flex; }}
-        .text-center-right-brake {{
-            margin-left: 50%;
-             
-        }}
-        .text-right {{ text-align: right; }}
-        .contract, .section {{
-            margin: 12px 0;
-            line-height: 1.7;
-        }}
-        .section {{
-            font-weight: bold;
-            font-size: 1.2em;
-            text-align: left;
-            margin-top: 24px;
-        }}
-        .signature-table {{
-            width: 100%;
-            margin-top: 32px;
-            border-collapse: collapse;
-        }}
-        .signature-table td {{
-            padding: 16px;
-            text-align: center;
-            vertical-align: top;
-            font-size: 1.1em;
-        }}
-     .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
-        .logo-table td {{ border: none; }}
-        p {{
-            margin: 0;
-            padding: 0;
-        }}
-.editor-content {{font - size: 1.2em;
-    color: #333;
+    <style>
+    @font-face {{
+        font-family: 'TH Sarabun New';
+        src: url('file:///{fontPath}') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }}
+  body {{font-family: 'TH Sarabun New', Arial, Tahoma, sans-serif !important;
+    font-size: 22px !important;
+    color: #000 !important;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    -webkit-line-break: after-white-space;
+    hyphens: none;
 }}
-    </style>
+    body, p, div {{
+    font-family: 'TH Sarabun New', Arial, Tahoma, sans-serif !important;
+    font-size: 22px !important;
+    color: #000 !important;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    -webkit-line-break: after-white-space;
+    hyphens: none;
+    }}
+    .t-16 {{ font-size: 1.5em; !important;
+line-height: 1.6; !important;
+}}
+    .t-18 {{ font-size: 1.7em; }}
+    .t-22 {{ font-size: 1.9em; }}
+    .tab0 {{ text-indent: 0px; }}
+    .tab1 {{ text-indent: 48px; }}
+    .tab2 {{ text-indent: 96px; }}
+    .tab3 {{ text-indent: 144px; }}
+    .tab4 {{ text-indent: 192px; }}
+    .d-flex {{ display: flex; }}
+    .w-100 {{ width: 100%; }}
+    .w-40 {{ width: 40%; }}
+    .w-50 {{ width: 50%; }}
+    .w-60 {{ width: 60%; }}
+    .text-center {{ text-align: center; }}
+    .sign-single-right {{
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        left: 20%;
+    }}
+    .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
+    .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
+    .sign-double {{ display: flex; }}
+    .text-center-right-brake {{ margin-left: 50%; }}
+    .text-right {{ text-align: right; }}
+    .contract, .section {{ margin: 12px 0; line-height: 1.7; }}
+    .section {{ font-weight: bold; font-size: 1.2em; text-align: left; margin-top: 24px; }}
+    .signature-table {{ width: 100%; margin-top: 32px; border-collapse: collapse; }}
+    .signature-table td {{ padding: 16px; text-align: center; vertical-align: top; font-size: 1.1em; }}
+    .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
+    .logo-table td {{ border: none; }}
+    p {{ margin: 0; padding: 0; }}
+.editor-content,
+.editor-content p,
+.editor-content span,
+.editor-content li {{
+ font: inherit !important;
+    color: inherit !important;
+}}
+    body, p, div, span, li, td, th, table, b, strong, h1, h2, h3, h4, h5, h6 {{
+        font-family: 'TH Sarabun New', Arial, Tahoma, sans-serif !important;
+      
+        color: #000 !important;
+    }}
+</style>
 </head><body>
 
 <table style='width:100%; border-collapse:collapse; margin-top:40px;'>
@@ -384,7 +353,7 @@ public class WordEContract_AMJOAService
 
 <p class='t-16 tab0'><b>๑.รายละเอียด</b></p>
 <div class='t-16 editor-content'>
-    {dataResult.Contract_Description}
+    {cleanedHtml}
 </div>
     
  
@@ -405,7 +374,7 @@ public class WordEContract_AMJOAService
 <P class='t-16 tab2'>๓. กรณีมอบอำนาจแทนผู้มีอำนาจลงนาม ต้องมีหนังสือมอบอำนาจ และสำเนาบัตรประชาชน
 ผู้มีอำนาจลงนามและผู้รับมอบอำนาจลงนาม เพิ่มจำนวน ๑ ชุด</P>
 <P class='t-16 tab1'>หน่วยร่วมดำเนินการ (รับรองสำเนาถูกต้อง ทุกสำเนาเอกสาร)</P>
-<P class='t-16 tab2'>๑. สำเนาเอกสารแสดงการจดทะเบียนเป็นนิติบุคคล หรือแสดงการจัดตั้งหน่วยงาน จำนวน ๒ ชุด </P>
+<P class='t-16 tab2'>๑. สำเนาเอกสารแสดงการจดทะเบียนเป็นนิติบุคคล 或แสดงการจัดตั้งหน่วยงาน จำนวน ๒ ชุด </P>
 <P class='t-16 tab2'>๒. สำเนาหนังสือแต่งตั้งผู้มีอำนาจลงนาม จำนวน ๒ ชุด</P>
 <P class='t-16 tab2'>๔. กรณีมอบอำนาจแทนผู้มีอำนาจลงนาม ต้องมีหนังสือมอบอำนาจ และสำเนาบัตรประชาชน
 ผู้มีอำนาจลงนามและผู้รับมอบอำนาจลงนาม เพิ่มจำนวน ๑ ชุด
