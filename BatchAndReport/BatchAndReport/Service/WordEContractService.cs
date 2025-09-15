@@ -305,5 +305,69 @@ public class WordEContractService : IWordEContractService
 
         return package.GetAsByteArray();
     }
+    public byte[] GenImportContractLoan(IEnumerable<ImportContractModels> items)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+        using var package = new ExcelPackage();
+        var ws = package.Workbook.Worksheets.Add("Contract");
+
+        // ===== Header (Row 1) =====
+        string[] headers = new[]
+        {
+        "ContractNumber","ProjectName","ContractParty","Domicile",
+        "Start_Date","End_Date","Status","Amount","Owner"
+    };
+
+        for (int i = 0; i < headers.Length; i++)
+            ws.Cells[1, i + 1].Value = headers[i];
+
+        using (var rng = ws.Cells[1, 1, 1, headers.Length])
+        {
+            rng.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            rng.Style.Font.Bold = true;
+            rng.Style.Fill.PatternType = ExcelFillStyle.None;
+        }
+
+        // ===== Data Rows (starting Row 2) =====
+        int r = 2;
+        foreach (var x in items ?? Enumerable.Empty<ImportContractModels>())
+        {
+            ws.Cells[r, 1].Value = x.ContractNumber ?? "";
+            ws.Cells[r, 2].Value = x.ProjectName ?? "";
+            ws.Cells[r, 3].Value = x.ContractParty ?? "";
+            ws.Cells[r, 4].Value = x.Domicile ?? "";
+
+            // วันที่
+            if (x.StartDate.HasValue) ws.Cells[r, 5].Value = x.StartDate.Value;
+            if (x.EndDate.HasValue) ws.Cells[r, 6].Value = x.EndDate.Value;
+
+            ws.Cells[r, 7].Value = x.Status ?? "";
+
+            // ตัวเลข
+            if (x.Amount.HasValue) ws.Cells[r, 8].Value = x.Amount.Value;
+            ws.Cells[r, 9].Value = x.Owner ?? "";
+
+            r++;
+        }
+
+        // ===== Number formats / Alignment =====
+        ws.Column(5).Style.Numberformat.Format = "dd/mm/yyyy"; // Start_Date
+        ws.Column(6).Style.Numberformat.Format = "dd/mm/yyyy"; // End_Date
+        ws.Column(14).Style.Numberformat.Format = "dd/mm/yyyy"; // PaymentDate
+
+        ws.Column(8).Style.Numberformat.Format = "#,##0.00";   // Amount
+
+        // ตัวเลขจัดขวา
+        ws.Column(8).Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+        // Freeze header
+        ws.View.FreezePanes(2, 1);
+
+        // Autosize
+        ws.Cells[ws.Dimension.Address].AutoFitColumns();
+
+        return package.GetAsByteArray();
+    }
 
 }

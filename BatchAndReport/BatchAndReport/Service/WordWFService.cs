@@ -396,7 +396,15 @@ public class WordWFService : IWordWFService
             // === Section 2: Evaluation ===
             var evals = detail2.Evaluations?.Select(e => e.EvaluationDesc).Where(e => !string.IsNullOrEmpty(e)).ToArray();
             body.Append(CreateBoldParagraph("ตัวชี้วัดของกระบวนการ :", 20));
-            body.Append(evals?.Length > 0 ? (OpenXmlElement)CreateNumberedList(evals) : CreateNormalParagraph("-"));
+            if (evals != null && evals.Length > 0)
+            {
+                foreach (var el in CreateNumberedList(evals)) // ← คืน IEnumerable<OpenXmlElement>/Paragraph
+                    body.Append(el);
+            }
+            else
+            {
+                body.Append(CreateNormalParagraph("-"));
+            }
             body.Append(CreateEmptyLine());
 
             // === Section 3: Approvals ===
@@ -545,19 +553,27 @@ public class WordWFService : IWordWFService
             // Add Header First
             await AddDocumentHeader(mainPart, detail);
 
-            // Do NOT append a new Body here!
-            // body = mainPart.Document.AppendChild(new Body()); // <-- Remove this line
-
             var lastRevDate = detail.Revisions?.LastOrDefault()?.DateTime;
             var revDateText = lastRevDate.HasValue ? lastRevDate.Value.ToString("dd MMM yy", new CultureInfo("th-TH")) : "-";
 
-            // Evaluation
-            var evals = detail.Evaluations?.Select(e => e.EvaluationDesc).Where(e => !string.IsNullOrEmpty(e)).ToArray();
+            // === Section 2: Evaluation ===
+            var evals = detail.Evaluations?
+                .Select(e => e.EvaluationDesc)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToArray();
+
             body.Append(CreateBoldParagraph("ตัวชี้วัดของกระบวนการ :", 20));
-            if (evals?.Length > 0)
-                body.Append(CreateNumberedList(evals));
+
+            if (evals != null && evals.Length > 0)
+            {
+                foreach (var p in CreateNumberedList(evals))   // <- IEnumerable<OpenXmlElement>/Paragraph
+                    body.Append(p);
+            }
             else
+            {
                 body.Append(CreateNormalParagraph("-"));
+            }
+
             body.Append(CreateEmptyLine());
 
             // Approvals Table
@@ -566,55 +582,51 @@ public class WordWFService : IWordWFService
 
             // Revisions Table
             var revTable = CreateFullWidthTable();
-            revTable.Append(new TableRow(new[]
-            {
-            new TableCell(
-                new TableCellProperties(
-                    new GridSpan { Val = 3 },
-                    new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "5000" },
-                    new Shading { Fill = "D9D9D9", Val = ShadingPatternValues.Clear, Color = "auto" },
-                    new TableCellBorders(
-                        new TopBorder { Val = BorderValues.Single },
-                        new BottomBorder { Val = BorderValues.Single },
-                        new LeftBorder { Val = BorderValues.Single },
-                        new RightBorder { Val = BorderValues.Single }
+            revTable.Append(new TableRow(new[] {
+                new TableCell(
+                    new TableCellProperties(
+                        new GridSpan { Val = 3 },
+                        new TableCellWidth { Type = TableWidthUnitValues.Pct, Width = "5000" },
+                        new Shading { Fill = "D9D9D9", Val = ShadingPatternValues.Clear, Color = "auto" },
+                        new TableCellBorders(
+                            new TopBorder { Val = BorderValues.Single },
+                            new BottomBorder { Val = BorderValues.Single },
+                            new LeftBorder { Val = BorderValues.Single },
+                            new RightBorder { Val = BorderValues.Single }
+                        )
+                    ),
+                    new Paragraph(
+                        new ParagraphProperties(new Justification { Val = JustificationValues.Center }),
+                        new Run(new Text("ประวัติการแก้ไขเอกสาร"))
                     )
-                ),
-                new Paragraph(
-                    new ParagraphProperties(new Justification { Val = JustificationValues.Center }),
-                    new Run(new Text("ประวัติการแก้ไขเอกสาร"))
                 )
-            )
-        }));
+            }));
 
-            revTable.Append(new TableRow(new[]
-            {
-            CreateCell("ครั้งที่แก้ไข", JustificationValues.Center),
-            CreateCell("วันที่แก้ไข", JustificationValues.Center),
-            CreateCell("รายละเอียด", JustificationValues.Center)
-        }));
+            revTable.Append(new TableRow(new[] {
+                CreateCell("ครั้งที่แก้ไข", JustificationValues.Center),
+                CreateCell("วันที่แก้ไข", JustificationValues.Center),
+                CreateCell("รายละเอียด", JustificationValues.Center)
+            }));
 
             if (detail.Revisions?.Count > 0)
             {
                 int i = 1;
                 foreach (var rev in detail.Revisions)
                 {
-                    revTable.Append(new TableRow(new[]
-                    {
-                    CreateCell(i++.ToString(), JustificationValues.Center),
-                    CreateCell(rev.DateTime?.ToString("d MMM yy", new CultureInfo("th-TH")) ?? "-", JustificationValues.Center),
-                    CreateCell(rev.EditDetail ?? "-", JustificationValues.Left)
-                }));
+                    revTable.Append(new TableRow(new[] {
+                        CreateCell(i++.ToString(), JustificationValues.Center),
+                        CreateCell(rev.DateTime?.ToString("d MMM yy", new CultureInfo("th-TH")) ?? "-", JustificationValues.Center),
+                        CreateCell(rev.EditDetail ?? "-", JustificationValues.Left)
+                    }));
                 }
             }
             else
             {
-                revTable.Append(new TableRow(new[]
-                {
-                CreateCell("-", JustificationValues.Center),
-                CreateCell("-", JustificationValues.Center),
-                CreateCell("-", JustificationValues.Center)
-            }));
+                revTable.Append(new TableRow(new[] {
+                    CreateCell("-", JustificationValues.Center),
+                    CreateCell("-", JustificationValues.Center),
+                    CreateCell("-", JustificationValues.Center)
+                }));
             }
 
             body.Append(revTable);
@@ -622,33 +634,30 @@ public class WordWFService : IWordWFService
 
             // Control Points
             var cpTable = CreateFullWidthTable();
-            cpTable.Append(new TableRow(new[]
-            {
-            CreateCell("จุดควบคุม", JustificationValues.Center),
-            CreateCell("กิจกรรมควบคุม", JustificationValues.Center),
-            CreateCell("รายละเอียด", JustificationValues.Center)
-        }));
+            cpTable.Append(new TableRow(new[] {
+                CreateCell("จุดควบคุม", JustificationValues.Center),
+                CreateCell("กิจกรรมควบคุม", JustificationValues.Center),
+                CreateCell("รายละเอียด", JustificationValues.Center)
+            }));
 
             if (detail.ControlPoints?.Count > 0)
             {
                 foreach (var cp in detail.ControlPoints)
                 {
-                    cpTable.Append(new TableRow(new[]
-                    {
-                    CreateCell(cp.ProcessControlCode ?? "-", JustificationValues.Center),
-                    CreateCell(cp.ProcessControlActivity ?? "-", JustificationValues.Center),
-                    CreateCell(cp.ProcessControlDetail ?? "-", JustificationValues.Center)
-                }));
+                    cpTable.Append(new TableRow(new[] {
+                        CreateCell(cp.ProcessControlCode ?? "-", JustificationValues.Center),
+                        CreateCell(cp.ProcessControlActivity ?? "-", JustificationValues.Center),
+                        CreateCell(cp.ProcessControlDetail ?? "-", JustificationValues.Center)
+                    }));
                 }
             }
             else
             {
-                cpTable.Append(new TableRow(new[]
-                {
-                CreateCell("-", JustificationValues.Center),
-                CreateCell("-", JustificationValues.Center),
-                CreateCell("-", JustificationValues.Center)
-            }));
+                cpTable.Append(new TableRow(new[] {
+                    CreateCell("-", JustificationValues.Center),
+                    CreateCell("-", JustificationValues.Center),
+                    CreateCell("-", JustificationValues.Center)
+                }));
             }
 
             body.Append(cpTable);

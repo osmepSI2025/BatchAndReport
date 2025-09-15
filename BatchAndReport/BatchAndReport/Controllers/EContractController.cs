@@ -76,14 +76,14 @@ namespace BatchAndReport.Controllers
 
                 if (employees?.Results == null || !employees.Results.Any())
                     return BadRequest("No employee contract data found.");
-                
+
                 string keyString = "5EU6l0SddrsT5HI6MhIxFkwT8JHRUyxz";
                 // Map to model
                 var contractModels = employees.Results
                     .Where(emp => emp != null) // Ensure no null references
                     .Select(emp => new MEmployeeContractModels
                     {
-                        ContractFlag = emp!.ContractFlag, // Use null-forgiving operator
+                        ContractFlag = emp!.ContractFlag?? false, // Use null-forgiving operator
                         EmployeeId = emp.EmployeeId,
                         EmployeeCode = emp.EmployeeCode,
                         NameTh = emp.NameTh,
@@ -323,7 +323,7 @@ namespace BatchAndReport.Controllers
 
             try
             {
-                
+
                 string encryptedBase64 = "7GtvfN8LB5aEOtY0c7didw=="; //8EgYChBAnJaZTdXJNarZng==
                 string encryptionKey = "5EU6l0SddrsT5HI6MhIxFkwT8JHRUyxz";
 
@@ -386,5 +386,22 @@ namespace BatchAndReport.Controllers
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"ExportContract_{contractNumber}.xlsx");
         }
+
+        [HttpGet("ExportImportContractLoan")]
+        public async Task<IActionResult> ExportImportContractLoan([FromQuery] string? contractNumber = null)
+        {
+            var details = await _eContractDao.FindImportContractsAsync(contractNumber);
+
+            if (details == null || !details.Any())
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+            var generator = _serviceWord.GenImportContractLoan(details);
+            var excelBytes = generator; // Assuming `GenImportContract` already returns a byte array.
+
+            return File(excelBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"ExportContractLoan_{contractNumber}.xlsx");
+        }
     }
 }
+

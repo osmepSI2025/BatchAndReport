@@ -34,7 +34,7 @@ namespace BatchAndReport.Models
     {
 
         [JsonPropertyName("contractFlag")]
-        public bool ContractFlag { get; set; }
+        public bool? ContractFlag { get; set; }
         [JsonPropertyName("employeeId")]
         public string EmployeeId { get; set; } = null!;
         [JsonPropertyName("employeeCode")]

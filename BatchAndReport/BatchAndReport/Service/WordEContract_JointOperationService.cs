@@ -255,7 +255,7 @@ public class WordEContract_JointOperationService
         var HtmlAttorneyOsmep = new StringBuilder();
         if (dataResult.AttorneyFlag == true)
         {
-            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งที่ " + dataResult.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + dataResult.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
 
         }
         else

@@ -262,7 +262,7 @@ EContractDAO eContractDAO
         var HtmlAttorneyOsmep = new StringBuilder();
         if (dataResult.AttorneyFlag == true)
         {
-            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งที่ " + dataResult.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + dataResult.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
 
         }
         else
@@ -399,11 +399,11 @@ EContractDAO eContractDAO
     <P class='t-16 tab3'>
         บันทึกข้อตกลงฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เลขที่ ๑๒๐ หมู่ ๓ ศูนย์ราชการเฉลิมพระเกียรติ ๘๐ พรรษา ๕ ธันวาคม ๒๕๕๐ (อาคารซี) ชั้น ๒, ๑๐, ๑๑ ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพมหานคร ๑๐๒๑๐ 
  เมื่อวันที่ {dataResult.ContractSignDate.Value.ToString("dd/MM/yyyy")} ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม 
-โดย {dataResult.SignatoryName +" "+ dataResult.SignatoryPosition} ซึ่งต่อไปในบันทึกข้อตกลงนี้เรียกว่า “ผู้ว่าจ้าง” ฝ่ายหนึ่ง 
+โดย {dataResult.OSMEP_NAME} ตำแหน่ง {dataResult.OSMEP_POSITION} {strAttorneyOsmep}  ซึ่งต่อไปในบันทึกข้อตกลงนี้เรียกว่า “ผู้ว่าจ้าง” ฝ่ายหนึ่ง 
 กับ {dataResult.ContractPartyName} ผู้ถือบัตรประจำตัวประชาชนเลขที่ {dataResult.IdenID}
 วันออกบัตร {dataResult.IdenIssue_Date.Value.ToString("dd/MM/yyyy")} บัตรหมดอายุ {dataResult.IdenExpiry_Date.Value.ToString("dd/MM/yyyy")} 
 อยู่บ้านเลขที่ {dataResult.AddressNo} ถนน {dataResult.AddressStreet} 
-ตำบล {dataResult.AddressSubDistrict} อำเภอ {dataResult.AddressDistrict} จังหวัด {dataResult.AddressProvince +" "+ dataResult.AddressZipCode} 
+ตำบล {dataResult.AddressSubDistrict} อำเภอ {dataResult.AddressDistrict} จังหวัด {dataResult.AddressProvince + " " + dataResult.AddressZipCode} 
 ปรากฏตามเอกสารแนบท้ายบันทึกข้อตกลงนี้ ซึ่งต่อไปในบันทึกข้อตกลงนี้เรียกว่า “ผู้รับจ้าง” อีกฝ่ายหนึ่ง
 
     </P>
