@@ -144,7 +144,7 @@ public class WordWorkFlow_annualProcessReviewService
    <style>
     @font-face {{
         font-family: 'TH Sarabun New';
-        src: url('file:///{{fontPath}}') format('truetype');
+        src: url('file:///{fontPath}') format('truetype');
         font-weight: normal;
         font-style: normal;
     }}
