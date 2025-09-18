@@ -29,14 +29,14 @@ namespace BatchAndReport.Entities
         public virtual DbSet<SubProcessControlDetail> SubProcessControlDetails { get; set; }
         public virtual DbSet<WfLookup> WFLookup { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code.
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("Server=192.168.9.156;Database=SME;User Id=sa;Password=Osmep@2025;TrustServerCertificate=True;MultipleActiveResultSets=True;");
-            }
-        }
+//        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+//        {
+//#warning To protect potentially sensitive information in your connection string, you should move it out of source code.
+//            if (!optionsBuilder.IsConfigured)
+//            {
+//                optionsBuilder.UseSqlServer("Server=192.168.9.156;Database=SME;User Id=sa;Password=Osmep@2025;TrustServerCertificate=True;MultipleActiveResultSets=True;");
+//            }
+//        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

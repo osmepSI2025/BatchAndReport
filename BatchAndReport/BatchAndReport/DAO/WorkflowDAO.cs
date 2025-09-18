@@ -88,21 +88,24 @@ namespace BatchAndReport.DAO
                 .Distinct()
                 .ToList();
 
-            var approverInfo = await _dbContext.Employees
-                .Where(e => approverIds.Contains(e.EmployeeId))
-                .Include(e => e.Position)
-                .Select(e => new
-                {
-                    e.EmployeeId,
-                    Name = e.NameTh,
-                    Position = e.Position.NameTh
-                })
-                .ToDictionaryAsync(e => e.EmployeeId);
+            //var approverInfo = await _dbContext.Employees
+            //    .Where(e => approverIds.Contains(e.EmployeeId))
+            //    .Include(e => e.Position)
+            //    .Select(e => new
+            //    {
+            //        e.EmployeeId,
+            //        Name = e.NameTh,
+            //        Position = e.Position.NameTh
+            //    })
+            //    .ToDictionaryAsync(e => e.EmployeeId);
 
-            var approver1Id = history.FirstOrDefault(h => h.StatusCode == "APRH01")?.EmployeeId;
-            var approver2Id = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.EmployeeId;
+            //var approver1Id = history.FirstOrDefault(h => h.StatusCode == "APRH01")?.EmployeeId;
+            //var approver2Id = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.EmployeeId;
 
-          var AnnuProcessReview = await GetAnnualProcessReview(annualProcessReviewId);
+            var approverList = await GetAnnoulAppoverList(annualProcessReviewId);
+        
+
+            var AnnuProcessReview = await GetAnnualProcessReview(annualProcessReviewId);
 
             return new WFProcessDetailModels
             {
@@ -137,15 +140,17 @@ namespace BatchAndReport.DAO
 
                 WorkflowProcesses = details.Where(d => d.IsWorkflow == true).Select(d => d.ProcessName).ToList(),
 
-                Approver1Name = approver1Id != null && approverInfo.ContainsKey(approver1Id) ? approverInfo[approver1Id].Name : null,
-                Approver1Position = approver1Id != null && approverInfo.ContainsKey(approver1Id) ? approverInfo[approver1Id].Position : null,
-                Approver2Name = approver2Id != null && approverInfo.ContainsKey(approver2Id) ? approverInfo[approver2Id].Name : null,
-                Approver2Position = approver2Id != null && approverInfo.ContainsKey(approver2Id) ? approverInfo[approver2Id].Position : null,
-                Approve1Date = history.FirstOrDefault(h => h.StatusCode == "APRH01")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
-                Approve2Date = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
+                //Approver1Name = approver1Id != null && approverInfo.ContainsKey(approver1Id) ? approverInfo[approver1Id].Name : null,
+                //Approver1Position = approver1Id != null && approverInfo.ContainsKey(approver1Id) ? approverInfo[approver1Id].Position : null,
+                //Approver2Name = approver2Id != null && approverInfo.ContainsKey(approver2Id) ? approverInfo[approver2Id].Name : null,
+                //Approver2Position = approver2Id != null && approverInfo.ContainsKey(approver2Id) ? approverInfo[approver2Id].Position : null,
+                //Approve1Date = history.FirstOrDefault(h => h.StatusCode == "APRH01")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
+                //Approve2Date = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
+              
                 PROCESS_REVIEW_DETAIL = AnnuProcessReview?.ProcessReviewDetail,
                 PROCESS_BACKGROUND = AnnuProcessReview?.ProcessBackground,
                 commentDetial = AnnuProcessReview?.Detail,
+                approvelist = approverList
             };
         }
 
@@ -1019,6 +1024,93 @@ namespace BatchAndReport.DAO
             {
                 if (shouldClose) await dbConn.CloseAsync();
             }
+        }
+
+        public async Task<List<ANNUAL_PROCESS_REVIEW_APPROVALModels>> GetAnnoulAppoverList(int? id = 0)
+        {
+            var result = new List<ANNUAL_PROCESS_REVIEW_APPROVALModels>();
+            try
+            {
+                await using var connection = _connectionDAO.GetConnectionWorkflow();
+                await using var command = new SqlCommand(@"
+            SELECT 
+                [ANNUAL_PROCESS_REVIEW_APPROVAL_ID],
+                [ANNUAL_PROCESS_REVIEW_ID],
+                [APPROVAL_TYPE_CODE],
+                [EMPLOYEE_ID],
+                [CREATED_DATETIME],
+                [UPDATED_DATETIME],
+                [CREATED_BY],
+                [UPDATED_BY],
+                [IS_DELETED],
+                [EMPLOYEE_PositionId]
+            FROM ANNUAL_PROCESS_REVIEW_APPROVAL
+            WHERE ANNUAL_PROCESS_REVIEW_ID = @ANNUAL_PROCESS_REVIEW_ID", connection);
+
+                command.Parameters.AddWithValue("@ANNUAL_PROCESS_REVIEW_ID", id ?? 0);
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new ANNUAL_PROCESS_REVIEW_APPROVALModels
+                    {
+                        ANNUAL_PROCESS_REVIEW_APPROVAL_ID = reader["ANNUAL_PROCESS_REVIEW_APPROVAL_ID"] as int? ?? (reader["ANNUAL_PROCESS_REVIEW_APPROVAL_ID"] != DBNull.Value ? Convert.ToInt32(reader["ANNUAL_PROCESS_REVIEW_APPROVAL_ID"]) : null),
+                        ANNUAL_PROCESS_REVIEW_ID = reader["ANNUAL_PROCESS_REVIEW_ID"] as int? ?? (reader["ANNUAL_PROCESS_REVIEW_ID"] != DBNull.Value ? Convert.ToInt32(reader["ANNUAL_PROCESS_REVIEW_ID"]) : null),
+                        APPROVAL_TYPE_CODE = reader["APPROVAL_TYPE_CODE"] as string,
+                        CREATED_DATETIME = reader["CREATED_DATETIME"] as DateTime? ?? (reader["CREATED_DATETIME"] != DBNull.Value ? Convert.ToDateTime(reader["CREATED_DATETIME"]) : null),
+                        UPDATED_DATETIME = reader["UPDATED_DATETIME"] as DateTime? ?? (reader["UPDATED_DATETIME"] != DBNull.Value ? Convert.ToDateTime(reader["UPDATED_DATETIME"]) : null),
+                        EMPLOYEE_PositionId = reader["EMPLOYEE_PositionId"] as string,
+                        EMPLOYEE_Id = reader["EMPLOYEE_ID"] as string,
+                    });
+                }
+
+                // Enrich with employee name and position
+                if (result.Count > 0)
+                {
+                    var employeeIds = result
+                        .Where(x => !string.IsNullOrEmpty(x.EMPLOYEE_Id))
+                        .Select(x => x.EMPLOYEE_Id)
+                        .Distinct()
+                        .ToList();
+
+                    var positionIds = result
+                        .Where(x => !string.IsNullOrEmpty(x.EMPLOYEE_PositionId))
+                        .Select(x => x.EMPLOYEE_PositionId)
+                        .Distinct()
+                        .ToList();
+
+
+                    var empInfo = await _dbContext.Employees
+                    .Where(e => employeeIds.Contains(e.EmployeeId))
+                    .Include(e => e.Position)
+                    .Select(e => new
+                    {
+                        EmployeeId = e.EmployeeId,
+                        Name = e.NameTh,
+                        PositionId = e.PositionId,
+                        PositionName = e.Position != null ? e.Position.NameTh : null
+                    })
+                    .ToDictionaryAsync(e => e.EmployeeId);
+
+
+                    foreach (var item in result)
+                    {
+                        item.EMPLOYEE_Name = !string.IsNullOrEmpty(item.EMPLOYEE_Id) && empInfo.ContainsKey(item.EMPLOYEE_Id)
+                            ? empInfo[item.EMPLOYEE_Id].Name
+                            : null;
+                        item.EMPLOYEE_PositionName = !string.IsNullOrEmpty(item.EMPLOYEE_Id) && empInfo.ContainsKey(item.EMPLOYEE_Id)
+                            ? empInfo[item.EMPLOYEE_Id].PositionName
+                            : null;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Optionally log the exception
+                return new List<ANNUAL_PROCESS_REVIEW_APPROVALModels>();
+            }
+            return result;
         }
     }
 

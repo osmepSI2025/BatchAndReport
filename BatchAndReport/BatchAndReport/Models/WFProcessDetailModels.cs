@@ -27,6 +27,7 @@
         public string? PROCESS_BACKGROUND { get; set; }
 
         public string? commentDetial { get; set; }
+        public List<ANNUAL_PROCESS_REVIEW_APPROVALModels>? approvelist { get; set; }
     }
 
     public class ProcessGroupItem

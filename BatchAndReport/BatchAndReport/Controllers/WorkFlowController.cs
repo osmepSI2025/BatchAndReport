@@ -70,10 +70,10 @@ namespace BatchAndReport.Controllers
     Orientation = DinkToPdf.Orientation.Portrait,
     Margins = new DinkToPdf.MarginSettings
     {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
+        Top = 10,
+        Bottom = 10,
+        Left = 10,
+        Right = 10
     }
 },
                 Objects = {
