@@ -1,21 +1,18 @@
 ﻿using BatchAndReport.DAO;
-using BatchAndReport.Entities;
-using BatchAndReport.Models;
 using BatchAndReport.Repository;
 using BatchAndReport.Services;
 using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using PuppeteerSharp;
 using Spire.Doc;
-using Spire.Doc.Fields;
 using Spire.Doc.Documents;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using Spire.Doc.Fields;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using PuppeteerSharp;
 
 namespace BatchAndReport.Controllers
 {
@@ -29,7 +26,7 @@ namespace BatchAndReport.Controllers
         private readonly IPdfService _servicePdf;
         private readonly IWordWFService _serviceWFWord;
         private readonly WordWorkFlow_annualProcessReviewService _wordWorkFlow_AnnualProcessReviewService;
-       private readonly WordSME_ReportService _ReportService;
+        private readonly WordSME_ReportService _ReportService;
         private readonly IConfiguration _configuration; // Add this line
         private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
         public WorkflowController(
@@ -60,30 +57,30 @@ namespace BatchAndReport.Controllers
         {
             var detail = await _workflowDao.GetProcessDetailAsync(annualProcessReviewId);
             if (detail == null)
-                return NotFound("ไม่พบข้อมูลโครงการ");     
+                return NotFound("ไม่พบข้อมูลโครงการ");
 
             var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 10,
-        Bottom = 10,
-        Left = 10,
-        Right = 10
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "10mm",
+                    Bottom = "10mm",
+                    Left = "10mm",
+                    Right = "10mm"
+                },
+                PrintBackground = true
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             return File(pdfBytes, "application/pdf", "AnnualWorkProcesses.pdf");
         }
@@ -98,27 +95,27 @@ namespace BatchAndReport.Controllers
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
             var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "10mm",
+                    Bottom = "10mm",
+                    Left = "10mm",
+                    Right = "10mm"
+                },
+                PrintBackground = true
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
             // Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "WorkflowDocument", "AnnualWorkProcesses", "AnnualWorkProcesses_JPEG");
             if (!Directory.Exists(folderPath))
@@ -180,7 +177,7 @@ namespace BatchAndReport.Controllers
             return File(zipBytes, "application/zip", $"AnnualWorkProcesses_JPEG.zip");
         }
 
-        
+
         [HttpGet("ExportAnnualWorkProcessesWORD")]
         public async Task<IActionResult> ExportAnnualWorkProcessesWord([FromQuery] int annualProcessReviewId)
         {
@@ -400,7 +397,7 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-           // var wordBytes = _serviceWFWord.GenWFProcessDetail(detail);
+            // var wordBytes = _serviceWFWord.GenWFProcessDetail(detail);
             //var pdfBytes = _serviceWFWord.ConvertWordToPdf(wordBytes);
             var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenExportWorkProcesses_HtmlToPDF(detail);
             return File(pdfBytes, "application/pdf", "ExportWorkProcesses.pdf");
@@ -418,7 +415,7 @@ namespace BatchAndReport.Controllers
             {
                 foreach (var item in detail.CoreProcesses)
                 {
-                    sb.AppendLine($"- {item.ProcessGroupCode+":"+ item.ProcessGroupName}");
+                    sb.AppendLine($"- {item.ProcessGroupCode + ":" + item.ProcessGroupName}");
                 }
             }
             sb.AppendLine();
@@ -512,13 +509,13 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-     
+
             var pdfBytes = await _wordWorkFlow_AnnualProcessReviewService.GenExportWorkProcesses_Html(detail);
             // Convert HTML to Word document (byte array)
             var wordBytes = _ReportService.ConvertHtmlToWord(pdfBytes);
 
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "ExportWorkProcesses.docx");
-        
+
         }
         [HttpGet("ExportCreateWFStatus")]
         public async Task<IActionResult> ExportCreateWFStatus(
@@ -1013,6 +1010,40 @@ namespace BatchAndReport.Controllers
             });
             return Content(fixedJson, "application/json", Encoding.UTF8);
         }
+
+        [HttpGet("testPaperSharp")]
+        public async Task<IActionResult> testPaperSharp([FromQuery] int annualProcessReviewId)
+        {
+            var detail = await _workflowDao.GetProcessDetailAsync(annualProcessReviewId);
+            if (detail == null)
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
+            {
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "10mm",
+                    Bottom = "10mm",
+                    Left = "10mm",
+                    Right = "10mm"
+                },
+                PrintBackground = true
+            };
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
+            return File(pdfBytes, "application/pdf", "AnnualWorkProcesses.pdf");
+        }
+
 
     }
 }
