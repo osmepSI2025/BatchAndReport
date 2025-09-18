@@ -23,7 +23,7 @@ public class WordWorkFlow_annualProcessReviewService
     }
 
 
-    public async Task<string> GenAnnualWorkProcesses_Html(WFProcessDetailModels detail)
+    public async Task<string> GenAnnualWorkProcesses_Html(WFProcessDetailModels detail,string flagSign )
     {
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
         string logoBase64 = "";
@@ -73,8 +73,20 @@ public class WordWorkFlow_annualProcessReviewService
         #region ความคิดเห็น
         if (detail.wf_tasklist != null)
         {
-            bool isApproveChecked = detail.wf_tasklist.STATUS == "ST0104" && string.IsNullOrWhiteSpace(detail.commentDetial);
-            bool isCommentChecked = detail.wf_tasklist.STATUS == "ST0104" && !string.IsNullOrWhiteSpace(detail.commentDetial);
+            bool isApproveChecked = false;
+            bool isCommentChecked = false;
+
+            if (detail.wf_tasklist.STATUS == "ST0204")
+            {
+                if (!string.IsNullOrWhiteSpace(detail.commentDetial))
+                {
+                    isCommentChecked = true;
+                }
+                else
+                {
+                    isApproveChecked = true;
+                }
+            }
 
             htmlComment.Append(@"
 <div class='comment-section'>
@@ -84,10 +96,10 @@ public class WordWorkFlow_annualProcessReviewService
     <div class='t-14'>
         <input type='checkbox' style='transform:scale(1.3);margin-right:8px;' " + (isCommentChecked ? "checked" : "") + @" /> มีความเห็นเพิ่มเติม
     </div>"
-            + (!string.IsNullOrWhiteSpace(detail.commentDetial)
-                ? "<div class='tab2 t-14'>" + System.Net.WebUtility.HtmlEncode(detail.commentDetial) + "</div>"
-                : "")
-            + @"
+                + (!string.IsNullOrWhiteSpace(detail.commentDetial)
+                    ? "<div class='tab2 t-14'>" + System.Net.WebUtility.HtmlEncode(detail.commentDetial) + "</div>"
+                    : "")
+                + @"
 </div>
 ");
         }
@@ -124,23 +136,33 @@ public class WordWorkFlow_annualProcessReviewService
             {
                 string signatureHtml;
                 string base64 = null;
-
-                if (!string.IsNullOrEmpty(approver?.E_Signature) && approver.E_Signature.Contains("<content>"))
+                if (flagSign == "Y")
                 {
-                    try
+                    if (!string.IsNullOrEmpty(approver?.E_Signature) && approver.E_Signature.Contains("<content>"))
                     {
-                        var contentStart = approver.E_Signature.IndexOf("<content>") + "<content>".Length;
-                        var contentEnd = approver.E_Signature.IndexOf("</content>");
-                        base64 = approver.E_Signature.Substring(contentStart, contentEnd - contentStart);
+                        try
+                        {
+                            var contentStart = approver.E_Signature.IndexOf("<content>") + "<content>".Length;
+                            var contentEnd = approver.E_Signature.IndexOf("</content>");
+                            base64 = approver.E_Signature.Substring(contentStart, contentEnd - contentStart);
 
-                        // Debug: Output base64 length and first 50 chars
-                        System.Diagnostics.Debug.WriteLine($"Signature base64 length: {base64?.Length}, preview: {base64?.Substring(0, Math.Min(50, base64.Length))}");
+                            // Debug: Output base64 length and first 50 chars
+                            System.Diagnostics.Debug.WriteLine($"Signature base64 length: {base64?.Length}, preview: {base64?.Substring(0, Math.Min(50, base64.Length))}");
 
-                        signatureHtml = $@"<div class='t-16 text-center tab1'>
+                            signatureHtml = $@"<div class='t-16 text-center tab1'>
     <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
 </div>";
+                        }
+                        catch
+                        {
+                            signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                                ? $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+</div>"
+                                : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                        }
                     }
-                    catch
+                    else
                     {
                         signatureHtml = !string.IsNullOrEmpty(noSignBase64)
                             ? $@"<div class='t-16 text-center tab1'>
@@ -149,13 +171,9 @@ public class WordWorkFlow_annualProcessReviewService
                             : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
                     }
                 }
-                else
+                else 
                 {
-                    signatureHtml = !string.IsNullOrEmpty(noSignBase64)
-                        ? $@"<div class='t-16 text-center tab1'>
-    <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
-</div>"
-                        : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                    signatureHtml = "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
                 }
 
                 htmlSign.Append($@"

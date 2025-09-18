@@ -59,7 +59,7 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail,"Y");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
             await using var page = await browser.NewPageAsync();
@@ -94,7 +94,7 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail, "Y");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
             await using var page = await browser.NewPageAsync();
@@ -185,7 +185,7 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail, "N");
 
             var document = new Document();
             document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), FileFormat.Html);
@@ -1018,7 +1018,7 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail);
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail, "Y");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
             await using var page = await browser.NewPageAsync();
