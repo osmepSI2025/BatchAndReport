@@ -46,6 +46,7 @@ namespace BatchAndReport.DAO
                     Contract_Number = reader["Contract_Number"] == DBNull.Value ? null : reader["Contract_Number"].ToString(),
                     RefContract_Number = reader["RefContract_Number"] == DBNull.Value ? null : reader["RefContract_Number"].ToString(),
                     Contract_Name = reader["Contract_Name"] == DBNull.Value ? null : reader["Contract_Name"].ToString(),
+                    Contract_Title = reader["Contract_Title"] == DBNull.Value ? null : reader["Contract_Title"].ToString(),
                     ContractSignDate = reader["ContractSignDate"] == DBNull.Value ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("ContractSignDate")),
                     Start_Unit = reader["Start_Unit"] == DBNull.Value ? null : reader["Start_Unit"].ToString(),
                     Contract_Partner = reader["Contract_Partner"] == DBNull.Value ? null : reader["Contract_Partner"].ToString(),

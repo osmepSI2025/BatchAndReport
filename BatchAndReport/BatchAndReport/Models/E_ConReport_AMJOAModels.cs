@@ -6,6 +6,7 @@
         public string? Contract_Number { get; set; }
         public string? RefContract_Number { get; set; }
         public string? Contract_Name { get; set; }
+        public string? Contract_Title { get; set; }
         public DateTime? ContractSignDate { get; set; }
         public string? Start_Unit { get; set; }
         public string? Contract_Partner { get; set; }
