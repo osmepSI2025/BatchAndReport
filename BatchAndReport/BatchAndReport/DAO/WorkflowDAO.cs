@@ -6,6 +6,8 @@ using iText.Kernel.Pdf.Canvas.Wmf;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Ocsp;
+
 //using Org.BouncyCastle.Asn1.X509;
 using QuestPDF.Infrastructure;
 using System.Collections.Generic;
@@ -103,7 +105,8 @@ namespace BatchAndReport.DAO
             //var approver2Id = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.EmployeeId;
 
             var approverList = await GetAnnoulAppoverList(annualProcessReviewId);
-        
+
+            var GetWfTask =await GetWf_tasklist(annualProcessReviewId);
 
             var AnnuProcessReview = await GetAnnualProcessReview(annualProcessReviewId);
 
@@ -146,11 +149,12 @@ namespace BatchAndReport.DAO
                 //Approver2Position = approver2Id != null && approverInfo.ContainsKey(approver2Id) ? approverInfo[approver2Id].Position : null,
                 //Approve1Date = history.FirstOrDefault(h => h.StatusCode == "APRH01")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
                 //Approve2Date = history.FirstOrDefault(h => h.StatusCode == "APRH03")?.CreatedDateTime?.ToString("d MMM yyyy", new CultureInfo("th-TH")),
-              
+
                 PROCESS_REVIEW_DETAIL = AnnuProcessReview?.ProcessReviewDetail,
                 PROCESS_BACKGROUND = AnnuProcessReview?.ProcessBackground,
                 commentDetial = AnnuProcessReview?.Detail,
-                approvelist = approverList
+                approvelist = approverList,
+                wf_tasklist = GetWfTask
             };
         }
 
@@ -1089,7 +1093,8 @@ namespace BatchAndReport.DAO
                         EmployeeId = e.EmployeeId,
                         Name = e.NameTh,
                         PositionId = e.PositionId,
-                        PositionName = e.Position != null ? e.Position.NameTh : null
+                        PositionName = e.Position != null ? e.Position.NameTh : null,
+                        e_Signature =e.E_Signature
                     })
                     .ToDictionaryAsync(e => e.EmployeeId);
 
@@ -1102,15 +1107,38 @@ namespace BatchAndReport.DAO
                         item.EMPLOYEE_PositionName = !string.IsNullOrEmpty(item.EMPLOYEE_Id) && empInfo.ContainsKey(item.EMPLOYEE_Id)
                             ? empInfo[item.EMPLOYEE_Id].PositionName
                             : null;
+                        item.E_Signature = !string.IsNullOrEmpty(item.EMPLOYEE_Id) && empInfo.ContainsKey(item.EMPLOYEE_Id)
+                             ? empInfo[item.EMPLOYEE_Id].e_Signature
+                            : null;
+                        
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Optionally log the exception
                 return new List<ANNUAL_PROCESS_REVIEW_APPROVALModels>();
             }
             return result;
+        }
+
+        public async Task<Wf_tasklistModels?> GetWf_tasklist(int? id = 0)
+        {
+            var header = await _k2context_workflow.WfTaskLists
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.RequestId == id);
+
+            if (header == null)
+                return null;
+
+            return new Wf_tasklistModels
+            {
+                WFTaskListID = header.WfTaskListId,
+                WF_ID = header.WfId,
+                Request_ID = header.RequestId,
+                WF_TYPE = header.WfType
+                ,STATUS = header.Status
+            };
         }
     }
 
