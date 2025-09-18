@@ -28,6 +28,7 @@
 
         public string? commentDetial { get; set; }
         public List<ANNUAL_PROCESS_REVIEW_APPROVALModels>? approvelist { get; set; }
+        public Wf_tasklistModels? wf_tasklist { get; set; }
     }
 
     public class ProcessGroupItem

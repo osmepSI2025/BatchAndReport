@@ -5,6 +5,7 @@ using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using iText.Signatures;
 using System.Globalization;
 using System.Text;
 public class WordWorkFlow_annualProcessReviewService
@@ -47,9 +48,9 @@ public class WordWorkFlow_annualProcessReviewService
                 <col style='width:33.33%;'/>
             </colgroup>
             <tr>
-                <td class='t-16' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYearPrevious + @" (เดิม)</td>
-                <td class='t-16' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYear + @" (ทบทวน)</td>
-                <td class='t-16' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการที่กำหนด กิจกรรมควบคุม<br/>(Control Activity)<br/>ส่งกรมบัญชีกลาง</td>
+                <td class='t-14' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYearPrevious + @" (เดิม)</td>
+                <td class='t-14' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการ ปี " + detail.FiscalYear + @" (ทบทวน)</td>
+                <td class='t-14' style='font-weight:bold;background-color:#DDEBF7;text-align:center;'>กระบวนการที่กำหนด กิจกรรมควบคุม<br/>(Control Activity)<br/>ส่งกรมบัญชีกลาง</td>
             </tr>");
         int rowCount = Math.Max(
             Math.Max(detail.PrevProcesses?.Count ?? 0, detail.CurrentProcesses?.Count ?? 0),
@@ -58,9 +59,9 @@ public class WordWorkFlow_annualProcessReviewService
         for (int i = 0; i < rowCount; i++)
         {
             htmlTable.Append("<tr>");
-            htmlTable.Append("<td class='t-16'>" + System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
-            htmlTable.Append("<td class='t-16'>" + System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
-            htmlTable.Append("<td class='t-16'>" + System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("<td class='t-14'>" + System.Net.WebUtility.HtmlEncode(detail.PrevProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("<td class='t-14'>" + System.Net.WebUtility.HtmlEncode(detail.CurrentProcesses?.ElementAtOrDefault(i) ?? "") + "</td>");
+            htmlTable.Append("<td class='t-14'>" + System.Net.WebUtility.HtmlEncode(detail.ControlActivities?.ElementAtOrDefault(i) ?? "") + "</td>");
             htmlTable.Append("</tr>");
         }
         htmlTable.Append("</table>");
@@ -70,30 +71,35 @@ public class WordWorkFlow_annualProcessReviewService
 
 
         #region ความคิดเห็น
+        if (detail.wf_tasklist != null)
+        {
+            bool isApproveChecked = detail.wf_tasklist.STATUS == "ST0104" && string.IsNullOrWhiteSpace(detail.commentDetial);
+            bool isCommentChecked = detail.wf_tasklist.STATUS == "ST0104" && !string.IsNullOrWhiteSpace(detail.commentDetial);
 
-        htmlComment.Append(@"
+            htmlComment.Append(@"
 <div class='comment-section'>
-    <div class='t-16'>
-        <input type='checkbox' style='transform:scale(1.3);margin-right:8px;' " + (string.IsNullOrWhiteSpace(detail.commentDetial) ? "checked" : "") + @" /> เห็นชอบการปรับปรุง
+    <div class='t-14'>
+        <input type='checkbox' style='transform:scale(1.3);margin-right:8px;' " + (isApproveChecked ? "checked" : "") + @" /> เห็นชอบการปรับปรุง
     </div>
-    <div class='t-16'>
-        <input type='checkbox' style='transform:scale(1.3);margin-right:8px;' " + (!string.IsNullOrWhiteSpace(detail.commentDetial) ? "checked" : "") + @" /> มีความเห็นเพิ่มเติม
+    <div class='t-14'>
+        <input type='checkbox' style='transform:scale(1.3);margin-right:8px;' " + (isCommentChecked ? "checked" : "") + @" /> มีความเห็นเพิ่มเติม
     </div>"
-    + (!string.IsNullOrWhiteSpace(detail.commentDetial)
-        ? "<div class='tab2 t-16'>" + System.Net.WebUtility.HtmlEncode(detail.commentDetial) + "</div>"
-        : "")
-+ @"
+            + (!string.IsNullOrWhiteSpace(detail.commentDetial)
+                ? "<div class='tab2 t-14'>" + System.Net.WebUtility.HtmlEncode(detail.commentDetial) + "</div>"
+                : "")
+            + @"
 </div>
 ");
+        }
 
         #endregion
 
         #region
         htmlDescript.Append("</br>");
-        htmlDescript.Append("<div  class='t-16' >รายละเอียดประเด็นการทบทวน</div>");
+        htmlDescript.Append("<div  class='t-14' >รายละเอียดประเด็นการทบทวน</div>");
         htmlDescript.Append("<ol   style='margin-left:32px;'>");
         foreach (var item in detail.ReviewDetails)
-            htmlDescript.Append($"<li  class='t-16'>{System.Net.WebUtility.HtmlEncode(item)}</li>");
+            htmlDescript.Append($"<li  class='t-14'>{System.Net.WebUtility.HtmlEncode(item)}</li>");
         htmlDescript.Append("</ol>");
         #endregion
         #region Signature Table
@@ -101,21 +107,66 @@ public class WordWorkFlow_annualProcessReviewService
 
         if (detail.approvelist != null && detail.approvelist.Count > 0)
         {
+            string noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "No-sign.png");
+            string noSignBase64 = "";
+            if (File.Exists(noSignPath))
+            {
+                var bytes = File.ReadAllBytes(noSignPath);
+                noSignBase64 = Convert.ToBase64String(bytes);
+            }
+
             htmlSign.Append(@"
     <div style='width:100%;'>
-        <table class='signature-table t-16' style='width:400px; border:none; float:right;'>
+        <table class='signature-table t-14' style='width:400px; border:none; float:right;'>
 ");
+
             foreach (var approver in detail.approvelist)
             {
+                string signatureHtml;
+                string base64 = null;
+
+                if (!string.IsNullOrEmpty(approver?.E_Signature) && approver.E_Signature.Contains("<content>"))
+                {
+                    try
+                    {
+                        var contentStart = approver.E_Signature.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = approver.E_Signature.IndexOf("</content>");
+                        base64 = approver.E_Signature.Substring(contentStart, contentEnd - contentStart);
+
+                        // Debug: Output base64 length and first 50 chars
+                        System.Diagnostics.Debug.WriteLine($"Signature base64 length: {base64?.Length}, preview: {base64?.Substring(0, Math.Min(50, base64.Length))}");
+
+                        signatureHtml = $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+</div>";
+                    }
+                    catch
+                    {
+                        signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                            ? $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+</div>"
+                            : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                    }
+                }
+                else
+                {
+                    signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                        ? $@"<div class='t-16 text-center tab1'>
+    <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+</div>"
+                        : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                }
+
                 htmlSign.Append($@"
-            <tr>
-                <td>
-                    <div>ลงชื่อ....................................................</div>
-                    <div>({System.Net.WebUtility.HtmlEncode(approver.EMPLOYEE_Name ?? "(ชื่อผู้ลงนาม)")})</div>
-                    <div>{System.Net.WebUtility.HtmlEncode(approver.EMPLOYEE_PositionName ?? "ตำแหน่ง")}</div>
-                </td>
-            </tr>
-");
+        <tr>
+            <td>
+                {signatureHtml}
+                <div>({System.Net.WebUtility.HtmlEncode(approver.EMPLOYEE_Name ?? "(ชื่อผู้ลงนาม)")})</div>
+                <div>{System.Net.WebUtility.HtmlEncode(approver.EMPLOYEE_PositionName ?? "ตำแหน่ง")}</div>
+            </td>
+        </tr>
+    ");
             }
             htmlSign.Append(@"
         </table>
@@ -130,25 +181,25 @@ public class WordWorkFlow_annualProcessReviewService
     <div class='text-center t-20'>
         <b>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b>
     </div>
-    <div class='t-16'>ความเป็นมา</div>
+    <div class='t-14'>ความเป็นมา</div>
     <div>
         {(string.IsNullOrEmpty(detail.PROCESS_BACKGROUND)
                 ? ""
                 : string.Join("", detail.PROCESS_BACKGROUND
                     .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
-                    .Select(line => $"<div class='tab1 t-16'>{System.Net.WebUtility.HtmlEncode(line)}</div>")))}
+                    .Select(line => $"<div class='tab1 t-14'>{System.Net.WebUtility.HtmlEncode(line)}</div>")))}
     </div>
 {htmlDescript}
    
     <div class='section-divider'></div>
-    <div class='t-16'>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้</div>
+    <div class='t-14'>การทบทวนกระบวนการของ {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear} ดังนี้</div>
     <div class='table-container'>
       {htmlTable}
     </div>
     <div class='note t-14'>หมายเหตุ: *ทบทวนตาม JD/ **ทบทวนตาม วค.2/***ทบทวนตามภารกิจงานปัจจุบัน</div>
     {(detail.WorkflowProcesses?.Count > 0
-            ? $@"<div class='t-16'>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>
-            <div class='workflow-list'>{string.Join("", detail.WorkflowProcesses.Select(wf => $"<div class='t-16'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>"))}</div>"
+            ? $@"<div class='t-14'>กระบวนการที่จัดทำ Workflow เพิ่มเติม ได้แก่</div>
+            <div class='workflow-list'>{string.Join("", detail.WorkflowProcesses.Select(wf => $"<div class='t-14'>• {System.Net.WebUtility.HtmlEncode(wf)}</div>"))}</div>"
             : "")}
     {htmlComment}
 </br>   
@@ -160,7 +211,8 @@ public class WordWorkFlow_annualProcessReviewService
         
 
             var html = $@"
-<html>
+<!DOCTYPE html>
+<html lang=th>
 <head>
     <meta charset='utf-8'>
 <style>
@@ -248,6 +300,10 @@ public class WordWorkFlow_annualProcessReviewService
     .section-divider {{
         border-bottom: 2px solid #e3e3e3;
         margin: 24px 0 16px 0;
+    }}
+.signature-container {{display: flex;
+        justify-content: flex-end;
+        width: 100%;
     }}
 </style>
 </head>

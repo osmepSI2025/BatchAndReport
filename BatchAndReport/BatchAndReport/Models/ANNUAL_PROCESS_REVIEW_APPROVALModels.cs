@@ -10,7 +10,8 @@
         public string? EMPLOYEE_PositionId { get; set; }
         public string? EMPLOYEE_PositionName { get; set; }
         public string? EMPLOYEE_Name { get; set; }
-
         public string? EMPLOYEE_Id { get; set; }
+        public string? E_Signature { get; set; }
+        
     }
 }

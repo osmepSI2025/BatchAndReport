@@ -29,5 +29,15 @@ namespace BatchAndReport.Models
         public string ReviewType { get; set; }
         public string isDigital { get; set; }
     }
+    public class Wf_tasklistModels
+    {
+        public int? WFTaskListID { get; set; }
+        public int? WF_ID { get; set; }
+        public string STATUS { get; set; }
+        public int? Request_ID { get; set; }
+        public string WF_TYPE { get; set; }
+        public DateTime COMPLETEON { get; set; }
 
+        public string OWNER { get; set; }
+    }
 }
