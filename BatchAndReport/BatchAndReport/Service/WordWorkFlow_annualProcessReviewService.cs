@@ -13,13 +13,16 @@ public class WordWorkFlow_annualProcessReviewService
     private readonly WordServiceSetting _w;
     private readonly Econtract_Report_GADAO _e;
     private readonly IConverter _pdfConverter; // เพิ่ม DI สำหรับ PDF Converter
+    private readonly ILogger _logger;
     public WordWorkFlow_annualProcessReviewService(WordServiceSetting ws, Econtract_Report_GADAO e
         , IConverter pdfConverter
+        , ILogger<WordWorkFlow_annualProcessReviewService> logger
         )
     {
         _w = ws;
         _e = e;
         _pdfConverter = pdfConverter; // กำหนดค่า DI สำหรับ PDF Converter
+        _logger = logger;
     }
 
 
@@ -33,7 +36,14 @@ public class WordWorkFlow_annualProcessReviewService
             logoBase64 = Convert.ToBase64String(bytes);
         }
 
-        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+       // var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf");
+        string fontBase64 = "";
+        if (File.Exists(fontPath))
+        {
+            var bytes = File.ReadAllBytes(fontPath);
+            fontBase64 = Convert.ToBase64String(bytes);
+        }
         var htmlBody = new StringBuilder();
         var htmlTable = new StringBuilder();
         var htmlComment = new StringBuilder();
@@ -236,7 +246,7 @@ public class WordWorkFlow_annualProcessReviewService
 <style>
     @font-face {{
         font-family: 'TH Sarabun New';
-        src: url('file:///{fontPath}') format('truetype');
+        src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype');
         font-weight: normal;
         font-style: normal;
     }}
@@ -330,7 +340,7 @@ public class WordWorkFlow_annualProcessReviewService
 </body>
 </html>
 ";
-
+       // _logger.LogInformation(html);
         return html;
     }
 

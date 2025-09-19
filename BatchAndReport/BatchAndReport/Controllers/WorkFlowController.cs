@@ -69,6 +69,7 @@ namespace BatchAndReport.Controllers
             var pdfOptions = new PdfOptions
             {
                 Format = PuppeteerSharp.Media.PaperFormat.A4,
+                
                 Landscape = false,
                 MarginOptions = new PuppeteerSharp.Media.MarginOptions
                 {
@@ -78,6 +79,7 @@ namespace BatchAndReport.Controllers
                     Right = "10mm"
                 },
                 PrintBackground = true
+                
             };
 
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
