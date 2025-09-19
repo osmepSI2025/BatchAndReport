@@ -27,7 +27,7 @@ namespace BatchAndReport.Models
         public DateTime? UpdateDate { get; set; }
         public string? UpdateBy { get; set; }
         public string? Flag_Delete { get; set; }
-        public int? Request_ID { get; set; }
+        public string? Request_ID { get; set; }
         public string? Contract_Status { get; set; }
     }
 

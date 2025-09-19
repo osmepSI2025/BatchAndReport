@@ -58,7 +58,8 @@ namespace BatchAndReport.DAO
             FROM PDSA
             WHERE PDSA_ID = @PDSA_ID", connection);
 
-                command.Parameters.AddWithValue("@PDSA_ID", id ?? "0");
+                if (!int.TryParse((id).Trim(), out var pdsaId)) return null;
+                command.Parameters.AddWithValue("@PDSA_ID", pdsaId);
                 await connection.OpenAsync();
 
                 using var reader = await command.ExecuteReaderAsync();
@@ -89,8 +90,8 @@ namespace BatchAndReport.DAO
                         UpdateDate = reader["UpdateDate"] == DBNull.Value ? null : Convert.ToDateTime(reader["UpdateDate"]),
                         UpdateBy = reader["UpdateBy"] as string,
                         Flag_Delete = reader["Flag_Delete"] as string,
-                        Request_ID = reader["Request_ID"] == DBNull.Value ? null : Convert.ToInt32(reader["Request_ID"]),
-                        Contract_Status = reader["Contract_Status"] as string
+                        Contract_Status = reader["Contract_Status"] as string,
+                        Request_ID = reader["Request_ID"] as string
                     };
                 }
                 return null;
