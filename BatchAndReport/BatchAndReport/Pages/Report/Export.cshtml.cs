@@ -141,27 +141,29 @@ namespace BatchAndReport.Pages.Report
         public async Task OnGetWordContact_EC_PDF(string ContractId = "55")
         {
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
@@ -183,27 +185,29 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_EC_PDF_Preview(string ContractId = "55", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
             if (!Directory.Exists(folderPath))
             {
@@ -220,34 +224,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
-                      
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -281,27 +276,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from EC contract
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC", "EC_" + ContractId, "EC_" + ContractId + "_JPEG");
@@ -364,27 +361,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from EC contract
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC", "EC_" + ContractId, "EC_" + ContractId + "_JPEG");
@@ -541,27 +540,29 @@ namespace BatchAndReport.Pages.Report
         public async Task OnGetWordContact_CWA_PDF(string ContractId = "1")
         {
             var htmlContent = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA");
             if (!Directory.Exists(folderPath))
             {
@@ -582,27 +583,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from CWA contract
             var htmlContent = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA");
             if (!Directory.Exists(folderPath))
             {
@@ -619,33 +622,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -679,27 +674,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from CWA contract
             var htmlContent = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA", "CWA_" + ContractId, "CWA_" + ContractId + "_JPEG");
@@ -762,27 +759,29 @@ namespace BatchAndReport.Pages.Report
         
             // 1. Generate PDF from CWA contract
             var htmlContent = await _ContactToDoThingService.OnGetWordContact_ToDoThing_ToPDF(ContractId, "CWA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CWA", "CWA_" + ContractId, "CWA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -938,27 +937,29 @@ namespace BatchAndReport.Pages.Report
         public async Task OnGetWordContact_CTR31760_PDF(string ContractId = "1")
         {
             var htmlContent = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
 
 
@@ -981,35 +982,37 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_CTR31760_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
-            
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CTR31760");
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, "CTR31760_" + ContractId + "_Preview.pdf");
-
+            var fileName = $"CTR31760_{ContractId}_Preview.pdf";
             // Set your desired password here
             string? userPassword = await GetPdfPasswordAsync(Name);;
 
@@ -1019,33 +1022,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -1058,7 +1053,6 @@ namespace BatchAndReport.Pages.Report
                     }
                 }
 
-                // Set up security settings
                 var securitySettings = document.SecuritySettings;
                 securitySettings.UserPassword = userPassword;
                 securitySettings.OwnerPassword = userPassword;
@@ -1072,35 +1066,36 @@ namespace BatchAndReport.Pages.Report
                 // Optionally save to disk
                 // await System.IO.File.WriteAllBytesAsync(filePath, outputStream.ToArray());
 
-                // Return the password-protected PDF to the user
-                return File(outputStream.ToArray(), "application/pdf", $"CTR31760_{ContractId}_Preview.pdf");
+                return File(outputStream.ToArray(), "application/pdf", fileName);
             }
         }
         public async Task<IActionResult> OnGetWordContact_CTR31760_JPEG(string ContractId = "1")
         {
             // 1. Generate PDF from CTR31760 contract
             var htmlContent = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CTR31760", "CTR31760_" + ContractId, "CTR31760_" + ContractId + "_JPEG");
@@ -1162,27 +1157,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from CTR31760 contract
             var htmlContent = await _ConsultantService.OnGetWordContact_ConsultantService_ToPDF(ContractId, "CTR31760");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
 
             // 2. Prepare folder structure
@@ -1339,28 +1336,30 @@ namespace BatchAndReport.Pages.Report
         public async Task OnGetWordContact_PML31460_PDF(string ContractId = "1")
         {
             var htmlContent = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
-            
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460");
             if (!Directory.Exists(folderPath))
             {
@@ -1380,28 +1379,30 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_PML31460_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
-            
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460");
             if (!Directory.Exists(folderPath))
             {
@@ -1418,33 +1419,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -1477,27 +1470,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from PML31460 contract
             var htmlContent = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460", "PML31460_" + ContractId, "PML31460_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -1558,27 +1553,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from PML31460 contract
             var htmlContent = await _wordEContract_LoanPrinterService.OnGetWordContact_LoanPrinter_ToPDF(ContractId, "PML31460");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PML31460", "PML31460_" + ContractId, "PML31460_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -1725,11 +1722,7 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.13.สัญญาเช่าเครื่องถ่ายเอกสาร ร.314-60 PML31460
 
         #region 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60 SMC31060
-        public async Task<IActionResult> OnGetWordContact_SMC31060(string ContractId = "1")
-        {
-            var wordBytes = await _maintenanceComputerService.OnGetWordContact_MaintenanceComputer(ContractId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60.docx");
-        }
+     
         public async Task OnGetWordContact_SMC31060_PDF(string ContractId = "1")
         {
             var wordBytes = await _maintenanceComputerService.OnGetWordContact_MaintenanceComputer_ToPDF(ContractId, "SMC31060");
@@ -2029,35 +2022,33 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.12.สัญญาจ้างบริการบำรุงรักษาและซ่อมแซมแก้ไขคอมพิวเตอร์ร.310-60 SMC31060
 
         #region 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
-        public async Task<IActionResult> OnGetWordContact_CLA30960(string ContractId = "1")
-        {
-            var wordBytes = await _LoanComputerService.OnGetWordContact_LoanComputer(ContractId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาเช่าคอมพิวเตอร์ ร.309-60.docx");
-        }
+       
         public async Task OnGetWordContact_CLA30960_PDF(string ContractId = "1")
         {
             var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960");
             if (!Directory.Exists(folderPath))
             {
@@ -2077,27 +2068,29 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_CLA30960_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960");
             if (!Directory.Exists(folderPath))
             {
@@ -2134,27 +2127,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from CLA30960 contract
             var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960", "CLA30960_" + ContractId, "CLA30960_" + ContractId + "_JPEG");
@@ -2217,27 +2212,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from CLA30960 contract
             var htmlContent = await _LoanComputerService.OnGetWordContact_LoanComputer_ToPDF(ContractId, "CLA30960");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CLA30960", "CLA30960_" + ContractId, "CLA30960_" + ContractId + "_JPEG");
@@ -2387,35 +2384,33 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.11.สัญญาเช่าคอมพิวเตอร์ ร.309-60 CLA30960
 
         #region 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60 SLA30860
-        public async Task<IActionResult> OnGetWordContact_SLA30860(string ContractId = "1")
-        {
-            var wordBytes = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram(ContractId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์.docx");
-        }
+    
         public async Task OnGetWordContact_SLA30860_PDF(string ContractId = "1")
         {
             var htmlContent = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860");
             if (!Directory.Exists(folderPath))
@@ -2437,27 +2432,29 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_SLA30860_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860");
             if (!Directory.Exists(folderPath))
@@ -2475,33 +2472,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -2535,27 +2524,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from SLA30860 contract
             var htmlContent = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860", "SLA30860_" + ContractId, "SLA30860_" + ContractId + "_JPEG");
@@ -2617,27 +2608,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from SLA30860 contract
             var htmlContent = await _BuyAgreeProgram.OnGetWordContact_BuyAgreeProgram_ToPDF(ContractId, "SLA30860");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SLA30860", "SLA30860_" + ContractId, "SLA30860_" + ContractId + "_JPEG");
@@ -2785,35 +2778,33 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.10.สัญญาซื้อขายและอนุญาตให้ใช้สิทธิในโปรแกรมคอมพิวเตอร์ ร.308-60 SLA30860
 
         #region 4.1.1.2.9.สัญญาซื้อขายคอมพิวเตอร์ CPA
-        public async Task<IActionResult> OnGetWordContact_CPA(string ContractId = "13")
-        {
-            var wordBytes = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService(ContractId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาซื้อขายคอมพิวเตอร์.docx");
-        }
+     
         public async Task OnGetWordContact_CPA_PDF(string ContractId = "14")
         {
             var htmlContent = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA");
             if (!Directory.Exists(folderPath))
@@ -2835,27 +2826,29 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_CPA_PDF_Preview(string ContractId = "14", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA");
             if (!Directory.Exists(folderPath))
@@ -2873,33 +2866,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -2933,27 +2918,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from CPA contract
             var htmlContent = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA", "CPA_" + ContractId, "CPA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -3014,27 +3001,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from CPA contract
             var htmlContent = await _BuyOrSellComputerService.OnGetWordContact_BuyOrSellComputerService_ToPDF(ContractId);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "CPA", "CPA_" + ContractId, "CPA_" + ContractId + "_JPEG");
@@ -3197,27 +3186,29 @@ namespace BatchAndReport.Pages.Report
         public async Task OnGetWordContact_SPA30560_PDF(string ContractId = "4")
         {
             var htmlContent = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560");
@@ -3239,27 +3230,29 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_SPA30560_PDF_Preview(string ContractId = "4", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560");
             if (!Directory.Exists(folderPath))
@@ -3277,33 +3270,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -3336,27 +3321,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from SPA30560 contract
             var htmlContent = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560", "SPA30560_" + ContractId, "SPA30560_" + ContractId + "_JPEG");
@@ -3419,27 +3406,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from SPA30560 contract
             var htmlContent = await _BuyOrSellService.OnGetWordContact_BuyOrSellService_ToPDF(ContractId, "SPA30560");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "SPA30560", "SPA30560_" + ContractId, "SPA30560_" + ContractId + "_JPEG");
@@ -3588,27 +3577,30 @@ namespace BatchAndReport.Pages.Report
         public async Task OnGetWordContact_NDA_PDF(string ContractId = "1")
         {
             var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
             if (!Directory.Exists(folderPath))
@@ -3629,27 +3621,29 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_NDA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
             if (!Directory.Exists(folderPath))
@@ -3667,33 +3661,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -3727,27 +3713,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from NDA contract
             var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA", "NDA_" + ContractId, "NDA_" + ContractId + "_JPEG");
@@ -3809,27 +3798,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from NDA contract
             var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA", "NDA_" + ContractId, "NDA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -3974,35 +3966,38 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
 
         #region 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
-        public async Task<IActionResult> OnGetWordContact_PDSA(string ContractId = "3")
+        public async Task<IActionResult> OnGetWordContact_PDSA(string ContractId = "1")
         {
             var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
         }
-        public async Task OnGetWordContact_PDSA_PDF(string ContractId = "3")
+        public async Task OnGetWordContact_PDSA_PDF(string ContractId = "1")
         {
             var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
             if (!Directory.Exists(folderPath))
             {
@@ -4020,30 +4015,33 @@ namespace BatchAndReport.Pages.Report
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
 
-        public async Task<IActionResult> OnGetWordContact_PDSA_PDF_Preview(string ContractId = "3", string Name = "สมใจ ทดสอบ")
+        public async Task<IActionResult> OnGetWordContact_PDSA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
             if (!Directory.Exists(folderPath))
             {
@@ -4060,33 +4058,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -4119,27 +4109,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from PDSA contract
             var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA", "PDSA_" + ContractId, "PDSA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -4200,27 +4193,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from PDSA contract
             var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA", "PDSA_" + ContractId, "PDSA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -4381,27 +4377,30 @@ namespace BatchAndReport.Pages.Report
         public async Task OnGetWordContact_JDCA_PDF(string ContractId = "5")
         {
             var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA");
             if (!Directory.Exists(folderPath))
             {
@@ -4420,27 +4419,30 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_JDCA_PDF_Preview(string ContractId = "5", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA");
             if (!Directory.Exists(folderPath))
@@ -4458,33 +4460,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -4518,27 +4512,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from JDCA contract
             var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA", "JDCA_" + ContractId, "JDCA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -4599,27 +4596,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from JDCA contract
             var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA", "JDCA_" + ContractId, "JDCA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -4785,27 +4785,30 @@ namespace BatchAndReport.Pages.Report
         public async Task OnGetWordContact_PDPA_PDF(string ContractId = "1")
         {
             var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
             if (!Directory.Exists(folderPath))
@@ -4827,27 +4830,30 @@ namespace BatchAndReport.Pages.Report
         {
             var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
 
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
             if (!Directory.Exists(folderPath))
             {
@@ -4864,33 +4870,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -4923,27 +4921,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from PDPA contract
             var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA", "PDPA_" + ContractId, "PDPA_" + ContractId + "_JPEG");
@@ -5005,27 +5006,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from PDPA contract
             var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA", "PDPA_" + ContractId, "PDPA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -5186,30 +5190,32 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
  
-        public async Task OnGetWordContact_MOU_PDF(string ContractId = "2")
+        public async Task OnGetWordContact_MOU_PDF(string ContractId = "1")
         {
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
             if (!Directory.Exists(folderPath))
@@ -5230,27 +5236,30 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_MOU_PDF_Preview(string ContractId = "2", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
             if (!Directory.Exists(folderPath))
@@ -5268,33 +5277,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -5327,27 +5328,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from MOU contract
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU", "MOU_" + ContractId, "MOU_" + ContractId + "_JPEG");
@@ -5410,27 +5414,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from MOU contract
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU", "MOU_" + ContractId, "MOU_" + ContractId + "_JPEG");
@@ -5579,30 +5586,33 @@ namespace BatchAndReport.Pages.Report
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความเข้าใจ MOA
-        public async Task OnGetWordContact_MOA_PDF(string ContractId = "8")
+        public async Task OnGetWordContact_MOA_PDF(string ContractId = "1")
         {
             var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA");
             if (!Directory.Exists(folderPath))
             {
@@ -5621,27 +5631,30 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_MOA_PDF_Preview(string ContractId = "8", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA");
             if (!Directory.Exists(folderPath))
             {
@@ -5658,33 +5671,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -5717,27 +5722,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from MOU contract
             var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId, "MOA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -5799,27 +5807,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from MOU contract
             var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-    PaperSize = DinkToPdf.PaperKind.A4,
-    Orientation = DinkToPdf.Orientation.Portrait,
-    Margins = new DinkToPdf.MarginSettings
-    {
-        Top = 20,
-        Bottom = 20,
-        Left = 20,
-        Right = 20
-    }
-},
-                Objects = {
-    new DinkToPdf.ObjectSettings()
-    {
-        HtmlContent = htmlContent
-    }
-}
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA", "MOA_" + ContractId, "MOA_" + ContractId + "_JPEG");
             if (!Directory.Exists(folderPath))
@@ -5987,29 +5998,30 @@ namespace BatchAndReport.Pages.Report
         {
             var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
             // 2. Convert HTML to PDF using DinkToPdf
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
 
-            // Assuming you have injected IConverter as _pdfConverter
-            var pdfBytes = _pdfConverter.Convert(doc);
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
             if (!Directory.Exists(folderPath))
             {
@@ -6029,28 +6041,30 @@ namespace BatchAndReport.Pages.Report
         public async Task<IActionResult> OnGetWordContact_GA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
 
-            var pdfBytes = _pdfConverter.Convert(doc);
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
             if (!Directory.Exists(folderPath))
@@ -6067,25 +6081,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
                         double lineHeight = font.GetHeight();
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -6118,27 +6132,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from GA contract (HTML to PDF)
             var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", $"GA_{ContractId}", $"GA_{ContractId}_JPEG");
@@ -6200,27 +6217,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from GA contract (HTML to PDF)
             var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA", $"GA_{ContractId}", $"GA_{ContractId}_JPEG");
@@ -6377,40 +6397,12 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
 
         #region 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
-        public async Task<IActionResult> OnGetWordContact_JOA(string ContractId = "1")
-        {
-            var wordBytes = await _JointOperationService.OnGetWordContact_JointOperationService(ContractId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาร่วมดำเนินการ.docx");
-        }
+
         public async Task OnGetWordContact_JOA_PDF(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             // 1. Get HTML content
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
 
-            //    // 2. Convert HTML to PDF using DinkToPdf
-            //    var doc = new DinkToPdf.HtmlToPdfDocument()
-            //    {
-            //        GlobalSettings = {
-            //    PaperSize = DinkToPdf.PaperKind.A4,
-            //    Orientation = DinkToPdf.Orientation.Portrait,
-            //    Margins = new DinkToPdf.MarginSettings
-            //    {
-            //        Top = 20,
-            //        Bottom = 20,
-            //        Left = 20,
-            //        Right = 20
-            //    }
-            //},
-            //        Objects = {
-            //    new DinkToPdf.ObjectSettings()
-            //    {
-            //        HtmlContent = htmlContent
-            //    }
-            //}
-            //    };
-
-            //    // 3. Convert to PDF
-            //    var pdfBytes = _pdfConverter.Convert(doc);
 
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -6425,10 +6417,10 @@ namespace BatchAndReport.Pages.Report
                 Landscape = false,
                 MarginOptions = new PuppeteerSharp.Media.MarginOptions
                 {
-                    Top = "10mm",
-                    Bottom = "10mm",
-                    Left = "10mm",
-                    Right = "10mm"
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
                 },
                 PrintBackground = true
 
@@ -6471,29 +6463,30 @@ namespace BatchAndReport.Pages.Report
             // 1. Get HTML content
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
 
-            // 2. Convert HTML to PDF using DinkToPdf
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
 
-            var pdfBytes = _pdfConverter.Convert(doc);
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
 
             // 3. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", "JOA_" + ContractId);
@@ -6514,25 +6507,25 @@ namespace BatchAndReport.Pages.Report
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
 
-                foreach (var page in document.Pages)
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
                         double lineHeight = font.GetHeight();
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -6565,27 +6558,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from JOA contract (HTML to PDF)
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", $"JOA_{ContractId}", $"JOA_{ContractId}_JPEG");
             if (!Directory.Exists(folderPath))
@@ -6670,27 +6666,30 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Generate PDF from JOA contract (HTML to PDF)
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA", $"JOA_{ContractId}", $"JOA_{ContractId}_JPEG");
             if (!Directory.Exists(folderPath))
@@ -6877,29 +6876,29 @@ namespace BatchAndReport.Pages.Report
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
 
             // 2. Convert HTML to PDF using DinkToPdf
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
 
-            // Assuming you have injected IConverter as _pdfConverter
-            var pdfBytes = _pdfConverter.Convert(doc);
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MIW");
             if (!Directory.Exists(folderPath))
@@ -6923,28 +6922,29 @@ namespace BatchAndReport.Pages.Report
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
 
             // 2. Convert HTML to PDF using DinkToPdf
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
 
-            var pdfBytes = _pdfConverter.Convert(doc);
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MIW", "MIW_" + ContractId);
             if (!Directory.Exists(folderPath))
@@ -6961,33 +6961,26 @@ namespace BatchAndReport.Pages.Report
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -7020,27 +7013,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Get HTML content and convert to PDF bytes
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MIW", "MIW_" + ContractId, "MIW_" + ContractId + "_JPEG");
@@ -7102,27 +7097,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Get HTML content and convert to PDF bytes
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MIW", "MIW_" + ContractId, "MIW_" + ContractId + "_JPEG");
@@ -7281,35 +7278,35 @@ namespace BatchAndReport.Pages.Report
 
         #region  4.1.6 เอกสารแนบท้ายบันทึกข้อตกลงความร่วมมือและสัญญาร่วมดำเนินการ AMJOA
 
-        public async Task OnGetWordContact_AMJOA_PDF(string ContractId = "12")
+        public async Task OnGetWordContact_AMJOA_PDF(string ContractId = "2")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
 
             // 2. Convert HTML to PDF using DinkToPdf
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
 
-            // Assuming you have injected IConverter as _pdfConverter
-            var pdfBytes = _pdfConverter.Convert(doc);
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA");
             if (!Directory.Exists(folderPath))
@@ -7327,34 +7324,35 @@ namespace BatchAndReport.Pages.Report
             // Optionally, return the file as a download:
             // return File(pdfBytes, "application/pdf", "AMJOA_" + ContractId + ".pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_AMJOA_PDF_Preview(string ContractId = "12", string Name = "สมใจ ทดสอบ")
+        public async Task<IActionResult> OnGetWordContact_AMJOA_PDF_Preview(string ContractId = "2", string Name = "สมใจ ทดสอบ")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
 
             // 2. Convert HTML to PDF using DinkToPdf
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
 
-            var pdfBytes = _pdfConverter.Convert(doc);
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA", "AMJOA_" + ContractId);
             if (!Directory.Exists(folderPath))
@@ -7371,33 +7369,26 @@ namespace BatchAndReport.Pages.Report
             using (var outputStream = new MemoryStream())
             {
                 var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
-                // Add watermark to each page
-                foreach (var page in document.Pages)
+
+                foreach (var pdfPage in document.Pages)
                 {
-                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page))
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
                     {
                         var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
                         var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
                         var lines = text.Split('\n');
-
-                        // Measure the height of one line
                         double lineHeight = font.GetHeight();
-
-                        // Calculate total height for centering
                         double totalHeight = lineHeight * lines.Length;
-                        double y = (page.Height - totalHeight) / 2;
+                        double y = (pdfPage.Height - totalHeight) / 2;
 
-                        // Center horizontally
                         foreach (var line in lines)
                         {
                             var size = gfx.MeasureString(line, font);
-                            double x = (page.Width - size.Width) / 2;
-
-                            // Draw the watermark diagonally with transparency
+                            double x = (pdfPage.Width - size.Width) / 2;
                             var state = gfx.Save();
-                            gfx.TranslateTransform(page.Width / 2, page.Height / 2);
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
                             gfx.RotateTransform(-30);
-                            gfx.TranslateTransform(-page.Width / 2, -page.Height / 2);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
 
                             var brush = new PdfSharpCore.Drawing.XSolidBrush(
                                 PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
@@ -7430,27 +7421,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Get HTML content and convert to PDF bytes
             var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA", "AMJOA_" + ContractId, "AMJOA_" + ContractId + "_JPEG");
@@ -7512,27 +7505,29 @@ namespace BatchAndReport.Pages.Report
         {
             // 1. Get HTML content and convert to PDF bytes
             var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
-            var doc = new DinkToPdf.HtmlToPdfDocument()
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+
+            await page.SetContentAsync(htmlContent);
+
+            var pdfOptions = new PdfOptions
             {
-                GlobalSettings = {
-            PaperSize = DinkToPdf.PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new DinkToPdf.MarginSettings
-            {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
-            }
-        },
-                Objects = {
-            new DinkToPdf.ObjectSettings()
-            {
-                HtmlContent = htmlContent
-            }
-        }
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+
+                Landscape = false,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "20mm",
+                    Bottom = "20mm",
+                    Left = "20mm",
+                    Right = "20mm"
+                },
+                PrintBackground = true
+
             };
-            var pdfBytes = _pdfConverter.Convert(doc);
+
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             // 2. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA", "AMJOA_" + ContractId, "AMJOA_" + ContractId + "_JPEG");

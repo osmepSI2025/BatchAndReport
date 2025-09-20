@@ -798,13 +798,13 @@ namespace BatchAndReport.DAO
             var signatoryHtml = new StringBuilder();
             var companySealHtml = new StringBuilder();
 
-            var dataSignatories = Signatories.Where(e => e.Signatory_Type != null).ToList();
+            var dataSignatories = Signatories.Where(e => e?.Signatory_Type != null).ToList();
             // Group signatories
             var dataSignatoriesTypeOSMEP = dataSignatories
-                .Where(e => e.Signatory_Type == "OSMEP_S" || e.Signatory_Type == "OSMEP_W")
+                .Where(e => e?.Signatory_Type == "OSMEP_S" || e?.Signatory_Type == "OSMEP_W")
                 .ToList();
             var dataSignatoriesTypeCP = dataSignatories
-                .Where(e => e.Signatory_Type == "CP_S" || e.Signatory_Type == "CP_W")
+                .Where(e => e?.Signatory_Type == "CP_S" || e.Signatory_Type == "CP_W")
                 .ToList();
 
             // Helper to render a signatory block
@@ -827,26 +827,26 @@ namespace BatchAndReport.DAO
                         var contentEnd = signer.DS_FILE.IndexOf("</content>");
                         var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
 
-                        signatureHtml = $@"<div class='t-16 text-center tab1'>
+                        signatureHtml = $@"<div >
     <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
 </div>";
                     }
                     catch
                     {
                         signatureHtml = !string.IsNullOrEmpty(noSignBase64)
-                            ? $@"<div class='t-16 text-center tab1'>
+                            ? $@"<div >
     <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
 </div>"
-                            : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                            : "<div >(ลงชื่อ....................)</div>";
                     }
                 }
                 else
                 {
                     signatureHtml = !string.IsNullOrEmpty(noSignBase64)
-                        ? $@"<div class='t-16 text-center tab1'>
+                        ? $@"<div >
     <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
 </div>"
-                        : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                        : "<div >(ลงชื่อ....................)</div>";
                 }
 
                 string name = signer?.Signatory_Name ?? "";
@@ -857,8 +857,8 @@ namespace BatchAndReport.DAO
                 return $@"
 <div class='sign-single-right'>
     {signatureHtml}
-    <div class='t-16 text-center tab1'>{nameBlock}</div>
-    <div class='t-16 text-center tab1'>{signer?.Position}</div>
+    <div >{nameBlock}</div>
+    <div >{signer?.Position}</div>
 </div>";
             }
 
@@ -925,33 +925,33 @@ namespace BatchAndReport.DAO
                         var contentEnd = signer.DS_FILE.IndexOf("</content>");
                         var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
 
-                        signatureHtml = $@"<div class='t-16 text-center tab1'>
+                        signatureHtml = $@"<div >
     <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
 </div>";
                     }
                     catch
                     {
                         signatureHtml = !string.IsNullOrEmpty(noSignBase64)
-                            ? $@"<div class='t-16 text-center tab1'>
+                            ? $@"<div >
     <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
 </div>"
-                            : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                            : "<div >(ลงชื่อ....................)</div>";
                     }
                 }
                 else
                 {
                     signatureHtml = !string.IsNullOrEmpty(noSignBase64)
-                        ? $@"<div class='t-16 text-center tab1'>
+                        ? $@"<div >
     <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
 </div>"
-                        : "<div class='t-16 text-center tab1'>(ลงชื่อ....................)</div>";
+                        : "<div >(ลงชื่อ....................)</div>";
                 }
 
                 customerSignHtml.AppendLine($@"
 <div class='sign-single-right'>
     {signatureHtml}
-    <div class='t-16 text-center tab1'>{nameBlock}</div>
-    <div class='t-16 text-center tab1'>{signer?.Position}</div>
+    <div >{nameBlock}</div>
+    <div >{signer?.Position}</div>
 </div>");
             }
 

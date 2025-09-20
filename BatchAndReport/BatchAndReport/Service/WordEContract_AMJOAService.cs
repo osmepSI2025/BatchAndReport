@@ -29,7 +29,13 @@ public class WordEContract_AMJOAService
         var dataResult = await _eContractReportAMJOADAO.GetAMJOAAsync(conId);
         if (dataResult == null)
             throw new Exception("AMJOA data not found.");
-        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf");
+        string fontBase64 = "";
+        if (File.Exists(fontPath))
+        {
+            var bytes = File.ReadAllBytes(fontPath);
+            fontBase64 = Convert.ToBase64String(bytes);
+        }
         var cssPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css", "contract.css").Replace("\\", "/");
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
         string logoBase64 = "";
@@ -113,9 +119,9 @@ public class WordEContract_AMJOAService
         foreach (var p in htmlDoc.DocumentNode.Descendants("p"))
         {
             var existingClass = p.GetAttributeValue("class", "");
-            if (!existingClass.Contains("t-16"))
+            if (!existingClass.Contains("t-14"))
             {
-                p.SetAttributeValue("class", (existingClass + " t-16").Trim());
+                p.SetAttributeValue("class", (existingClass + " t-14").Trim());
             }
         }
 
@@ -130,7 +136,7 @@ public class WordEContract_AMJOAService
     <style>
     @font-face {{
         font-family: 'TH Sarabun New';
-        src: url('file:///{fontPath}') format('truetype');
+                src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype');
         font-weight: normal;
         font-style: normal;
     }}
@@ -151,9 +157,12 @@ public class WordEContract_AMJOAService
     -webkit-line-break: after-white-space;
     hyphens: none;
     }}
-    .t-16 {{ 
-    font-size: 24pt !important;
-}}
+ .t-12 {{ font-size: 1em; }}
+        .t-14 {{ font-size: 1.1em; }}
+
+    .t-16 {{ font-size: 1.5em; }}
+
+
     .t-18 {{ font-size: 1.7em; !important; }}
     .t-22 {{ font-size: 1.9em;!important; }}
     .tab0 {{ text-indent: 0px; }}
@@ -215,14 +224,14 @@ public class WordEContract_AMJOAService
     </tr>
 </table>
 
-    <h2  class='t-18 text-center'><b>{dataResult.Contract_Title}</b></h2 >
-  <h2  class='t-18 text-center'><b>โครงการ {dataResult.Contract_Name}</b></h2 >
-  <h2  class='t-18 text-center'><b>ระหว่าง</b></div>
-   <h2  class='t-18 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ( สสว. )</b></h2 >
- <h2  class='t-18 text-center'><b>กับ</b></div>
-<h2  class='t-18 text-center'><b>ชื่อหน่วยร่วมดำเนินการ {dataResult.Start_Unit} </b></h2 >
+    <h2  class='t-16 text-center'><b>{dataResult.Contract_Title}</b></h2 >
+  <h2  class='t-16 text-center'><b>โครงการ {dataResult.Contract_Name}</b></h2 >
+  <h2  class='t-16 text-center'><b>ระหว่าง</b></div>
+   <h2  class='t-16 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ( สสว. )</b></h2 >
+ <h2  class='t-16 text-center'><b>กับ</b></div>
+<h2  class='t-16 text-center'><b>ชื่อหน่วยร่วมดำเนินการ {dataResult.Start_Unit} </b></h2 >
 </br>
-<div class='t-16 editor-content'>
+<div class='t-14 editor-content'>
     {cleanedHtml}
 </div>
 
