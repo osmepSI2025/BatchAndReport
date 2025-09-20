@@ -106,7 +106,7 @@ namespace BatchAndReport.DAO
 
             var approverList = await GetAnnoulAppoverList(annualProcessReviewId);
 
-            var GetWfTask =await GetWf_tasklist(annualProcessReviewId);
+            var GetWfTask =await GetWf_tasklist(annualProcessReviewId,"02");
 
             var AnnuProcessReview = await GetAnnualProcessReview(annualProcessReviewId);
 
@@ -710,7 +710,7 @@ namespace BatchAndReport.DAO
                 FISCAL_YEAR_ID,
                 IS_DELETED
             FROM PROCESS_MASTER
-            WHERE FISCAL_YEAR_ID = @FISCAL_YEAR_ID", connection);
+            WHERE FISCAL_YEAR_ID = @FISCAL_YEAR_ID and IS_DELETED = 0", connection);
 
                 command.Parameters.AddWithValue("@FISCAL_YEAR_ID", id ?? 0);
                 await connection.OpenAsync();
@@ -1122,11 +1122,11 @@ namespace BatchAndReport.DAO
             return result;
         }
 
-        public async Task<Wf_tasklistModels?> GetWf_tasklist(int? id = 0)
+        public async Task<Wf_tasklistModels?> GetWf_tasklist(int? id = 0,string typeWf ="02")
         {
             var header = await _k2context_workflow.WfTaskLists
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.RequestId == id);
+                .FirstOrDefaultAsync(x => x.RequestId == id && x.WfType == typeWf);
 
             if (header == null)
                 return null;

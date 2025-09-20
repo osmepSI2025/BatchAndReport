@@ -59,7 +59,7 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail,"Y");
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail,"Y","PDF");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
             await using var page = await browser.NewPageAsync();
@@ -187,7 +187,7 @@ namespace BatchAndReport.Controllers
             if (detail == null)
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
-            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail, "N");
+            var htmlContent = await _wordWorkFlow_AnnualProcessReviewService.GenAnnualWorkProcesses_Html(detail, "N","WORD");
 
             var document = new Document();
             document.LoadFromStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(htmlContent)), FileFormat.Html);
@@ -197,10 +197,10 @@ namespace BatchAndReport.Controllers
                 // Setup page
                 //section.PageSetup.PageSize = PageSize.A4;
                 //section.PageSetup.Orientation = PageOrientation.Portrait;
-                section.PageSetup.Margins.Top = 20f;
-                section.PageSetup.Margins.Bottom = 20f;
-                section.PageSetup.Margins.Left = 20f;
-                section.PageSetup.Margins.Right = 20f;
+                section.PageSetup.Margins.Top = 10f;
+                section.PageSetup.Margins.Bottom = 10f;
+                section.PageSetup.Margins.Left = 10f;
+                section.PageSetup.Margins.Right = 10f;
 
                 // Set font for paragraphs
                 foreach (Paragraph para in section.Paragraphs)

@@ -6398,11 +6398,25 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
 
-        public async Task OnGetWordContact_JOA_PDF(string ContractId = "1", string Name = "สมใจ ทดสอบ")
+        public async Task OnGetWordContact_JOA_PDF(string ContractId = "3", string Name = "สมใจ ทดสอบ")
         {
+            // 4. Prepare folder structure
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, $"JOA_{ContractId}.pdf");
+
+            // 5. Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
             // 1. Get HTML content
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
 
+          
 
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -6429,23 +6443,11 @@ namespace BatchAndReport.Pages.Report
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
 
-            // 4. Prepare folder structure
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, $"JOA_{ContractId}.pdf");
-
-            // 5. Delete the file if it already exists
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
-            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+           
+           await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
 
             // 6. Return the PDF file as download
-            var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+           // var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
           //  return File(resultBytes, "application/pdf", $"JOA_{ContractId}.pdf");
         }
 
@@ -6458,7 +6460,7 @@ namespace BatchAndReport.Pages.Report
             return await _eContractDao.GetPdfPasswordByEmpIdAsync(empId, ct);
         }
 
-        public async Task<IActionResult> OnGetWordContact_JOA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
+        public async Task<IActionResult> OnGetWordContact_JOA_PDF_Preview(string ContractId = "3", string Name = "สมใจ ทดสอบ")
         {
             // 1. Get HTML content
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);

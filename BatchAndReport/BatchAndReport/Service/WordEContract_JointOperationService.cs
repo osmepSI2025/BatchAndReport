@@ -307,92 +307,69 @@ public class WordEContract_JointOperationService
 <head>
     <meta charset='utf-8'>
   
-     <style>
-        @font-face {{
-            font-family: 'THSarabunNew';
-            src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }}
-         body, table, th, td, span, strong, i, u {{
-            font-size: 22px;
-           font-family: 'THSarabunNew', Arial, sans-serif !important;
-        }}
-        /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
-        body, p, div {{
-            word-break: keep-all;            /* ห้ามตัดกลางคำ */
-            overflow-wrap: break-word;       /* ตัดเฉพาะเมื่อจำเป็น (ยาวจนล้นบรรทัด) */
-            -webkit-line-break: after-white-space; /* ช่วย WebKit เก่าจัดบรรทัด */
-            hyphens: none;
-        }}
-        .t-12 {{ font-size: 1em; }}
-        .t-14 {{ font-size: 1.1em; }}
-        .t-16 {{ font-size: 1.5em; }}
-        .t-18 {{ font-size: 1.7em; }}
-        .t-20 {{ font-size: 1.9em; }}
-        .t-22 {{ font-size: 2.1em; }}
-
-        .tab0 {{ text-indent: 0px;     }}
-        .tab1 {{ text-indent: 48px;     }}
-        .tab2 {{ text-indent: 96px;    }}
-        .tab3 {{ text-indent: 144px;    }}
-        .tab4 {{ text-indent: 192px;   }}
-        .d-flex {{ display: flex; }}
-        .w-100 {{ width: 100%; }}
-        .w-40 {{ width: 40%; }}
-        .w-50 {{ width: 50%; }}
-        .w-60 {{ width: 60%; }}
-        .text-center {{ text-align: center; }}
-        .sign-single-right {{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    left: 0;
-}}
-        .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
-        .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
-
-        .sign-double {{ display: flex; }}
-        .text-center-right-brake {{
-            margin-left: 50%;
-             
-        }}
-        .text-right {{ text-align: right; }}
-        .contract, .section {{
-            margin: 12px 0;
-            line-height: 1.7;
-        }}
-        .section {{
-            font-weight: bold;
-            font-size: 1.2em;
-            text-align: left;
-            margin-top: 24px;
-        }}
-        .signature-table {{
-            width: 100%;
-            margin-top: 32px;
-            border-collapse: collapse;
-        }}
-        .signature-table td {{
-            padding: 16px;
-            text-align: center;
-            vertical-align: top;
-            font-size: 1.1em;
-        }}
-   
-.t-14, .tab1, .sign-single-right 
-{{
-font-family: 'THSarabunNew', Arial, sans-serif !important;
-    font-size: 1.3em !important;
-}}
-     .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
-        .logo-table td {{ border: none; }}
-        p {{
-            margin: 0;
-            padding: 0;
-        }}
-    </style>
+<style>
+   @font-face {{
+        font-family: 'TH Sarabun New';
+             src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }}
+    body {{
+        font-size: 22px;
+        font-family: 'TH Sarabun New', Arial, sans-serif;
+    }}
+    /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
+    body, p, div {{
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        -webkit-line-break: after-white-space;
+        hyphens: none;
+    }}
+    .t-12 {{ font-size: 1em; }}   
+    .t-14 {{ font-size: 1.1em; }}
+    .t-16 {{ font-size: 1.5em; }}
+    .t-18 {{ font-size: 1.7em; }}
+    .t-22 {{ font-size: 1.9em; }}
+    .tab0 {{ text-indent: 0px; }}
+    .tab1 {{ text-indent: 48px; }}
+    .tab2 {{ text-indent: 96px; }}
+    .tab3 {{ text-indent: 144px; }}
+    .tab4 {{ text-indent: 192px; }}
+    .d-flex {{ display: flex; }}
+    .w-100 {{ width: 100%; }}
+    .w-40 {{ width: 40%; }}
+    .w-50 {{ width: 50%; }}
+    .w-60 {{ width: 60%; }}
+    .text-center {{ text-align: center; }}
+    .sign-single-right {{
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        left: 20%;
+    }}
+    .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
+    .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
+    .sign-double {{ display: flex; }}
+    .text-center-right-brake {{ margin-left: 50%; }}
+    .text-right {{ text-align: right; }}
+    .contract, .section {{ margin: 12px 0; line-height: 1.7; }}
+    .section {{ font-weight: bold; font-size: 1.2em; text-align: left; margin-top: 24px; }}
+    .signature-table {{ width: 100%; margin-top: 32px; border-collapse: collapse; }}
+    .signature-table td {{ padding: 16px; text-align: center; vertical-align: top; font-size: 1.1em; }}
+    .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
+    .logo-table td {{ border: none; }}
+    p {{ margin: 0; padding: 0; }}
+    .editor-content,
+    .editor-content * {{font - family: 'TH Sarabun New', Arial, sans-serif !important;
+        font-size: 1.2em !important;
+        color: #000000 !important;
+    }}
+    body, p, div, span, li, td, th, table, b, strong, h1, h2, h3, h4, h5, h6 {{
+        font-family: 'TH Sarabun New', Arial, sans-serif !important;
+        font-size: 22px !important;
+        color: #000 !important;
+    }}
+</style>
 </head><body>
 
 <table style='width:100%; border-collapse:collapse; margin-top:40px;'>

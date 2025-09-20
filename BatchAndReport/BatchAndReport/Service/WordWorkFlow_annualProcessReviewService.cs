@@ -26,7 +26,7 @@ public class WordWorkFlow_annualProcessReviewService
     }
 
 
-    public async Task<string> GenAnnualWorkProcesses_Html(WFProcessDetailModels detail,string flagSign )
+    public async Task<string> GenAnnualWorkProcesses_Html(WFProcessDetailModels detail,string flagSign, string typefile ="PDF" )
     {
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
         string logoBase64 = "";
@@ -180,11 +180,19 @@ public class WordWorkFlow_annualProcessReviewService
                     }
                     else
                     {
-                        signatureHtml1 = !string.IsNullOrEmpty(noSignBase64)
-                            ? $@"<div class='t-12 text-center tab1'>
+                        if (typefile == "PDF")
+                        {
+                            signatureHtml1 = !string.IsNullOrEmpty(noSignBase64)
+                           ? $@"<div class='t-12 text-center tab1'>
     <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
 </div>"
-                            : "<div class='t-12 text-center tab1'>(ลงชื่อ....................)</div>";
+                           : "<div class='t-12 text-center tab1'>(ลงชื่อ....................)</div>";
+                        }
+                        else
+                        {
+                            signatureHtml1 = "<div class='t-12 text-center tab1'>(ลงชื่อ....................)</div>";
+                        }
+
                     }
                 }
 
@@ -204,20 +212,35 @@ public class WordWorkFlow_annualProcessReviewService
                         }
                         catch
                         {
-                            signatureHtml2 = !string.IsNullOrEmpty(noSignBase64)
-                                ? $@"<div class='t-12 text-center tab1'>
+                            if (typefile == "PDF")
+                            {
+                                signatureHtml2 = !string.IsNullOrEmpty(noSignBase64)
+                               ? $@"<div class='t-12 text-center tab1'>
     <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
 </div>"
-                                : "<div class='t-12 text-center tab1'>(ลงชื่อ....................)</div>";
+                               : "<div class='t-12 text-center tab1'>(ลงชื่อ....................)</div>";
+                            }
+                            else
+                            {
+                                signatureHtml2 = "<div class='t-12 text-center tab1'>(ลงชื่อ....................)</div>";
+                            }
                         }
                     }
                     else
                     {
-                        signatureHtml2 = !string.IsNullOrEmpty(noSignBase64)
-                            ? $@"<div class='t-12 text-center tab1'>
+                        if (typefile =="PDF")
+                        {
+                            signatureHtml2 = !string.IsNullOrEmpty(noSignBase64)
+                           ? $@"<div class='t-12 text-center tab1'>
     <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
 </div>"
-                            : "<div class='t-12 text-center tab1'>(ลงชื่อ....................)</div>";
+                           : "<div class='t-12 text-center tab1'>(ลงชื่อ....................)</div>";
+                        }
+                        else 
+                        {
+                            signatureHtml2 =  "<div class='t-12 text-center tab1'>(ลงชื่อ....................)</div>";
+                        }
+                       
                     }
                 }
 
@@ -410,7 +433,8 @@ public class WordWorkFlow_annualProcessReviewService
         htmlBody.Append($@"
         <div class='t-14 text-center'>
            <!-- <b>การทบทวนกลุ่มกระบวนการหลักและกลุ่มกระบวนการสนับสนุน {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b> -->
-                 <b>แผนภาพระบบงาน(Work System) ประจำปี {detail.FiscalYear}</b>
+                  <!--  <b>แผนภาพระบบงาน(Work System) ประจำปี {detail.FiscalYear}</b> -->
+                 <b>{detail.UserProcessReviewName}</b>
 
 </div>
     ");
