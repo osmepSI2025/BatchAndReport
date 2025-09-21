@@ -1,4 +1,5 @@
 ﻿using BatchAndReport.Models;
+using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -89,6 +90,7 @@ namespace BatchAndReport.Entities
                 entity.Property(e => e.IsDeleted).HasColumnName("IS_DELETED");
                 entity.Property(e => e.IsWi).HasColumnName("IS_WI");
                 entity.Property(e => e.PrevIsWorkflow).HasColumnName("PREV_IS_WORKFLOW");
+                entity.Property(e => e.IsUsed).HasColumnName("IS_USED");
                 entity.Property(e => e.PrevAnnualProcessReviewDetailId).HasColumnName("PREV_ANNUAL_PROCESS_REVIEW_DETAIL_ID");
             });
 

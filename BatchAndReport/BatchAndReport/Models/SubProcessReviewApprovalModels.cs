@@ -28,6 +28,6 @@
 
         public string? E_Signature { get; set; }
 
-
+        public string? ActorDetail { get; set; }
     }
 }

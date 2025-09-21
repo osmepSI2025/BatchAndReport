@@ -692,7 +692,13 @@ public class WordWFService : IWordWFService
         if (detail == null)
             throw new ArgumentNullException(nameof(detail), "WFSubProcessDetailModels cannot be null.");
 
-        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf");
+        string fontBase64 = "";
+        if (File.Exists(fontPath))
+        {
+            var bytes = File.ReadAllBytes(fontPath);
+            fontBase64 = Convert.ToBase64String(bytes);
+        }
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
         string logoBase64 = "";
         if (System.IO.File.Exists(logoPath))
@@ -711,12 +717,12 @@ public class WordWFService : IWordWFService
 
         var htmlBuilder = new StringBuilder();
         htmlBuilder.Append(@"<!DOCTYPE html><html><head><meta charset='utf-8'><style>");
-        htmlBuilder.Append($"@font-face {{ font-family: 'THSarabunNew'; src: url('file:///{fontPath}') format('truetype'); }}");
+        htmlBuilder.Append($"@font-face {{ font-family: 'THSarabunNew';   src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype'); }}");
         htmlBuilder.Append(@"body { font-family: 'THSarabunNew', Arial, sans-serif; font-size: 16px; margin: 20px; line-height: 1.5; }");
         htmlBuilder.Append(@".header-table, .full-width-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }");
         htmlBuilder.Append(@".header-table td, .full-width-table th, .full-width-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }");
         htmlBuilder.Append(@".full-width-table th { text-align: center; font-weight: bold; }");
-        htmlBuilder.Append(@".text-center { text-align: center; } .text-left { text-align: left; } .text-right { text-align: right; }");
+        htmlBuilder.Append(@".text-center { text-align: center; vertical-align: middle; } .text-left { text-align: left; } .text-right { text-align: right; }");
         htmlBuilder.Append(@".font-bold { font-weight: bold; } .font-size-20 { font-size: 20px; }");
         htmlBuilder.Append(@".numbered-list { list-style-type: decimal; padding-left: 20px; } .empty-line { height: 10px; }");
         htmlBuilder.Append(@".diagram-image-container { page-break-before: always; text-align: center; margin-top: 20px; }");
@@ -735,66 +741,53 @@ public class WordWFService : IWordWFService
             htmlBuilder.Append("<li>-</li>");
         htmlBuilder.Append("</ul></td></tr></table><div class='empty-line'></div>");
 
-        htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='4' style='background-color: #ddd;'>การอนุมัติเอกสาร</th></tr>");
-        htmlBuilder.Append("<tr><th></th><th>ผู้จัดทำ</th><th>ผู้ตรวจสอบ</th><th>ผู้อนุมัติ</th></tr></thead><tbody>");
 
-        // ลงนาม
-        htmlBuilder.Append("<tr><td class='text-center'>ลงนาม</td>");
-        for (int i = 0; i < 3; i++)
+        #region  การอนุมัติเอกสาร
+
+        if (detail.ApprovalsDetail != null && detail.ApprovalsDetail.Count > 0)
+{
+    htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='4' style='background-color: #ddd;'>การอนุมัติเอกสาร</th></tr>");
+    htmlBuilder.Append("<tr><th>บทบาท</th><th>ชื่อ</th><th>ตำแหน่ง</th><th>ลายเซนต์</th></tr></thead><tbody>");
+    foreach (var item in detail.ApprovalsDetail)
+    {
+        htmlBuilder.Append("<tr>");
+        htmlBuilder.Append($"<td class='text-center'>{item.ActorDetail ?? "-"}</td>");
+        htmlBuilder.Append($"<td class='text-center'>{item.EmployeeName ?? "-"}</td>");
+        htmlBuilder.Append($"<td class='text-center'>{item.EmployeePosition ?? "-"}</td>");
+
+        // Signature image
+        if (!string.IsNullOrEmpty(item.E_Signature))
         {
-            var item = detail.ApprovalsDetail?.ElementAtOrDefault(i);
-
-            if (item!=null) 
+            var signPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", item.E_Signature);
+            if (System.IO.File.Exists(signPath))
             {
-                if (item.E_Signature != null && item.E_Signature != "")
-                {
-                    var SignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", item.E_Signature);
-                    if (System.IO.File.Exists(SignPath))
-                    {
-                        var bytes = System.IO.File.ReadAllBytes(SignPath);
-                        var base64 = Convert.ToBase64String(bytes);
-                        htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
-                    }
-                    else
-                    {
-                        var SignPathNoSign = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
-                        var bytes = System.IO.File.ReadAllBytes(SignPathNoSign);
-                        var base64 = Convert.ToBase64String(bytes);
-                        htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
-
-                    }
-
-                }
-                else
-                {
-                    var SignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
-                    var bytes = System.IO.File.ReadAllBytes(SignPath);
-                    var base64 = Convert.ToBase64String(bytes);
-                    htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
-                }
+                var bytes = System.IO.File.ReadAllBytes(signPath);
+                var base64 = Convert.ToBase64String(bytes);
+                htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
             }
-          
+            else
+            {
+                var noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
+                var bytes = System.IO.File.ReadAllBytes(noSignPath);
+                var base64 = Convert.ToBase64String(bytes);
+                htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='No Signature' style='max-width: 100px; height: auto;' /></td>");
+            }
         }
-        htmlBuilder.Append("</tr>");
-
-        // ชื่อ
-        htmlBuilder.Append("<tr><td class='text-center'></td>");
-        for (int i = 0; i < 3; i++)
+        else
         {
-            var item = detail.ApprovalsDetail?.ElementAtOrDefault(i);
-            htmlBuilder.Append($"<td class='text-center'>{(item != null ? "(" + (item.EmployeeName ?? "-") + ")" : "-")}</td>");
+            var noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
+            var bytes = System.IO.File.ReadAllBytes(noSignPath);
+            var base64 = Convert.ToBase64String(bytes);
+            htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='No Signature' style='max-width: 100px; height: auto;' /></td>");
         }
-        htmlBuilder.Append("</tr>");
 
-        // ตำแหน่ง
-        htmlBuilder.Append("<tr><td class='text-center'>ตำแหน่ง</td>");
-        for (int i = 0; i < 3; i++)
-        {
-            var item = detail.ApprovalsDetail?.ElementAtOrDefault(i);
-            htmlBuilder.Append($"<td class='text-center'>{(item?.EmployeePosition ?? "-")}</td>");
-        }
         htmlBuilder.Append("</tr>");
-        htmlBuilder.Append("</tbody></table>");
+    }
+    htmlBuilder.Append("</tbody></table>");
+}
+
+        #endregion
+
 
 
         htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='3' style='background-color: #ddd;'>ประวัติการแก้ไขเอกสาร</th></tr><tr><th>ครั้งที่</th><th>วันที่</th><th>รายละเอียด</th></tr></thead><tbody>");

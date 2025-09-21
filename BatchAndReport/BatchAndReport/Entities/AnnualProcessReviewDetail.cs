@@ -23,6 +23,7 @@ namespace BatchAndReport.Entities
         public bool? PrevIsWorkflow { get; set; }
         public int? PrevAnnualProcessReviewDetailId { get; set; }
 
+        public bool? IsUsed { get; set; }
         public virtual AnnualProcessReview? AnnualProcessReview { get; set; }
     }
 
