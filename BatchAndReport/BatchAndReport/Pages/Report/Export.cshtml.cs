@@ -3972,7 +3972,7 @@ namespace BatchAndReport.Pages.Report
             var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(ContractId);
             return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
         }
-        public async Task OnGetWordContact_PDSA_PDF(string ContractId = "1")
+        public async Task OnGetWordContact_PDSA_PDF(string ContractId = "3")
         {
             var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
             await new BrowserFetcher().DownloadAsync();
@@ -4375,7 +4375,7 @@ namespace BatchAndReport.Pages.Report
         #region 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA
 
       
-        public async Task OnGetWordContact_JDCA_PDF(string ContractId = "5")
+        public async Task OnGetWordContact_JDCA_PDF(string ContractId = "2")
         {
             var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
             await new BrowserFetcher().DownloadAsync();
@@ -4417,7 +4417,7 @@ namespace BatchAndReport.Pages.Report
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_JDCA_PDF_Preview(string ContractId = "5", string Name = "สมใจ ทดสอบ")
+        public async Task<IActionResult> OnGetWordContact_JDCA_PDF_Preview(string ContractId = "2", string Name = "สมใจ ทดสอบ")
         {
             var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
             await new BrowserFetcher().DownloadAsync();
@@ -5187,7 +5187,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
  
-        public async Task OnGetWordContact_MOU_PDF(string ContractId = "1")
+        public async Task OnGetWordContact_MOU_PDF(string ContractId = "6")
         {
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
             await new BrowserFetcher().DownloadAsync();
@@ -5582,7 +5582,7 @@ namespace BatchAndReport.Pages.Report
         }
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 
-        #region 4.1.1.2.3.บันทึกข้อตกลงความเข้าใจ MOA
+        #region 4.1.1.2.xxxx.บันทึกข้อตกลงความเข้าใจ MOA
         public async Task OnGetWordContact_MOA_PDF(string ContractId = "1")
         {
             var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");

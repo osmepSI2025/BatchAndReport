@@ -67,6 +67,29 @@ public class WordEContract_DataSecretService
             var bytes = System.IO.File.ReadAllBytes(logoPath);
             logoBase64 = Convert.ToBase64String(bytes);
         }
+        string contractLogoHtml;
+        if (!string.IsNullOrEmpty(result.Organization_Logo) && result.Organization_Logo.Contains("<content>"))
+        {
+            try
+            {
+                // ตัดเอาเฉพาะ Base64 ในแท็ก <content>...</content>
+                var contentStart = result.Organization_Logo.IndexOf("<content>") + "<content>".Length;
+                var contentEnd = result.Organization_Logo.IndexOf("</content>");
+                var contractlogoBase64 = result.Organization_Logo.Substring(contentStart, contentEnd - contentStart);
+
+                contractLogoHtml = $@"<div style='display:inline-block; padding:20px; font-size:32pt;'>
+             <img src='data:image/jpeg;base64,{contractlogoBase64}' width='240' height='80' />
+            </div>";
+            }
+            catch
+            {
+                contractLogoHtml = "";
+            }
+        }
+        else
+        {
+            contractLogoHtml = "";
+        }
         #region checkมอบอำนาจ
         string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(result.Grant_Date ?? DateTime.Now);
         string strAttorneyLetterDate_CP = CommonDAO.ToArabicDateStringCovert(result.CP_S_AttorneyLetterDate ?? DateTime.Now);
@@ -213,10 +236,8 @@ public class WordEContract_DataSecretService
             </div>
         </td>
         <!-- Right: Contract code box (replace with your actual contract code if needed) -->
-        <td style='width:40%; text-align:center; vertical-align:top;'>
-            <div style='display:inline-block; padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
-            </div>
+       <td style='width:40%; text-align:center; vertical-align:top;'>
+            {contractLogoHtml}
         </td>
     </tr>
 </table>
@@ -236,7 +257,7 @@ public class WordEContract_DataSecretService
    <p class='tab3 t-14'>
         สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B>  โดย {result.OSMEP_NAME} ตำแหน่ง {result.OSMEP_POSITION} {strAttorneyOsmep} สำนักงานตั้งอยู่เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550 (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เปิดเผยข้อมูล”
         กับ {result.Contract_Party_Name} โดย {result.CP_S_NAME} ตำแหน่ง {result.CP_S_POSITION} {strAttorney} 
-        สำนักงานตั้งอยู่เลขที่ {result.OfficeLoc} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้รับข้อมูล”
+       </br> สำนักงานตั้งอยู่เลขที่ {result.OfficeLoc} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้รับข้อมูล”
     </p>
    <p class='tab3 t-14'>คู่สัญญาได้ตกลงทำสัญญากันมีข้อความดังต่อไปนี้</p>
 

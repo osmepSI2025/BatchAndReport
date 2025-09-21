@@ -38,6 +38,8 @@ public class WordEContract_ControlDataService
             var bytes = System.IO.File.ReadAllBytes(logoPath);
             logoBase64 = Convert.ToBase64String(bytes);
         }
+
+        
         var purplist = await _eContractReportDAO.GetJDCA_JointPurpAsync(id);
         var dtActivitySME = await _eContractReportDAO.GetJDCA_SubProcessActivitiesAsync(id);
 
@@ -55,6 +57,30 @@ public class WordEContract_ControlDataService
 
 
         #region signlist 
+
+        string contractLogoHtml;
+        if (!string.IsNullOrEmpty(result.Organization_Logo) && result.Organization_Logo.Contains("<content>"))
+        {
+            try
+            {
+                // ตัดเอาเฉพาะ Base64 ในแท็ก <content>...</content>
+                var contentStart = result.Organization_Logo.IndexOf("<content>") + "<content>".Length;
+                var contentEnd = result.Organization_Logo.IndexOf("</content>");
+                var contractlogoBase64 = result.Organization_Logo.Substring(contentStart, contentEnd - contentStart);
+
+                contractLogoHtml = $@"<div style='display:inline-block; padding:20px; font-size:32pt;'>
+             <img src='data:image/jpeg;base64,{contractlogoBase64}' width='240' height='80' />
+            </div>";
+            }
+            catch
+            {
+                contractLogoHtml = "";
+            }
+        }
+        else
+        {
+            contractLogoHtml = "";
+        }
 
         var signlist = await _eContractReportDAO.GetSignNameAsync(id, typeContact);
         var signatoryTableHtml = "";
@@ -159,6 +185,8 @@ public class WordEContract_ControlDataService
             margin: 0;
             padding: 0;
         }}
+    .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 1.1em; }}
+    .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
     </style>
 
 </head>
@@ -173,10 +201,9 @@ public class WordEContract_ControlDataService
             </div>
         </td>
         <!-- Right: Contract code box (replace with your actual contract code if needed) -->
+
         <td style='width:40%; text-align:center; vertical-align:top;'>
-            <div style='display:inline-block; padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
-            </div>
+            {contractLogoHtml}
         </td>
     </tr>
 </table>
@@ -206,7 +233,7 @@ public class WordEContract_ControlDataService
 
 <p class='t-14 tab3'>วัตถุประสงค์</P>
 {(purplist != null && purplist.Count > 0
-    ? string.Join("", purplist.Select(p => $"<p class='tab4 t-14'>{p.Objective_Description}</P>"))
+    ? string.Join("", purplist.Select(p => $"<p class='tab4 t-14'>{p.Detail}</P>"))
     : "<p class='t-14 tab3'>- ไม่มีข้อมูลวัตถุประสงค์ -</P>")}
 
    <p class='t-14 tab3'>ซึ่งจากรายการกิจกรรมการประมวลผลหลักที่คู่สัญญาร่วมกันกำหนดวัตถุประสงค์ข้างต้น คู่สัญญาแต่ละฝ่ายมีการประมวลผลข้อมูลส่วนบุคคล (“กิจกรรมการประมวลผลข้อมูลส่วนบุคคลย่อย”) ดังรายละเอียดต่อไปนี้</P>
@@ -241,6 +268,10 @@ public class WordEContract_ControlDataService
         </tr>"))}
     </table>
     <!-- Add more sections as needed, following your Word structure -->
+   <p class='t-14 tab3'>ทั้งนี้ คู่สัญญาแต่ละฝ่ายรับรองว่าจะดำเนินการประมวลผลข้อมูลส่วนบุคคลดังรายละเอียดข้างต้นให้เป็นไปตามที่กฎหมายคุ้มครองข้อมูลส่วนบุคคลกำหนด โดยเฉพาะอย่างยิ่งในเรื่องความชอบ
+ด้วยกฎหมายของการประมวลผลข้อมูลภายใต้ความเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม โดยคู่สัญญา
+แต่ละฝ่ายจะจัดให้มีและคงไว้ซึ่งมาตรการรักษาความปลอดภัยสำหรับการประมวลผลข้อมูลที่มีความเหมาะสมทั้งในมาตรการเชิงองค์กร มาตรการเชิงเทคนิค และมาตรการเชิงกายภาพ ตามที่คณะกรรมการคุ้มครองข้อมูลส่วนบุคคลได้ประกาศกำหนดและ/หรือตามมาตรฐานสากล โดยคำนึงถึงลักษณะ ขอบเขต และวัตถุประสงค์ของการประมวลผลข้อมูล เพื่อคุ้มครองข้อมูลส่วนบุคคลจากความเสี่ยงอันเกี่ยวเนื่องกับการประมวลผล
+ข้อมูลส่วนบุคคล เช่น ความเสียหายอันเกิดจากการละเมิด อุบัติเหตุ การลบ ทำลาย สูญหาย เปลี่ยนแปลง แก้ไข เข้าถึง ใช้ เปิดเผยหรือโอนข้อมูลส่วนบุคคลโดยไม่ชอบด้วยกฎหมาย เป็นต้น</P>
    <p class='t-14 tab3'><b>ข้อ ๒ หน้าที่และความรับผิดชอบของคู่สัญญา</b></P>
 
 
@@ -291,8 +322,12 @@ public class WordEContract_ControlDataService
 <p class='t-14 tab3'>๓.๑ คู่สัญญาแต่ละฝ่ายจะต้องชดใช้ความเสียหายให้แก่อีกฝ่ายในค่าปรับ ความสูญหาย
 หรือเสียหายใด ๆ ที่เกิดขึ้นกับฝ่ายที่ไม่ได้ผิดเงื่อนไข อันเนื่องมาจากการฝ่าฝืน 
 ข้อตกลงฉบับนี้ แม้ว่าจะมีข้อจำกัดความรับผิดภายใต้สัญญาหลักก็ตาม</P>
+<p class='t-14 tab3'>๓.๒ ในกรณีที่คู่สัญญาต้องรับผิดร่วมกันในค่าปรับหรือการชดใช้ความเสียหายตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล โดยไม่สามารถพิจารณาเป็นที่ประจักษ์ได้ว่าฝ่ายหนึ่งฝ่ายใดการทำการเป็นเหตุ
+ให้เกิดความเสียหายแต่เพียงผู้เดียว หรือจากการถูกศาลหรือหน่วยงานผู้มีอำนาจมีคำพิพากษาหรือคำสั่ง
+ถึงที่สุดให้คู่สัญญาร่วมกันรับผิดดังกล่าว คู่สัญญาตกลงกันแบ่งความรับผิดเป็นสัดส่วนดังต่อไปนี้</P>
 
 <p class='t-14 tab3'>(๑) สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.) ร้อยละ ๕๐</P>
+<p class='t-14 tab3'>(๒) {result.Contract_Party_Name} ร้อยละ ๕๐</P>
 <p class='t-14 tab3'>ทั้งนี้การตกลงกันของคู่สัญญานี้ ไม่มีอำนาจเหนือไปกว่าคำพิพากษาหรือคำสั่งถึงที่สุดของ
 ศาลหรือหน่วยงานผู้มีอำนาจที่กำหนดให้คู่สัญญาหรือคู่สัญญาฝ่ายหนึ่งฝ่ายใดต้องถูกปรับหรือชดใช้ค่าเสียหาย</P>
 

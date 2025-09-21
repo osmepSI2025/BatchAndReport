@@ -35,6 +35,9 @@
             public bool Flag_Delete { get; set; }
             public string Request_ID { get; set; }
             public string Contract_Status { get; set; }
+
+            public string Organization_Logo { get; set; }
+            
         }
     }
     public class E_ConReportJDCA_JointPurpModels

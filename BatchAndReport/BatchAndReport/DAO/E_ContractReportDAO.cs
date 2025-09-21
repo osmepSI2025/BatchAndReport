@@ -516,18 +516,19 @@ namespace BatchAndReport.DAO
                 UpdateBy = reader["UpdateBy"] as string,
                 Flag_Delete = reader["Flag_Delete"] is bool flag ? flag : false,
                 Request_ID = reader["Request_ID"] as string,
-                Contract_Status = reader["Contract_Status"] as string
+                Contract_Status = reader["Contract_Status"] as string,
+                Organization_Logo = reader["Organization_Logo"] as string
             };
 
             return detail;
         }
 
-        public async Task<List<E_ConReport_PDPAObjectModels>> GetJDCA_JointPurpAsync(string? id = "0")
+        public async Task<List<E_ConReportJDCA_JointPurpModels>> GetJDCA_JointPurpAsync(string? id = "0")
         {
             try
             {
 
-                var result = new List<E_ConReport_PDPAObjectModels>();
+                var result = new List<E_ConReportJDCA_JointPurpModels>();
                 await using var connection = _connectionDAO.GetConnectionK2Econctract();
                 await using var command = new SqlCommand(@"
         SELECT JP_ID, JDCA_ID, Detail
@@ -540,11 +541,11 @@ namespace BatchAndReport.DAO
                 using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    result.Add(new E_ConReport_PDPAObjectModels
+                    result.Add(new E_ConReportJDCA_JointPurpModels
                     {
-                        PD_Objectives_ID = reader["PD_Objectives_ID"] as int?,
-                        PDPA_ID = reader["PDPA_ID"] as int?,
-                        Objective_Description = reader["Objective_Description"] as string
+                         JP_ID = reader["JP_ID"] as int?,
+                        JDCA_ID = reader["JDCA_ID"] as int?,
+                        Detail = reader["Detail"] as string
                     });
                 }
                 return result;
@@ -683,6 +684,7 @@ namespace BatchAndReport.DAO
                 CP_S_AttorneyLetterDate = reader["CP_S_AttorneyLetterDate"] as DateTime?,
                 CP_S_NAME = reader["CP_S_NAME"] as string,
                 CP_S_POSITION = reader["CP_S_POSITION"] as string,
+                Organization_Logo = reader["Organization_Logo"] as string
             };
 
             return detail;

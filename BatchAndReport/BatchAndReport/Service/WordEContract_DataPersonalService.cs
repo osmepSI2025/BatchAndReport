@@ -617,7 +617,7 @@ string datestring = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign
         }}
         body {{
             font-size: 22px;
-            font-family: 'THSarabunNew', Arial, sans-serif;
+            font-family: 'THSarabunNew', Arial, sans-serif !important;
         }}
         /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
         body, p, div {{
@@ -632,7 +632,7 @@ string datestring = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign
         .t-18 {{ font-size: 1.7em; }}
         .t-20 {{ font-size: 1.9em; }}
         .t-22 {{ font-size: 2.1em; }}
-
+  .tab0 {{ text-indent: 0px;     }}
            .tab1 {{ text-indent: 48px; text-align: justify;  }}
         .tab2 {{ text-indent: 96px;  text-align: left; }}
         .tab3 {{ text-indent: 144px; text-align: left; }}
@@ -681,15 +681,17 @@ string datestring = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign
             padding: 16px;
             text-align: center;
             vertical-align: top;
-            font-size: 1.4em;
+           font-size: 1.4em;
         }}
-
+   .table {{ width: 100%; border-collapse: collapse; margin-top: 20px;  font-size: 1.1em; }}
+        .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
 .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
         .logo-table td {{ border: none; }}
         p {{
             margin: 0;
             padding: 0;
         }}
+
     </style>
 
 </head>

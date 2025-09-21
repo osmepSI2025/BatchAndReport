@@ -37,6 +37,8 @@
         public string? CP_S_NAME { get; set; }
         public string? CP_S_POSITION { get; set; }
         public DateTime? CP_S_AttorneyLetterDate { get; set; }
+        public string? Organization_Logo { get; set; }
+        
     }
 
     public class E_ConReport_NDAConfidentialTypeModels

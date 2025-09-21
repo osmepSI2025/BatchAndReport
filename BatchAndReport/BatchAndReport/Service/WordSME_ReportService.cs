@@ -72,7 +72,7 @@ public class WordSME_ReportService
         {
             htmlBody.Append($@"
     <tr style='font-size:18pt;'>
-        <td style='border:1px solid #000; font-size:18pt;' >ประเด็นที่{i} {row.IssueName ?? ""}</td>
+        <td style='border:1px solid #000; font-size:18pt;' >ประเด็นที่ {row.IssueName ?? ""}</td>
         <td style='border:1px solid #000; font-size:18pt;'>{row.ProjectCount?.ToString("N0", culture) ?? "0"}</td>
         <td class='text-right' style='border:1px solid #000; font-size:18pt;'>{(row.Budget.GetValueOrDefault() / 1_000_000).ToString("N4", culture)}</td>
     </tr>
@@ -98,7 +98,7 @@ public class WordSME_ReportService
         {
             var TopictotalProject = topicGroup.Count();
             var TopicsumBudget = topicGroup.Sum(p => p.BudgetAmount);
-            htmlBody.Append($@"<div style='font-size:18pt;'><b>ประเด็นการส่งเสริมที่ {topicIndex} {topicGroup.Key}</b></div>");
+            htmlBody.Append($@"<div style='font-size:18pt;'><b>ประเด็นการส่งเสริมที่  {topicGroup.Key}</b></div>");
             htmlBody.Append($@"<div style='font-size:18pt;'>จำนวน {TopictotalProject} โครงการ งบประมาณ {TopicsumBudget:N2} ล้านบาท</div>");
             htmlBody.Append($@"</br>");
 
@@ -111,7 +111,7 @@ public class WordSME_ReportService
               
            
 
-                htmlBody.Append($@"<div style='font-size:18pt;'><b>กลยุทธ์ที่ {strategyIndex} {strategyGroup.Key}</b></div>");        
+                htmlBody.Append($@"<div style='font-size:18pt;'><b>กลยุทธ์ที่  {strategyGroup.Key}</b></div>");        
                 htmlBody.Append($@"<div style='font-size:18pt;'>จำนวน {totalProject} โครงการ งบประมาณ {sumBudget:N2} ล้านบาท</div>");
 
                 // Table
