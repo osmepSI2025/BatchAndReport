@@ -35,6 +35,8 @@
         public string Flag_Delete { get; set; } // nvarchar(1)
         public string Request_ID { get; set; } // nvarchar(50)
         public string Contract_Status { get; set; } // nvarchar(10)
+        public string Organization_Logo { get; set; }
+        
     }
 
 

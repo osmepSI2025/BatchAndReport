@@ -338,6 +338,29 @@ public class WordEContract_PersernalProcessService
                 var bytes = System.IO.File.ReadAllBytes(logoPath);
                 logoBase64 = Convert.ToBase64String(bytes);
             }
+            string contractLogoHtml;
+            if (!string.IsNullOrEmpty(result.Organization_Logo) && result.Organization_Logo.Contains("<content>"))
+            {
+                try
+                {
+                    // ตัดเอาเฉพาะ Base64 ในแท็ก <content>...</content>
+                    var contentStart = result.Organization_Logo.IndexOf("<content>") + "<content>".Length;
+                    var contentEnd = result.Organization_Logo.IndexOf("</content>");
+                    var contractlogoBase64 = result.Organization_Logo.Substring(contentStart, contentEnd - contentStart);
+
+                    contractLogoHtml = $@"<div style='display:inline-block; padding:20px; font-size:32pt;'>
+                 <img src='data:image/jpeg;base64,{contractlogoBase64}' width='240' height='80' />
+                </div>";
+                }
+                catch
+                {
+                    contractLogoHtml = "";
+                }
+            }
+            else
+            {
+                contractLogoHtml = "";
+            }
 
             // Font
             //var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
@@ -456,10 +479,22 @@ public class WordEContract_PersernalProcessService
     </style>
 </head>
 <body>
-     <div class='text-center'>
-         <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
-    </div>
-    <div class='t-16 text-center'><b>ข้ออตกลงการประมวลผลข้อมูลส่วนบุคคล</b></div>
+     <table style='width:100%; border-collapse:collapse; margin-top:40px;'>
+    <tr>
+        <!-- Left: SME logo -->
+        <td style='width:60%; text-align:left; vertical-align:top;'>
+        <div style='display:inline-block; padding:20px; font-size:32pt;'>
+             <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+           </div>
+        </td>
+        <!-- Right: Contract code box (replace with your actual contract code if needed) -->
+        <td style='width:40%; text-align:center; vertical-align:top;'>
+            {contractLogoHtml}
+        </td>
+    </tr>
+</table>
+</br>
+    <div class='t-16 text-center'><b>ข้อตกลงการประมวลผลข้อมูลส่วนบุคคล</b></div>
     <div class='t-16 text-center'><b>(Data Processing Agreement)</b></div>
     <div class='t-16 text-center'><b>โครงการ {result.Project_Name ?? ""}</b></div>
     <div class='t-14 text-center'><b>ระหว่าง</b></div>
@@ -467,31 +502,31 @@ public class WordEContract_PersernalProcessService
     <div class='t-16 text-center'>---------------------------------</div>
   </br>
 <p class='t-12 tab3'>
-        ข้อตกลงการประมวลผลข้อมูลส่วนบุคคล (“ข้อตกลง”) ฉบับนี้ทำขึ้น เมื่อวันที่ {signDate} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม
+        ข้อตกลงการประมวลผลข้อมูลส่วนบุคคล (“ข้อตกลง”) ฉบับนี้ทำขึ้น เมื่อ {signDate} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม
     </P>
     <p class='t-12 tab3'> 
         โดยที่ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สสว.” ฝ่ายหนึ่ง ได้ตกลงใน {result.Project_Name ?? ""} สัญญาเลขที่ {result.Contract_Number ?? ""} ฉบับลง {signDate} ซึ่งต่อไปในข้อตกลงฉบับนี้
 </br>เรียกว่า “(บันทึกความร่วมมือ/สัญญา)” กับ {result.Contract_Organization ?? ""} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “{result.Contract_Organization ?? ""}” อีกฝ่ายหนึ่ง
     </P>
     <p class='t-12 tab3'>
-        ตามที่ {result.Project_Name} ดังกล่าวกำหนดให้ สสว. {result.OSMEP_ScopeRightsDuties ?? ""} ซึ่งในการดำเนินการ ดังกล่าวประกอบด้วย การมอบหมายหรือแต่งตั้งให้ {result.Contract_Organization ?? ""} เป็นผู้ดำเนินการ กระบวนการเก็บรวบรวม ใช้ หรือเปิดเผย (“ประมวลผล”) ข้อมูลส่วนบุคคลแทนหรือในนามของ สสว.
+        ตามที่ {result.Project_Name} ดังกล่าวกำหนดให้ สสว. มีหน้าที่และความรับผิดชอบในส่วนของการ {result.OSMEP_ScopeRightsDuties ?? ""} ซึ่งในการดำเนินการ ดังกล่าวประกอบด้วย การมอบหมายหรือแต่งตั้งให้ {result.Contract_Organization ?? ""} เป็นผู้ดำเนินการ กระบวนการเก็บรวบรวม ใช้ หรือเปิดเผย (“ประมวลผล”) ข้อมูลส่วนบุคคลแทนหรือในนามของ สสว.
     </P>
     <p class='t-12 tab3'>
-        สสว. ในฐานะผู้ควบคุมข้อมูลส่วนบุคคลเป็นผู้มีอำนาจตัดสินใจ กำหนดรูปแบบและ กำหนดวัตถุประสงค์ ในการประมวลผล ข้อมูลส่วนบุคคล ได้.{result.Objectives}.ให้ {result.Contract_Organization ?? ""} ในฐานะผู้ประมวลผลข้อมูลส่วนบุคคล ดำเนินการเพื่อวัตถุประสงค์ดังต่อไปนี้
+        สสว. ในฐานะผู้ควบคุมข้อมูลส่วนบุคคลเป็นผู้มีอำนาจตัดสินใจ กำหนดรูปแบบและ กำหนดวัตถุประสงค์ ในการประมวลผล ข้อมูลส่วนบุคคล ได้ {result.Objectives} ให้ {result.Contract_Organization ?? ""} ในฐานะผู้ประมวลผลข้อมูลส่วนบุคคล ดำเนินการเพื่อวัตถุประสงค์ดังต่อไปนี้
     </P>
 <p class='t-12 tab3'>วัตถุประสงค์</P>
 {(conPurpose != null && conPurpose.Count > 0
     ? string.Join("", conPurpose.Select(p => $"<p class='t-12 tab4'>{p.Objective_Description}</P>"))
     : "<p class='t-12 tab3'>- ไม่มีข้อมูลวัตถุประสงค์ -</P>")}
 
-<p class='t-12 tab3'>ข้อตกลง</P>
+<p class='t-12 tab3'>โดยข้อมูลส่วนบุคคลที่ สสว. {result.Objectives} ให้ {result.Contract_Organization ?? ""} ประมวลผล ประกอบด้วย</P>
 {(conAgreement != null && conAgreement.Count > 0
     ? string.Join("", conAgreement.Select(a => $"<p class='t-12 tab4'>{a.PD_Detail}</P>"))
-    : "<p class='t-12 tab3'>- ไม่มีข้อมูลข้อตกลง -</P>")}
+    : "<p class='t-12 tab3'>- ไม่มีข้อมูลส่วนบุคคล -</P>")}
 <p class='t-12 tab3'>
     ด้วยเหตุนี้ ทั้งสองฝ่ายจึงตกลงจัดทำข้อตกลงฉบับนี้ และให้ถือข้อตกลงฉบับนี้เป็น ส่วนหนึ่งของ {result.Master_Contract_Number ?? ""} 
 เพื่อเป็นหลักฐานการควบคุมดูแลการประมวลผล ข้อมูลส่วนบุคคลที่ สสว. มอบหมายหรือแต่งตั้งให้ {result.Contract_Organization ?? ""} 
-ดำเนินการ อันเนื่องมาจาก การดำเนินการ ตามหน้าที่ และความรับผิดชอบตาม {result.Master_Contract_Number ?? ""} ฉบับลงวันที่ {signDate} และเพื่อดำเนินการ ให้เป็นไปตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. ๒๕๖๒ และกฎหมายอื่นๆ ที่ออกตามความในพระราชบัญญัติ คุ้มครอง ข้อมูลส่วนบุคคล พ.ศ. ๒๕๖๒ ซึ่งต่อไปในข้อตกลงฉบับนี้ รวมเรียกว่า “กฎหมายคุ้มครองข้อมูลส่วนบุคคล” ทั้งที่มีผลใช้บังคับอยู่ ณ วันทำข้อตกลงฉบับนี้ และที่จะมีการเพิ่มเติมหรือแก้ไข เปลี่ยนแปลงในภายหลัง โดยมีรายละเอียดดังนี้
+ดำเนินการ อันเนื่องมาจาก การดำเนินการ ตามหน้าที่ และความรับผิดชอบตาม {result.Master_Contract_Number ?? ""} ฉบับลง {signDate} และเพื่อดำเนินการ ให้เป็นไปตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. ๒๕๖๒ และกฎหมายอื่นๆ ที่ออกตามความในพระราชบัญญัติ คุ้มครอง ข้อมูลส่วนบุคคล พ.ศ. ๒๕๖๒ ซึ่งต่อไปในข้อตกลงฉบับนี้ รวมเรียกว่า “กฎหมายคุ้มครองข้อมูลส่วนบุคคล” ทั้งที่มีผลใช้บังคับอยู่ ณ วันทำข้อตกลงฉบับนี้ และที่จะมีการเพิ่มเติมหรือแก้ไข เปลี่ยนแปลงในภายหลัง โดยมีรายละเอียดดังนี้
 </P>
 <p class='t-12 tab3'>
     ๑. {result.Contract_Organization ?? ""} รับทราบว่า ข้อมูลส่วนบุคคล หมายถึง ข้อมูลเกี่ยวกับบุคคลธรรมดา ซึ่งทำให้สามารถระบุ ตัวบุคคลนั้นได้ ไม่ว่าทางตรงหรือทางอ้อม 
@@ -529,7 +564,7 @@ public class WordEContract_PersernalProcessService
     นอกจากนี้ ในกรณีปรากฏว่า {result.Contract_Organization ?? ""} หมดความจำเป็นจะต้องเก็บรักษาข้อมูล ส่วนบุคคลตาม ข้อตกลงฉบับนี้ ก่อนสิ้นระยะเวลา ตามวรรคหนึ่ง {result.Contract_Organization ?? ""} จะทำการลบหรือทำลาย ข้อมูลส่วนบุคคลตาม ข้อตกลงฉบับนี้ทันที
 </P>
 <p class='t-12 tab3'>
-    ๘. กรณีที่ {result.Contract_Organization ?? ""} พบพฤติการณ์ใด ๆ ที่มีลักษณะที่กระทบ ต่อการรักษาความปลอดภัย ของข้อมูลบุคคลที่ {result.Contract_Organization ?? ""} ประมวลผลภายใต้ข้อตกลงฉบับนี้ ซึ่งอาจก่อให้เกิดความเสียหายจากการละเมิด อุบัติเหตุ การลบ ทำลาย สูญหาย เปลี่ยนแปลง แก้ไข เข้าถึง ใช้ เปิดเผยหรือโอนข้อมูลส่วนบุคคลโดยไม่ชอบด้วยกฎหมาย แล้ว {result.Contract_Organization ?? ""} จะดำเนินการแจ้งให้ สสว. ทราบโดยทันทีภายในเวลาไม่เกิน ... ชั่วโมง
+    ๘. กรณีที่ {result.Contract_Organization ?? ""} พบพฤติการณ์ใด ๆ ที่มีลักษณะที่กระทบ ต่อการรักษาความปลอดภัย ของข้อมูลบุคคลที่ {result.Contract_Organization ?? ""} ประมวลผลภายใต้ข้อตกลงฉบับนี้ ซึ่งอาจก่อให้เกิดความเสียหายจากการละเมิด อุบัติเหตุ การลบ ทำลาย สูญหาย เปลี่ยนแปลง แก้ไข เข้าถึง ใช้ เปิดเผยหรือโอนข้อมูลส่วนบุคคลโดยไม่ชอบด้วยกฎหมาย แล้ว {result.Contract_Organization ?? ""} จะดำเนินการแจ้งให้ สสว. ทราบโดยทันทีภายในเวลาไม่เกิน {result.IncidentNotifyPeriod ?? 0} ชั่วโมง
 </P>
 <p class='t-12 tab3'>
     ๙. การแจ้งถึงเหตุการละเมิดข้อมูลส่วนบุคคลที่เกิดขึ้นภายใต้ข้อตกลงนี้ {result.Contract_Organization ?? ""} จะใช้มาตรการ ตามที่เห็นสมควร ในการระบุ ถึงสาเหตุของการละเมิด 
@@ -537,11 +572,12 @@ public class WordEContract_PersernalProcessService
  
            <p class='t-12 tab4'>-รายละเอียดของลักษณะและผลกระทบที่อาจเกิดขึ้นของการละเมิด</p>
           <p class='t-12 tab4'>-มาตรการที่ถูกใช้เพื่อลดผลกระทบของการละเมิด</p>
+           <p class='t-12 tab4'>-ประเภทของข้อมูลส่วนบุคคลและเจ้าของข้อมูลส่วนบุคคลที่ถูกละเมิด หากมีปรากฏ</p>
            <p class='t-12 tab4'>-ข้อมูลอื่น ๆ เกี่ยวข้องกับการละเมิด</p>
     
 
 <p class='t-12 tab3'>
-    ๑๐. หน้าที่และความรับผิดของ {result.Contract_Organization ?? ""} ในการปฏิบัติตามข้อตกลงจะสิ้นสุดลงนับแต่วันที่ปฏิบัติงาน ที่ตกลงเสร็จสิ้น หรือ วันที่ {result.End_Date?.ToString("dd/MM/yyyy") ?? ""} และ สสว. ได้ตกลงเป็นลายลักษณ์อักษรให้ยกเลิก {result.Master_Contract_Number ?? ""} แล้วแต่กรณีใดจะเกิดขึ้นก่อน อย่างไรก็ดี การสิ้นผลลงของ ข้อตกลงนี้ไม่กระทบต่อหน้าที่ของ {result.Contract_Organization ?? ""} ในการลบหรือทำลายข้อมูลส่วนบุคคลตามที่ได้กำหนดในข้อ 7 ของข้อตกลงฉบับนี้
+    ๑๐. หน้าที่และความรับผิดของ {result.Contract_Organization ?? ""} ในการปฏิบัติตามข้อตกลงจะสิ้นสุดลงนับแต่วันที่ปฏิบัติงาน ที่ตกลงเสร็จสิ้น หรือ วันที่ {result.End_Date?.ToString("dd/MM/yyyy") ?? ""} {result.Contract_Organization ?? ""} และ สสว. ได้ตกลงเป็นลายลักษณ์อักษรให้ยกเลิก {result.Master_Contract_Number ?? ""} แล้วแต่กรณีใดจะเกิดขึ้นก่อน อย่างไรก็ดี การสิ้นผลลงของ ข้อตกลงนี้ไม่กระทบต่อหน้าที่ของ {result.Contract_Organization ?? ""} ในการลบหรือทำลายข้อมูลส่วนบุคคลตามที่ได้กำหนดในข้อ 7 ของข้อตกลงฉบับนี้
 </P>
 <p class='t-12 tab3'>
     บันทึกข้อตกลงนี้ทำขึ้นเป็นบันทึกข้อตกลงอิเล็กทรอนิกส์ คู่ตกลงได้อ่าน เข้าใจเงื่อนไข และยอมรับเงื่อนไข และได้ยืนยันว่าเป็นผู้มีอำนาจลงนามในบันทึกข้อตกลง จึงได้ลงลายมืออิเล็กทรอนิกส์พร้อมทั้งประทับตรา (ถ้ามี) ในบันทึกข้อตกลงไว้ และต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับในระบบของตน 
