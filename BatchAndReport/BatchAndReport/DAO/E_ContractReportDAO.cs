@@ -270,7 +270,8 @@ namespace BatchAndReport.DAO
                 CP_S_AttorneyFlag = reader["CP_S_AttorneyFlag"] as bool?,
                 CP_S_AttorneyLetterDate = reader["CP_S_AttorneyLetterDate"] as DateTime?,
                 CP_S_NAME = reader["CP_S_NAME"] as string,
-                CP_S_POSITION = reader["CP_S_POSITION"] as string
+                CP_S_POSITION = reader["CP_S_POSITION"] as string,
+                Organization_Logo = reader["Organization_Logo"] as string
             };
 
             return detail;
