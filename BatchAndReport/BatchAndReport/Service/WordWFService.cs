@@ -109,9 +109,12 @@ public class WordWFService : IWordWFService
         ws.Cells["A1"].Style.Font.Color.SetColor(System.Drawing.Color.White);
 
         // ===== Row 2 =====
+        var yStr = model?.ProcessDetails?[0].ProcessYear?.ToString();
+        int.TryParse(yStr, out var y);
+        
         ws.Cells["A2:C2"].Merge = true;
-        ws.Cells["A2"].Value = "กระบวนการ (ทบทวน ปี 2567)";
-        ws.Cells["D2"].Value = "2566";
+        ws.Cells["A2"].Value = $"กระบวนการ (ทบทวน ปี {model?.ProcessDetails?[0].ProcessYear?.ToString()})";
+        ws.Cells["D2"].Value = $"{y - 1}";
         ws.Cells["E2"].Value = "หน่วยงาน";
         ws.Cells["F2"].Value = "Workflow";
         ws.Cells["G2"].Value = "WI";
@@ -256,8 +259,7 @@ public class WordWFService : IWordWFService
             ws.Cells[startRow, 3].Value = item.ProcessType;
             ws.Cells[startRow, 4].Value = item.ProcessGroupCode;
             ws.Cells[startRow, 5].Value = item.ProcessCode;
-            ws.Cells[startRow, 6].Value = item.ProcessName;
-            ws.Cells[startRow, 7].Value = item.EvaluationDesc;
+            ws.Cells[startRow, 6].Value = item.EvaluationDesc;
             ws.Cells[startRow, 7].Value = item.PerformanceResult;
             startRow++;
             no++;

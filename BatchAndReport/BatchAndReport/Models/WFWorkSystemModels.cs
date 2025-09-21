@@ -19,6 +19,7 @@ namespace BatchAndReport.Models
 
     public class ProcessDetailDto
     {
+        public string ProcessYear { get; set; }
         public string ProcessCode { get; set; }
         public string ProcessName { get; set; }
         public string PrevProcessCode { get; set; }
