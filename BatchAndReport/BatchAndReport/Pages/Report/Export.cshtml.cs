@@ -7,6 +7,7 @@ using Microsoft.Data.SqlClient;
 using PuppeteerSharp;
 using Spire.Doc;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using Document = Spire.Doc.Document;
 namespace BatchAndReport.Pages.Report
 {
@@ -6393,10 +6394,20 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
 
         #region 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
+        // Add this P/Invoke at the top of your file or in a static class
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        static extern bool MoveFileEx(string lpExistingFileName, string? lpNewFileName, MoveFileFlags dwFlags);
 
+        [Flags]
+        enum MoveFileFlags
+        {
+            MOVEFILE_REPLACE_EXISTING = 0x1,
+            MOVEFILE_COPY_ALLOWED = 0x2,
+            MOVEFILE_DELAY_UNTIL_REBOOT = 0x4,
+            MOVEFILE_WRITE_THROUGH = 0x8
+        }
         public async Task OnGetWordContact_JOA_PDF(string ContractId = "3", string Name = "สมใจ ทดสอบ")
         {
-            // 4. Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
             if (!Directory.Exists(folderPath))
             {
@@ -6404,26 +6415,30 @@ namespace BatchAndReport.Pages.Report
             }
             var filePath = Path.Combine(folderPath, $"JOA_{ContractId}.pdf");
 
-            // 5. Delete the file if it already exists
+            // Delete old file if exists
             if (System.IO.File.Exists(filePath))
             {
-                System.IO.File.Delete(filePath);
+                try
+                {
+                    System.IO.File.Delete(filePath);
+                }
+                catch (IOException)
+                {
+                    // If file is locked, schedule for deletion on next reboot (Windows only)
+                    MoveFileEx(filePath, null, MoveFileFlags.MOVEFILE_DELAY_UNTIL_REBOOT);
+                }
             }
-            // 1. Get HTML content
+
+            // Generate new PDF file
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
-
-          
-
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
             await using var page = await browser.NewPageAsync();
-
             await page.SetContentAsync(htmlContent);
 
             var pdfOptions = new PdfOptions
             {
                 Format = PuppeteerSharp.Media.PaperFormat.A4,
-
                 Landscape = false,
                 MarginOptions = new PuppeteerSharp.Media.MarginOptions
                 {
@@ -6433,20 +6448,11 @@ namespace BatchAndReport.Pages.Report
                     Right = "20mm"
                 },
                 PrintBackground = true
-
             };
 
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
-
-
-           
-           await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
-
-            // 6. Return the PDF file as download
-           // var resultBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-          //  return File(resultBytes, "application/pdf", $"JOA_{ContractId}.pdf");
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
         }
-
         public async Task<string?> GetPdfPasswordAsync(string? empId, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(empId))
