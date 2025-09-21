@@ -665,7 +665,8 @@ namespace BatchAndReport.DAO
                 Contract_Category = reader["Contract_Category"] as string,
                 Contract_Storage = reader["Contract_Storage"] as string,
                 Ref_Name = reader["Ref_Name"] as string,
-                EnforcePeriods = reader["EnforcePeriods"] as string,
+               EnforcePeriods = reader["EnforcePeriods"] is int val ? val : Convert.ToInt32(reader["EnforcePeriods"]),
+               
                 OSMEP_Signer = reader["OSMEP_Signer"] as string,
                 OSMEP_Witness = reader["OSMEP_Witness"] as string,
                 Contract_Signer = reader["Contract_Signer"] as string,

@@ -38,6 +38,7 @@ public class WordEContract_DataSecretService
                 purposeHtml += $"<p class='tab4 t-14'>{System.Net.WebUtility.HtmlEncode(purpose.Detail)}</p>";
             }
         }
+        
         var conConfidentialHtml = "";
         var conConfidentialType = await _eContractReportDAO.GetNDA_ConfidentialTypeAsync(id);
         if (conConfidentialType != null && conConfidentialType.Count > 0)
@@ -256,8 +257,8 @@ public class WordEContract_DataSecretService
     </p>
    <p class='tab3 t-14'>
         สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B>  โดย {result.OSMEP_NAME} ตำแหน่ง {result.OSMEP_POSITION} {strAttorneyOsmep} สำนักงานตั้งอยู่เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550 (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เปิดเผยข้อมูล”
-        กับ {result.Contract_Party_Name} โดย {result.CP_S_NAME} ตำแหน่ง {result.CP_S_POSITION} {strAttorney} 
-       </br> สำนักงานตั้งอยู่เลขที่ {result.OfficeLoc} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้รับข้อมูล”
+      </br>  กับ {result.Contract_Party_Name} โดย {result.CP_S_NAME} ตำแหน่ง {result.CP_S_POSITION} {strAttorney} 
+     สำนักงานตั้งอยู่เลขที่ {result.OfficeLoc} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้รับข้อมูล”
     </p>
    <p class='tab3 t-14'>คู่สัญญาได้ตกลงทำสัญญากันมีข้อความดังต่อไปนี้</p>
 
@@ -281,6 +282,7 @@ public class WordEContract_DataSecretService
 ประกอบการ และข้อมูลส่วนบุคคลที่ผู้ให้ข้อมูลได้เก็บ รวบรวม ใช้ ข้อมูลที่เป็นความลับที่ผู้ให้ข้อมูล หรือในนามของผู้ให้ข้อมูลที่เปิดเผยแก่ผู้รับข้อมูล ซึ่งหมายความรวมถึงข้อมูลที่ผู้ให้ข้อมูลให้แก่ผู้รับข้อมูล ดังนี้
     </p>
    <p class='tab3 t-14'>(ระบุประเภทของข้อมูลที่เป็นความลับที่นำส่งให้แก่กัน)</p>
+
     {conConfidentialHtml}
 
     <!-- Clause 3 -->
@@ -363,7 +365,8 @@ public class WordEContract_DataSecretService
 
     <!-- Clause 7 -->
    <p class='tab3 t-14'><b>ข้อ ๗ ระยะเวลาตามสัญญา</b></p>
-   <p class='tab3 t-14'>สัญญานี้มีผลบังคับใช้นับตั้งแต่วันที่ทำสัญญานี้ โดยมีกำหนดระยะเวลาทั้งสิ้น {result.EnforcePeriods??"-"} ปี นับตั้งแต่
+   <p class='tab3 t-14'>สัญญานี้มีผลบังคับใช้นับตั้งแต่วันที่ทำสัญญานี้ โดยมีกำหนดระยะเวลาทั้งสิ้น {(result.EnforcePeriods.HasValue ? result.EnforcePeriods.Value.ToString() : "-")} ปี นับตั้งแต่
+
 วันที่ทำสัญญาฉบับนี้</p>
    <p class='tab3 t-14'>เมื่อครบกำหนดระยะเวลาตามวรรคหนึ่ง หรือเมื่อมีการบอกเลิกสัญญา หรือผู้ให้ข้อมูล
 ได้แจ้งให้ผู้รับข้อมูลดำเนินการทำลายข้อมูลดังกล่าว ผู้รับข้อมูลจะต้องดำเนินการทำลายข้อมูล ภายใน ๗

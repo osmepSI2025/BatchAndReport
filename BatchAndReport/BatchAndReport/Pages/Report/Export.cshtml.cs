@@ -3967,12 +3967,8 @@ namespace BatchAndReport.Pages.Report
         #endregion 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
 
         #region 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
-        public async Task<IActionResult> OnGetWordContact_PDSA(string ContractId = "1")
-        {
-            var wordBytes = await _DataPersonalService.OnGetWordContact_DataPersonalService(ContractId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.docx");
-        }
-        public async Task OnGetWordContact_PDSA_PDF(string ContractId = "3")
+
+        public async Task OnGetWordContact_PDSA_PDF(string ContractId = "1")
         {
             var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
             await new BrowserFetcher().DownloadAsync();
@@ -6874,7 +6870,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.16 แบบฟอร์มบันทึกข้อตกลงเป็นหนังสือ MIW
 
-        public async Task OnGetWordContact_MIW_PDF(string ContractId = "12")
+        public async Task OnGetWordContact_MIW_PDF(string ContractId = "1")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
@@ -6920,7 +6916,7 @@ namespace BatchAndReport.Pages.Report
             // Optionally, return the file as a download:
             // return File(pdfBytes, "application/pdf", "MIW_" + ContractId + ".pdf");
         }
-        public async Task<IActionResult> OnGetWordContact_MIW_PDF_Preview(string ContractId = "12", string Name = "สมใจ ทดสอบ")
+        public async Task<IActionResult> OnGetWordContact_MIW_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
         {
             // 1. Get HTML content from the service
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);

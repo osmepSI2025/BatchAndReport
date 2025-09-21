@@ -55,6 +55,7 @@ namespace BatchAndReport.DAO
                 Flag_Delete,
                 Request_ID,
                 Contract_Status
+
             FROM PDSA
             WHERE PDSA_ID = @PDSA_ID", connection);
 
@@ -91,7 +92,7 @@ namespace BatchAndReport.DAO
                         UpdateBy = reader["UpdateBy"] as string,
                         Flag_Delete = reader["Flag_Delete"] as string,
                         Contract_Status = reader["Contract_Status"] as string,
-                        Request_ID = reader["Request_ID"] as string
+                        Request_ID = reader["Contract_Status"] as string,
                     };
                 }
                 return null;

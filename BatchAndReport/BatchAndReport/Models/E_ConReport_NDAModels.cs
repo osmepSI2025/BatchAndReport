@@ -16,7 +16,7 @@
         public string Contract_Category { get; set; }
         public string Contract_Storage { get; set; }
         public string Ref_Name { get; set; }
-        public string EnforcePeriods { get; set; }
+        public int? EnforcePeriods { get; set; }
         public string OSMEP_Signer { get; set; }
         public string OSMEP_Witness { get; set; }
         public string Contract_Signer { get; set; }

@@ -424,9 +424,11 @@ public class WordEContract_MemorandumInWritingService
     <P class='t-14 tab2'><B>“{result.OrgCommonName ?? ""}”</B> โดย {result.CP_S_NAME} ตำแหน่ง {result.CP_S_POSITION} {strAttorney} สำนักงานตั้งอยู่เลขที่ {result.Office_Loc} ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “{result.OrgName ?? ""}” อีกฝ่ายหนึ่ง</P>
     <P class='t-14 tab1'><B>วัตถุประสงค์ของความร่วมมือ</B></P>
     <P class='t-14 tab2'>ทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ {result.ProjectTitle} ซึ่งในบันทึกข้อตกลงฉบับนี้ต่อไปจะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการแผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของบันทึกข้อตกลงฉบับนี้ มีระยะเวลา ตั้งแต่วันที่ {strStart_Date} จนถึงวันที่ {strEnd_Date} โดยมีวัตถุประสงค์ ในการดำเนินโครงการ ดังนี้</P>
-{(purposeList != null && purposeList.Count != 0
-    ? $"<div class='t-14 tab3'>{string.Join("<br/>", purposeList.Select(p => p.Detail))}</div>"
-    : "")}
+{(purposeList != null && purposeList.Count > 0
+    ? string.Join("", purposeList.Select((p, i) =>
+        $"<div class='t-14 tab2'>{p.Detail}</div>"))
+    : "")}  
+
   <P class='t-14 tab2'><b>ข้อ 1 ขอบเขตความร่วมมือของ “สสว.”</b></P>
     <P class='t-14 tab3'>1.1 ตกลงร่วมดำเนินการโครงการโดยสนับสนุนงบประมาณ จำนวน {result.Contract_Value?.ToString("N2") ?? "0.00"} บาท ( {strContract_Value} ) ซึ่งได้รวมภาษีมูลค่าเพิ่ม ตลอดจนค่าภาษีอากรอื่น ๆ แล้วให้กับ “{result.OrgName ?? ""}” และการใช้จ่ายเงินให้เป็นไปตามแผนการจ่ายเงินตามเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้</P>
     <P class='t-14 tab3'>1.2 ประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์</P>
