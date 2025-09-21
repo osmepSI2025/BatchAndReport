@@ -81,7 +81,12 @@ public class WordEContract_AMJOAService
             signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist);
 
         }
+        var signatoryTableHtmlWitnesses = "";
 
+        if (signlist.Count > 0)
+        {
+            signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist);
+        }
         #endregion signlist
 
         #region
@@ -236,7 +241,14 @@ public class WordEContract_AMJOAService
 </div>
 
 </div>
+
+<P class='t-14 tab3'>บันทึกข้อตกลงนี้ทำขึ้นเป็นบันทึกข้อตกลงอิเล็กทรอนิกส์ คู่ตกลงได้อ่าน เข้าใจเงื่อนไข และยอมรับเงื่อนไข และได้ยืนยันว่าเป็นผู้มีอำนาจลงนามในบันทึกข้อตกลง จึงได้ลงลายมืออิเล็กทรอนิกส์พร้อมทั้งประทับตรา (ถ้ามี) ในสัญญาไว้ และต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับในระบบของตน</P>
+</br>
+</br>
 {signatoryTableHtml}
+   <P class='t-14 tab3'>ข้าพเจ้าขอรับรองว่า ทั้งสองฝ่ายได้ลงนามในบันทึกข้อตกลงโดยวิธีการอิเล็กทรอนิกส์ เพื่อแสดงเจตนาของคู่ตกลงแล้ว ข้าพเจ้าจึงได้ลงลายมือชื่ออิเล็กทรอนิกส์รับรองเป็นพยานในบันทึกข้อตกลงพร้อมนี้</P>
+
+{signatoryTableHtmlWitnesses}
 </body>
 </html>
 ";

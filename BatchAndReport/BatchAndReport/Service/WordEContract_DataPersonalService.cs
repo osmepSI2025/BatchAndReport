@@ -591,6 +591,14 @@ string datestring = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign
                 signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist);
 
             }
+
+            var signatoryTableHtmlWitnesses = "";
+
+            if (signlist.Count > 0)
+            {
+                signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist);
+            }
+
             #endregion signlist
 
 
@@ -854,44 +862,19 @@ string datestring = CommonDAO.ToThaiDateStringCovert(result.Master_Contract_Sign
  <p class='tab3 t-14'>ในกรณีที่ข้อตกลง คำรับรอง การเจรจา หรือข้อผูกพันใดที่คู่สัญญามีต่อกันไม่ว่าด้วย
 วาจาหรือเป็นลายลักษณ์อักษรใดขัดหรือแย้งกับข้อตกลงที่ระบุในข้อตกลงฉบับนี้ ให้ใช้ข้อความตามข้อตกลง
 ฉบับนี้บังคับ</p>
- <p class='tab3 t-14'>ทั้งสองฝ่ายได้อ่านและเข้าใจข้อความโดยละเอียดตลอดแล้ว เพื่อเป็นหลักฐานแห่งการนี้
-ทั้งสองฝ่ายจึงได้ลงนามไว้เป็นหลักฐานต่อหน้าพยาน ณ วัน เดือน ปี ที่ระบุข้างต้น</p>
+ <p class='tab3 t-14'>บันทึกข้อตกลงนี้ทำขึ้นเป็นบันทึกข้อตกลงอิเล็กทรอนิกส์ คู่ตกลงได้อ่าน เข้าใจเงื่อนไข และยอมรับเงื่อนไข และได้ยืนยันว่าเป็นผู้มีอำนาจลงนามในบันทึกข้อตกลง จึงได้ลงลายมืออิเล็กทรอนิกส์พร้อมทั้งประทับตรา (ถ้ามี) ในบันทึกข้อตกลงไว้ และต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับในระบบของตน </p>
     <!-- Signature Table -->
 
 </br>
 </br>
 {signatoryTableHtml}
+ <P class='t-14 tab3'>ข้าพเจ้าขอรับรองว่า ทั้งสองฝ่ายได้ลงนามในบันทึกข้อตกลงโดยวิธีการอิเล็กทรอนิกส์ เพื่อแสดงเจตนาของคู่ตกลงแล้ว ข้าพเจ้าจึงได้ลงลายมือชื่ออิเล็กทรอนิกส์รับรองเป็นพยานในบันทึกข้อตกลงพร้อมนี้</P>
+
+{signatoryTableHtmlWitnesses}
 </body>
 </html>
 ";
-            var doc = new DinkToPdf.HtmlToPdfDocument()
-            {
-                GlobalSettings = {
-                PaperSize = DinkToPdf.PaperKind.A4,
-                Orientation = DinkToPdf.Orientation.Portrait,
-                Margins = new DinkToPdf.MarginSettings
-                {
-                    Top = 20,
-                    Bottom = 20,
-                    Left = 20,
-                    Right = 20
-                }
-            },
-                Objects = {
-                new DinkToPdf.ObjectSettings() {
-                    HtmlContent = html,
-                    FooterSettings = new DinkToPdf.FooterSettings
-                    {
-                        FontName = "THSarabunNew",
-                        FontSize = 6,
-                        Line = false,
-                        Center = "[page] / [toPage]"
-                    }
-                }
-            }
-            };
-
-            var pdfBytes = _pdfConverter.Convert(doc);
+           
             return html;
         }
         catch (Exception ex)

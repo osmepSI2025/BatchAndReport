@@ -297,6 +297,13 @@ public class WordEContract_MemorandumInWritingService
             signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist);
 
         }
+        var signatoryTableHtmlWitnesses = "";
+
+        if (signlist.Count > 0)
+        {
+            signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist);
+        }
+
         #endregion signlist
 
         var html = $@"
@@ -438,45 +445,21 @@ public class WordEContract_MemorandumInWritingService
     <P class='t-14 tab3'>3.4 ทรัพย์สินใด ๆ และ/หรือ สิทธิใด ๆ ที่ได้มาจากเงินสนับสนุนตาม บันทึกข้อตกลงฉบับนี้ เมื่อสิ้นสุดโครงการให้ตกได้แก่ สสว. ทั้งสิ้น เว้นแต่ สสว. จะกำหนดให้เป็นอย่างอื่น</P>
     <P class='t-14 tab3'>3.5 “ชื่อหน่วยร่วม” ต้องไม่ดำเนินการในลักษณะการจ้างเหมา กับหน่วยงาน องค์กร หรือบุคคลอื่น ๆ ยกเว้นกรณีการจัดหา จัดจ้าง เป็นกิจกรรมหรือเป็นเรื่อง ๆ</P>
     <P class='t-14 tab3'>3.6 ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับ ข้อมูลส่วนบุคคล และการคุ้มครองทรัพย์สินทางปัญญา “ชื่อหน่วยร่วม” จะต้องปฏิบัติ ตามกฎหมาย ว่าด้วยการคุ้มครอง ข้อมูลส่วนบุคคลและ การคุ้มครองทรัพย์สินทางปัญญา อย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้องร้องใดๆ “ชื่อหน่วยร่วม” จะจะต้องเป็นผู้รับผิดชอบ ต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าว แต่เพียงฝ่ายเดียว โดยสิ้นเชิง</P>
-    <P class='t-14 tab3'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้นเป็นสองฉบับ มีข้อความถูก ต้องตรงกัน ทั้งสองฝ่ายได้อ่านและเข้าใจข้อความโดยละเอียดแล้ว จึงได้ลงลายมือชื่อ พร้อมประทับตรา(ถ้ามี) ไว้เป็นสำคัญต่อหน้าพยาน และยึดถือไว้ฝ่ายละฉบับ</P>
+    <P class='t-14 tab3'>บันทึกความเข้าใจนี้ทำขึ้นเป็นบันทึกความเข้าใจทางอิเล็กทรอนิกส์ คู่ตกลงได้อ่าน เข้าใจเงื่อนไข และยอมรับเงื่อนไข และได้ยืนยันว่าเป็นผู้มีอำนาจลงนามในบันทึกความเข้าใจ จึงได้ลงลายมืออิเล็กทรอนิกส์พร้อมทั้งประทับตรา (ถ้ามี) ในบันทึกความเข้าใจไว้ และต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับในระบบของตน  </P>
 
 
 </br>
 </br>
 {signatoryTableHtml}
+
+    <P class='t-14 tab3'>ข้าพเจ้าขอรับรองว่า ทั้งสองฝ่ายได้ลงนามในบันทึกความเข้าใจโดยวิธีการอิเล็กทรอนิกส์ เพื่อแสดงเจตนาของคู่ตกลงแล้ว ข้าพเจ้าจึงได้ลงลายมือชื่ออิเล็กทรอนิกส์รับรองเป็นพยานในบันทึกความเข้าใจพร้อมนี้</P>
+
+{signatoryTableHtmlWitnesses}
 </body>
 </html>
 ";
 
-        // You need to inject IConverter _pdfConverter in the constructor for PDF generation
-        //var doc = new DinkToPdf.HtmlToPdfDocument()
-        //{
-        //    GlobalSettings = {
-        //    PaperSize = DinkToPdf.PaperKind.A4,
-        //    Orientation = DinkToPdf.Orientation.Portrait,
-        //    Margins = new DinkToPdf.MarginSettings
-        //    {
-        //        Top = 20,
-        //        Bottom = 20,
-        //        Left = 20,
-        //        Right = 20
-        //    }
-        //},
-        //    Objects = {
-        //    new DinkToPdf.ObjectSettings() {
-        //        HtmlContent = html,
-        //        FooterSettings = new DinkToPdf.FooterSettings
-        //        {
-        //            FontName = "THSarabunNew",
-        //            FontSize = 6,
-        //            Line = false,
-        //            Center = "[page] / [toPage]"
-        //        }
-        //    }
-        //}
-        //};
-
-        //var pdfBytes = _pdfConverter.Convert(doc);
+      
         return html;
     }
     #endregion

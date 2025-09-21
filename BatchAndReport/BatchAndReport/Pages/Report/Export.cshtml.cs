@@ -4777,11 +4777,7 @@ namespace BatchAndReport.Pages.Report
 
 
         #region 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
-        public async Task<IActionResult> OnGetWordContact_PDPA(string ContractId = "1")
-        {
-            var wordBytes = await _PersernalProcessService.OnGetWordContact_PersernalProcessService(ContractId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.docx");
-        }
+ 
         public async Task OnGetWordContact_PDPA_PDF(string ContractId = "1")
         {
             var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
