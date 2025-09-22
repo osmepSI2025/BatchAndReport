@@ -141,6 +141,25 @@ namespace BatchAndReport.Pages.Report
 
         public async Task OnGetWordContact_EC_PDF(string ContractId = "55")
         {
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "EC_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            var filePathView = Path.Combine(folderPath, "EC_" + ContractId + "_1.pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePathView))
+            {
+                System.IO.File.Delete(filePathView);
+            }
             var htmlContent = await _HireEmployee.OnGetWordContact_HireEmployee_ToPDF(ContractId, "EC");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -167,19 +186,9 @@ namespace BatchAndReport.Pages.Report
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "EC_" + ContractId + ".pdf");
-
-            // Delete the file if it already exists
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
+          
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
 
             // return File(wordBytes, "application/pdf", "สัญญาซื้อขาย.pdf");
         }
@@ -3577,6 +3586,25 @@ namespace BatchAndReport.Pages.Report
    
         public async Task OnGetWordContact_NDA_PDF(string ContractId = "1")
         {
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "NDA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            var filePathView = Path.Combine(folderPath, "NDA_" + ContractId + "_1.pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePathView))
+            {
+                System.IO.File.Delete(filePathView);
+            }
             var htmlContent = await _DataSecretService.OnGetWordContact_DataSecretService_ToPDF(ContractId, "NDA");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -3603,20 +3631,10 @@ namespace BatchAndReport.Pages.Report
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "NDA_" + ContractId + ".pdf");
-
-            // Delete the file if it already exists
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
+          
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
-
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
+            
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
         public async Task<IActionResult> OnGetWordContact_NDA_PDF_Preview(string ContractId = "1", string Name = "สมใจ ทดสอบ")
@@ -3970,6 +3988,25 @@ namespace BatchAndReport.Pages.Report
 
         public async Task OnGetWordContact_PDSA_PDF(string ContractId = "1")
         {
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "PDSA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            var filePathView = Path.Combine(folderPath, "PDSA_" + ContractId + "_1.pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePathView))
+            {
+                System.IO.File.Delete(filePathView);
+            }
             var htmlContent = await _DataPersonalService.OnGetWordContact_DataPersonalService_ToPDF(ContractId, "PDSA");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -3995,20 +4032,10 @@ namespace BatchAndReport.Pages.Report
 
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "PDSA_" + ContractId + ".pdf");
-
-            // Delete the file if it already exists
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
+           
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
-
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
+            
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล.pdf");
         }
 
@@ -4373,6 +4400,25 @@ namespace BatchAndReport.Pages.Report
       
         public async Task OnGetWordContact_JDCA_PDF(string ContractId = "2")
         {
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "JDCA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            var filePathView = Path.Combine(folderPath, "JDCA_" + ContractId + "_1.pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePathView))
+            {
+                System.IO.File.Delete(filePathView);
+            }
             var htmlContent = await _ControlDataService.OnGetWordContact_ControlDataServiceHtmlToPdf(ContractId, "JDCA");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -4398,19 +4444,9 @@ namespace BatchAndReport.Pages.Report
 
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "JDCA_" + ContractId + ".pdf");
-
-            // Delete the file if it already exists
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
+           
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม.pdf");
         }
         public async Task<IActionResult> OnGetWordContact_JDCA_PDF_Preview(string ContractId = "2", string Name = "สมใจ ทดสอบ")
@@ -4777,6 +4813,25 @@ namespace BatchAndReport.Pages.Report
  
         public async Task OnGetWordContact_PDPA_PDF(string ContractId = "2")
         {
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "PDPA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            var filePathView = Path.Combine(folderPath, "PDPA_" + ContractId + "_1.pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePathView))
+            {
+                System.IO.File.Delete(filePathView);
+            }
             var htmlContent = await _PersernalProcessService.OnGetWordContact_PersernalProcessService_HtmlToPDF(ContractId, "PDPA");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -4803,19 +4858,9 @@ namespace BatchAndReport.Pages.Report
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "PDPA_" + ContractId + ".pdf");
-
-            // Delete the file if it already exists
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
-            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+            
+              await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
             // return File(wordBytes, "application/pdf", "บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล.pdf");
         }
 
@@ -5185,6 +5230,27 @@ namespace BatchAndReport.Pages.Report
  
         public async Task OnGetWordContact_MOU_PDF(string ContractId = "6")
         {
+             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "MOU_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+
+            var filePathView = Path.Combine(folderPath, "MOU_" + ContractId + "_1.pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePathView))
+            {
+                System.IO.File.Delete(filePathView);
+            }
+
             var htmlContent = await _MemorandumService.OnGetWordContact_MemorandumService_HtmlToPDF(ContractId, "MOU");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -5210,19 +5276,9 @@ namespace BatchAndReport.Pages.Report
 
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "MOU_" + ContractId + ".pdf");
-
-            // Delete the file if it already exists
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
+           
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
             //   return File(wordBytes, "application/pdf", "MOU_" + ContractId + ".pdf");
         }
 
@@ -5581,6 +5637,27 @@ namespace BatchAndReport.Pages.Report
         #region 4.1.1.2.xxxx.บันทึกข้อตกลงความเข้าใจ MOA
         public async Task OnGetWordContact_MOA_PDF(string ContractId = "1")
         {
+
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "MOA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            var filePathView = Path.Combine(folderPath, "MOA_" + ContractId + "_1.pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePathView))
+            {
+                System.IO.File.Delete(filePathView);
+            }
+
             var htmlContent = await _MemorandumInWritingService.OnGetWordContact_MemorandumInWritingService_HtmlToPDF(ContractId, "MOA");
             await new BrowserFetcher().DownloadAsync();
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -5606,18 +5683,6 @@ namespace BatchAndReport.Pages.Report
 
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "MOA_" + ContractId + ".pdf");
-
-            // Delete the file if it already exists
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
             //   return File(wordBytes, "application/pdf", "MOU_" + ContractId + ".pdf");
         }
@@ -5989,6 +6054,27 @@ namespace BatchAndReport.Pages.Report
         }
         public async Task OnGetWordContact_GA_PDF(string ContractId = "1")
         {
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "GA_" + ContractId + ".pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            var filePathView = Path.Combine(folderPath, "GA_" + ContractId + "_1.pdf");
+
+            // Delete the file if it already exists
+            if (System.IO.File.Exists(filePathView))
+            {
+                System.IO.File.Delete(filePathView);
+            }
+
+
             var htmlContent = await _SupportSMEsService.OnGetWordContact_SupportSMEsService_HtmlToPDF(ContractId, "GA");
             // 2. Convert HTML to PDF using DinkToPdf
             await new BrowserFetcher().DownloadAsync();
@@ -6015,19 +6101,10 @@ namespace BatchAndReport.Pages.Report
 
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "GA_" + ContractId + ".pdf");
-
-            // Delete the file if it already exists
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
+        
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
+            
             // return File(pdfBytes, "application/pdf", "GA_"+ContractId+".pdf");
         }
 
@@ -6410,13 +6487,25 @@ namespace BatchAndReport.Pages.Report
                 Directory.CreateDirectory(folderPath);
             }
             var filePath = Path.Combine(folderPath, $"JOA_{ContractId}.pdf");
-
+            var filePathView = Path.Combine(folderPath, $"JOA_{ContractId}_1.pdf");
             // Delete old file if exists
             if (System.IO.File.Exists(filePath))
             {
                 try
                 {
                     System.IO.File.Delete(filePath);
+                }
+                catch (IOException)
+                {
+                    // If file is locked, schedule for deletion on next reboot (Windows only)
+                    MoveFileEx(filePath, null, MoveFileFlags.MOVEFILE_DELAY_UNTIL_REBOOT);
+                }
+            }
+            if (System.IO.File.Exists(filePathView))
+            {
+                try
+                {
+                    System.IO.File.Delete(filePathView);
                 }
                 catch (IOException)
                 {
@@ -6448,6 +6537,7 @@ namespace BatchAndReport.Pages.Report
 
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
         }
         public async Task<string?> GetPdfPasswordAsync(string? empId, CancellationToken ct = default)
         {
@@ -6872,7 +6962,25 @@ namespace BatchAndReport.Pages.Report
 
         public async Task OnGetWordContact_MIW_PDF(string ContractId = "1")
         {
+
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MIW");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "MIW_" + ContractId + ".pdf");
+            var filePathView = Path.Combine(folderPath, "MIW_" + ContractId + "_1.pdf");
+
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            if (System.IO.File.Exists(filePathView))
+            {
+                System.IO.File.Delete(filePathView);
+            }
             // 1. Get HTML content from the service
+
             var htmlContent = await _MIWService.OnGetWordContact_MIWServiceHtmlToPDF(ContractId);
 
             // 2. Convert HTML to PDF using DinkToPdf
@@ -6900,19 +7008,9 @@ namespace BatchAndReport.Pages.Report
 
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MIW");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "MIW_" + ContractId + ".pdf");
-
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
+            
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
-
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
             // Optionally, return the file as a download:
             // return File(pdfBytes, "application/pdf", "MIW_" + ContractId + ".pdf");
         }
@@ -7280,6 +7378,23 @@ namespace BatchAndReport.Pages.Report
 
         public async Task OnGetWordContact_AMJOA_PDF(string ContractId = "2")
         {
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var filePath = Path.Combine(folderPath, "AMJOA_" + ContractId + ".pdf");
+
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+            var filePathView = Path.Combine(folderPath, "AMJOA_" + ContractId + "_1.pdf");
+
+            if (System.IO.File.Exists(filePathView))
+            {
+                System.IO.File.Delete(filePathView);
+            }
             // 1. Get HTML content from the service
             var htmlContent = await _AMJOAService.OnGetWordContact_AMJOAServiceHtmlToPDF(ContractId);
 
@@ -7308,18 +7423,9 @@ namespace BatchAndReport.Pages.Report
 
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA");
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var filePath = Path.Combine(folderPath, "AMJOA_" + ContractId + ".pdf");
-
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
+         
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
 
             // Optionally, return the file as a download:
             // return File(pdfBytes, "application/pdf", "AMJOA_" + ContractId + ".pdf");

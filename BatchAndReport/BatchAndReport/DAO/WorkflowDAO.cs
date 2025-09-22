@@ -260,12 +260,17 @@ namespace BatchAndReport.DAO
             CASE WHEN d.IS_WI = 1 THEN N'✓' ELSE N'-' END AS WI,
             t.PROCESS_REVIEW_TYPE_NAME AS ReviewType,
             CASE WHEN d.IS_DIGITAL = 1 THEN N'ใช่' ELSE N'ไม่ใช่' END AS isDigital
+        ,pm.PROCESS_GROUP_CODE,
+		pm.PROCESS_GROUP_NAME
+        ,pm.PROCESS_MASTER_DETAIL_ID
+,y.FISCAL_YEAR_DESC
         FROM ANNUAL_PROCESS_REVIEW_DETAIL d
         INNER JOIN ANNUAL_PROCESS_REVIEW r
             ON d.ANNUAL_PROCESS_REVIEW_ID = r.ANNUAL_PROCESS_REVIEW_ID
         INNER JOIN PROCESS_MASTER_DETAIL pm
             ON d.PROCESS_GROUP_CODE = pm.PROCESS_GROUP_CODE
             AND r.FISCAL_YEAR_ID = pm.FISCAL_YEAR_ID
+	inner join PROJECT_FISCAL_YEAR y on y.FISCAL_YEAR_ID = pm.FISCAL_YEAR_ID 
         INNER JOIN PROCESS_REVIEW_TYPE t
             ON d.PROCESS_REVIEW_TYPE_ID = t.PROCESS_REVIEW_TYPE_ID
         INNER JOIN HR.dbo.BusinessUnits bu
@@ -306,7 +311,11 @@ namespace BatchAndReport.DAO
                             Workflow = reader["Workflow"]?.ToString(),
                             PrevWorkflow = reader["PrevWorkflow"]?.ToString(),
                             WI = reader["WI"]?.ToString(),
-                            isDigital = reader["isDigital"]?.ToString()
+                            isDigital = reader["isDigital"]?.ToString(),
+                            PROCESS_GROUP_CODE = reader["PROCESS_GROUP_CODE"]?.ToString(),
+                            PROCESS_GROUP_NAME = reader["PROCESS_GROUP_NAME"]?.ToString(),
+                            FISCAL_YEAR_DESC = reader["FISCAL_YEAR_DESC"]?.ToString() ?? string.Empty
+                            , PROCESS_MASTER_DETAIL_ID = reader["PROCESS_MASTER_DETAIL_ID"] is int id ? id : 0
                         };
 
                         processDetails.Add(dto);
@@ -314,7 +323,7 @@ namespace BatchAndReport.DAO
                 }
             }
 
-            result.ProcessDetails = processDetails;
+            result.ProcessDetails = processDetails.OrderBy(e => e.ProcessCode).ToList();
 
             Console.WriteLine($"ProcessDetails count: {result.ProcessDetails.Count}");
 

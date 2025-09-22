@@ -256,7 +256,7 @@ namespace BatchAndReport.Controllers
 
         [HttpGet("ExportWorkSystem")]
         public async Task<IActionResult> ExportWorkSystem(
-            [FromQuery] int? fiscalYear = null,
+            [FromQuery] int? fiscalYear = 2568,
             [FromQuery] string? businessUnitId = null,
             [FromQuery] string? processTypeCode = null,
             [FromQuery] string? processGroupCode = null,

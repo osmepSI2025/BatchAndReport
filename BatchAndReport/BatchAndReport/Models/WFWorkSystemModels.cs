@@ -29,6 +29,14 @@ namespace BatchAndReport.Models
         public string WI { get; set; }
         public string ReviewType { get; set; }
         public string isDigital { get; set; }
+
+        public string PROCESS_GROUP_CODE { get; set; }
+        public string PROCESS_GROUP_NAME { get; set; }
+        public string FISCAL_YEAR_DESC { get; set; }
+
+        public int PROCESS_MASTER_DETAIL_ID { get; set; }
+        
+
     }
     public class Wf_tasklistModels
     {
