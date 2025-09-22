@@ -46,7 +46,7 @@ public class WordEContract_ControlDataService
         var activityListOSMEP = dtActivitySME?.Where(x => x.Owner == "OSMEP").ToList() ?? new List<E_ConReport_JDCA_SubProcessActivitiesModels>();
         var activityListCP = dtActivitySME?.Where(x => x.Owner == "CP").ToList() ?? new List<E_ConReport_JDCA_SubProcessActivitiesModels>();
 
-        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf");
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabun.ttf");
         string fontBase64 = "";
         if (File.Exists(fontPath))
         {
@@ -105,14 +105,14 @@ public class WordEContract_ControlDataService
     <meta charset='utf-8'>
   <style>
         @font-face {{
-            font-family: 'THSarabunNew';
+            font-family: 'TH Sarabun PSK';
               src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype');
             font-weight: normal;
             font-style: normal;
         }}
         body {{
             font-size: 22px;
-            font-family: 'THSarabunNew', Arial, sans-serif;
+            font-family: 'TH Sarabun PSK', Arial, sans-serif;
         }}
         /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
         body, p, div {{

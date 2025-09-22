@@ -29,7 +29,7 @@ public class WordEContract_AMJOAService
         var dataResult = await _eContractReportAMJOADAO.GetAMJOAAsync(conId);
         if (dataResult == null)
             throw new Exception("AMJOA data not found.");
-        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf");
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabun.ttf");
         string fontBase64 = "";
         if (File.Exists(fontPath))
         {
@@ -140,12 +140,12 @@ public class WordEContract_AMJOAService
   
     <style>
     @font-face {{
-        font-family: 'TH Sarabun New';
+        font-family: 'TH Sarabun PSK';
                 src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype');
         font-weight: normal;
         font-style: normal;
     }}
-  body {{font-family: 'TH Sarabun New', Arial, Tahoma, sans-serif !important;
+  body {{font-family: 'TH Sarabun PSK', Arial, Tahoma, sans-serif !important;
     font-size: 22px !important;
     color: #000 !important;
     word-break: keep-all;
@@ -154,7 +154,7 @@ public class WordEContract_AMJOAService
     hyphens: none;
 }}
     body, p, div {{
-    font-family: 'TH Sarabun New', Arial, Tahoma, sans-serif !important;
+    font-family: 'TH Sarabun PSK', Arial, Tahoma, sans-serif !important;
     font-size: 22px !important;
     color: #000 !important;
     word-break: keep-all;
@@ -208,7 +208,7 @@ public class WordEContract_AMJOAService
     color: inherit !important;
 }}
     body, p, div, span, li, td, th, table, b, strong, h1, h2, h3, h4, h5, h6 {{
-        font-family: 'TH Sarabun New', Arial, Tahoma, sans-serif !important;
+        font-family: 'TH Sarabun PSK', Arial, Tahoma, sans-serif !important;
       
         color: #000 !important;
     }}

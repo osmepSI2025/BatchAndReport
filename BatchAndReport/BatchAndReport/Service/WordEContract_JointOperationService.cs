@@ -39,7 +39,7 @@ public class WordEContract_JointOperationService
         if (dataResult == null)
             throw new Exception("JOA data not found.");
         // var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
-        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf");
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabun.ttf");
         string fontBase64 = "";
         if (File.Exists(fontPath))
         {
@@ -139,14 +139,14 @@ public class WordEContract_JointOperationService
   
 <style>
      @font-face {{
-        font-family: 'TH Sarabun New';
+        font-family: 'TH Sarabun PSK';
         src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype');
         font-weight: normal;
         font-style: normal;
     }}
     body {{
         font-size: 22px;
-        font-family: 'TH Sarabun New', Arial, sans-serif;
+        font-family: 'TH Sarabun PSK', Arial, sans-serif;
     }}
     .t-12 {{ font-size: 1em !important; }}
     .t-14 {{ font-size: 1.1em !important; }}
@@ -185,12 +185,12 @@ public class WordEContract_JointOperationService
     .logo-table td {{ border: none; }}
     p {{ margin: 0; padding: 0; }}
     .editor-content,
-    .editor-content * {{font - family: 'TH Sarabun New', Arial, sans-serif !important;
+    .editor-content * {{font - family: 'TH Sarabun PSK', Arial, sans-serif !important;
         font-size: 1.2em !important;
         color: #000000 !important;
     }}
     body, p, div, span, li, td, th, table, b, strong, h1, h2, h3, h4, h5, h6 {{
-       font-family: 'TH Sarabun New', Arial, sans-serif !important;
+       font-family: 'TH Sarabun PSK', Arial, sans-serif !important;
         color: #000 !important;
     }}
 </style>
