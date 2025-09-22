@@ -263,6 +263,7 @@ namespace BatchAndReport.DAO
         ,pm.PROCESS_GROUP_CODE,
 		pm.PROCESS_GROUP_NAME
         ,pm.PROCESS_MASTER_DETAIL_ID
+,pm.PROCESS_TYPE_CODE
 ,y.FISCAL_YEAR_DESC
         FROM ANNUAL_PROCESS_REVIEW_DETAIL d
         INNER JOIN ANNUAL_PROCESS_REVIEW r
@@ -277,6 +278,7 @@ namespace BatchAndReport.DAO
             ON LTRIM(RTRIM(LOWER(r.OWNER_BusinessUnitId))) = LTRIM(RTRIM(LOWER(bu.BusinessUnitId)))
         WHERE 
             d.IS_DELETED != 1
+            and pm.IS_DELETED =0
             AND (@FISCAL_YEAR_ID IS NULL OR r.FISCAL_YEAR_ID = @FISCAL_YEAR_ID)
             AND (@OWNER_BusinessUnitId IS NULL OR r.OWNER_BusinessUnitId = @OWNER_BusinessUnitId)
             AND (@PROCESS_TYPE_CODE IS NULL OR pm.PROCESS_TYPE_CODE = @PROCESS_TYPE_CODE)
@@ -316,6 +318,8 @@ namespace BatchAndReport.DAO
                             PROCESS_GROUP_NAME = reader["PROCESS_GROUP_NAME"]?.ToString(),
                             FISCAL_YEAR_DESC = reader["FISCAL_YEAR_DESC"]?.ToString() ?? string.Empty
                             , PROCESS_MASTER_DETAIL_ID = reader["PROCESS_MASTER_DETAIL_ID"] is int id ? id : 0
+                            , PROCESS_TYPE_CODE = reader["PROCESS_TYPE_CODE"]?.ToString() ?? string.Empty
+                            , ReviewType = reader["ReviewType"]?.ToString()
                         };
 
                         processDetails.Add(dto);

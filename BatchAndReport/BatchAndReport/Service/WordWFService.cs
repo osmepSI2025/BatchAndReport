@@ -136,47 +136,110 @@ public class WordWFService : IWordWFService
 
           
             // ✅ เพิ่มตรงนี้
-            int startRow = 4;
+            int startRow = 3;
             int no = 1;
 
+            #region groupedDetails
 
-            var groupedDetails = model.ProcessDetails
-      .Where(e => !string.IsNullOrWhiteSpace(e.PROCESS_GROUP_CODE))
-      .GroupBy(e => e.PROCESS_MASTER_DETAIL_ID)
-          .OrderBy(g => g.First().PROCESS_GROUP_CODE)
-      .ToList();
-
-            foreach (var group in groupedDetails)
+            // CORE
+            var groupedDetailsCORE = model.ProcessDetails
+.Where(e => !string.IsNullOrWhiteSpace(e.PROCESS_GROUP_CODE) && e.PROCESS_TYPE_CODE == "CORE")
+.GroupBy(e => e.PROCESS_MASTER_DETAIL_ID)
+ .OrderBy(g => g.First().PROCESS_GROUP_CODE)
+.ToList();
+            if (groupedDetailsCORE != null && groupedDetailsCORE.Count > 0)
             {
-                // You can get the first item for group info (e.g., code/name)
-                var first = group.First();
-
-                ws.Cells[startRow, 1].Value = ""; // Group header row
-                ws.Cells[startRow, 2].Value = first.PROCESS_GROUP_CODE ?? "";
-                ws.Cells[startRow, 3].Value = first.PROCESS_GROUP_NAME ?? "";
-                ws.Cells[startRow, 4].Value = "";
-                ws.Cells[startRow, 5].Value = "";
-                ws.Cells[startRow, 6].Value = "";
-                ws.Cells[startRow, 7].Value = "";
-                ws.Cells[startRow, 8].Value = "";
-                ws.Cells[startRow, 9].Value = "";
                 startRow++;
-
-                foreach (var item in group.OrderBy(e => e.ProcessCode ?? ""))
+                foreach (var group in groupedDetailsCORE)
                 {
-                    ws.Cells[startRow, 1].Value = no;
-                    ws.Cells[startRow, 2].Value = item.ProcessCode ?? "";
-                    ws.Cells[startRow, 3].Value = item.ProcessName ?? "";
-                    ws.Cells[startRow, 4].Value = item.PrevProcessCode ?? "";
-                    ws.Cells[startRow, 5].Value = item.Department ?? "";
-                    ws.Cells[startRow, 6].Value = item.Workflow ?? "";
-                    ws.Cells[startRow, 7].Value = item.WI ?? "";
+                    // You can get the first item for group info (e.g., code/name)
+                    var first = group.First();
+
+                    ws.Cells[startRow, 1].Value = ""; // Group header row
+                    ws.Cells[startRow, 2].Value = first.PROCESS_GROUP_CODE ?? "";
+                    ws.Cells[startRow, 3].Value = first.PROCESS_GROUP_NAME ?? "";
+                    ws.Cells[startRow, 4].Value = "";
+                    ws.Cells[startRow, 5].Value = "";
+                    ws.Cells[startRow, 6].Value = "";
+                    ws.Cells[startRow, 7].Value = "";
                     ws.Cells[startRow, 8].Value = "";
-                    ws.Cells[startRow, 9].Value = item.isDigital ?? "";
+                    ws.Cells[startRow, 9].Value = "";
                     startRow++;
-                    no++;
+
+                    foreach (var item in group.OrderBy(e => e.ProcessCode ?? ""))
+                    {
+                        ws.Cells[startRow, 1].Value = no;
+                        ws.Cells[startRow, 2].Value = item.ProcessCode ?? "";
+                        ws.Cells[startRow, 3].Value = item.ProcessName ?? "";
+                        ws.Cells[startRow, 4].Value = item.PrevProcessCode ?? "";
+                        ws.Cells[startRow, 5].Value = item.Department ?? "";
+                        ws.Cells[startRow, 6].Value = item.Workflow ?? "";
+                        ws.Cells[startRow, 7].Value = item.WI ?? "";
+                        ws.Cells[startRow, 8].Value = item.ReviewType;
+                        ws.Cells[startRow, 9].Value = item.isDigital ?? "";
+                        startRow++;
+                        no++;
+                    }
                 }
             }
+
+             
+
+            //supprocess
+            var groupedDetailsSup = model.ProcessDetails
+.Where(e => !string.IsNullOrWhiteSpace(e.PROCESS_GROUP_CODE) && e.PROCESS_TYPE_CODE == "SUPPORT")
+.GroupBy(e => e.PROCESS_MASTER_DETAIL_ID)
+ .OrderBy(g => g.First().PROCESS_GROUP_CODE)
+.ToList();
+
+            if(groupedDetailsSup != null && groupedDetailsSup.Count>0)
+            {
+          
+
+                ws.Cells[$"A{startRow}:I{startRow}"].Merge = true;
+                ws.Cells[$"A{startRow}"].Value = "Supporting Process";
+                ws.Cells[$"A{startRow}:I{startRow}"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[$"A{startRow}:I{startRow}"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(0, 112, 192));
+                ws.Cells[$"A{startRow}:I{startRow}"].Style.Font.Color.SetColor(System.Drawing.Color.White);
+                ws.Cells[$"A{startRow}:I{startRow}"].Style.Font.Bold = true;
+                startRow++;
+                foreach (var group in groupedDetailsSup)
+                {
+              
+                    // You can get the first item for group info (e.g., code/name)
+                    var first = group.First();
+
+                    ws.Cells[startRow, 1].Value = ""; // Group header row
+                    ws.Cells[startRow, 2].Value = first.PROCESS_GROUP_CODE ?? "";
+                    ws.Cells[startRow, 3].Value = first.PROCESS_GROUP_NAME ?? "";
+                    ws.Cells[startRow, 4].Value = "";
+                    ws.Cells[startRow, 5].Value = "";
+                    ws.Cells[startRow, 6].Value = "";
+                    ws.Cells[startRow, 7].Value = "";
+                    ws.Cells[startRow, 8].Value = "";
+                    ws.Cells[startRow, 9].Value = "";
+                    startRow++;
+
+                    foreach (var item in group.OrderBy(e => e.ProcessCode ?? ""))
+                    {
+                        ws.Cells[startRow, 1].Value = no;
+                        ws.Cells[startRow, 2].Value = item.ProcessCode ?? "";
+                        ws.Cells[startRow, 3].Value = item.ProcessName ?? "";
+                        ws.Cells[startRow, 4].Value = item.PrevProcessCode ?? "";
+                        ws.Cells[startRow, 5].Value = item.Department ?? "";
+                        ws.Cells[startRow, 6].Value = item.Workflow ?? "";
+                        ws.Cells[startRow, 7].Value = item.WI ?? "";
+                        ws.Cells[startRow, 8].Value = item.ReviewType;
+                        ws.Cells[startRow, 9].Value = item.isDigital ?? "";
+                        startRow++;
+                        no++;
+                    }
+                }
+            }
+         
+
+
+            #endregion groupedDetails
 
 
 
