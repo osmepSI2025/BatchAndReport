@@ -120,13 +120,13 @@ public class WordEContract_AMJOAService
                 span.ParentNode.ReplaceChild(textNode, span);
             }
         }
-        // ⭐ เพิ่ม class="t-16" ให้กับทุก <p>
+        // ⭐ เพิ่ม class="t-12" ให้กับทุก <p>
         foreach (var p in htmlDoc.DocumentNode.Descendants("p"))
         {
             var existingClass = p.GetAttributeValue("class", "");
-            if (!existingClass.Contains("t-14"))
+            if (!existingClass.Contains("t-12"))
             {
-                p.SetAttributeValue("class", (existingClass + " t-14").Trim());
+                p.SetAttributeValue("class", (existingClass + " t-12 tab3").Trim());
             }
         }
 
@@ -162,8 +162,9 @@ public class WordEContract_AMJOAService
     -webkit-line-break: after-white-space;
     hyphens: none;
     }}
- .t-12 {{ font-size: 1em; }}
-        .t-14 {{ font-size: 1.1em; }}
+  .t-12 {{ font-size: 1em; }}
+             .t-14 {{ font-size: 1.1em; }}
+        .t-15 {{ font-size: 1.2em; }}
 
     .t-16 {{ font-size: 1.5em; }}
 
@@ -216,37 +217,33 @@ public class WordEContract_AMJOAService
 
 <table style='width:100%; border-collapse:collapse; margin-top:40px;'>
     <tr>
-        <!-- Left: SME logo -->
-        <td style='width:60%; text-align:left; vertical-align:top;'>
-        <div style='display:inline-block;  padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+        <!-- Centered SME logo -->
+        <td style='width:100%; text-align:center; vertical-align:top;'>
+            <div style='display:inline-block; padding:20px; font-size:32pt;'>
+                <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
             </div>
-        </td>
-        <!-- Right: Contract code box (replace with your actual contract code if needed) -->
-        <td style='width:40%; text-align:center; vertical-align:top;'>
-          
         </td>
     </tr>
 </table>
 
-    <h2  class='t-16 text-center'><b>{dataResult.Contract_Title}</b></h2 >
-  <h2  class='t-16 text-center'><b>โครงการ {dataResult.Contract_Name}</b></h2 >
-  <h2  class='t-16 text-center'><b>ระหว่าง</b></div>
-   <h2  class='t-16 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ( สสว. )</b></h2 >
- <h2  class='t-16 text-center'><b>กับ</b></div>
-<h2  class='t-16 text-center'><b>ชื่อหน่วยร่วมดำเนินการ {dataResult.Start_Unit} </b></h2 >
+    <div  class='t-14 text-center'><b>{dataResult.Contract_Title}</b></div >
+  <div  class='t-14 text-center'><b>โครงการ {dataResult.Contract_Name}</b></div >
+  <div  class='t-12 text-center'><b>ระหว่าง</b></div>
+   <div  class='t-14 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ( สสว. )</b></div >
+ <div  class='t-12 text-center'><b>กับ</b></div>
+<div  class='t-14 text-center'><b>ชื่อหน่วยร่วมดำเนินการ {dataResult.Start_Unit} </b></div >
 </br>
-<div class='t-14 editor-content'>
+<div class='t-12 editor-content'>
     {cleanedHtml}
 </div>
 
 </div>
 
-<P class='t-14 tab3'>บันทึกข้อตกลงนี้ทำขึ้นเป็นบันทึกข้อตกลงอิเล็กทรอนิกส์ คู่ตกลงได้อ่าน เข้าใจเงื่อนไข และยอมรับเงื่อนไข และได้ยืนยันว่าเป็นผู้มีอำนาจลงนามในบันทึกข้อตกลง จึงได้ลงลายมืออิเล็กทรอนิกส์พร้อมทั้งประทับตรา (ถ้ามี) ในสัญญาไว้ และต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับในระบบของตน</P>
+<P class='t-12 tab3'>บันทึกข้อตกลงนี้ทำขึ้นเป็นบันทึกข้อตกลงอิเล็กทรอนิกส์ คู่ตกลงได้อ่าน เข้าใจเงื่อนไข และยอมรับเงื่อนไข และได้ยืนยันว่าเป็นผู้มีอำนาจลงนามในบันทึกข้อตกลง จึงได้ลงลายมืออิเล็กทรอนิกส์พร้อมทั้งประทับตรา (ถ้ามี) ในสัญญาไว้ และต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับในระบบของตน</P>
 </br>
 </br>
 {signatoryTableHtml}
-   <P class='t-14 tab3'>ข้าพเจ้าขอรับรองว่า ทั้งสองฝ่ายได้ลงนามในบันทึกข้อตกลงโดยวิธีการอิเล็กทรอนิกส์ เพื่อแสดงเจตนาของคู่ตกลงแล้ว ข้าพเจ้าจึงได้ลงลายมือชื่ออิเล็กทรอนิกส์รับรองเป็นพยานในบันทึกข้อตกลงพร้อมนี้</P>
+   <P class='t-12 tab3'>ข้าพเจ้าขอรับรองว่า ทั้งสองฝ่ายได้ลงนามในบันทึกข้อตกลงโดยวิธีการอิเล็กทรอนิกส์ เพื่อแสดงเจตนาของคู่ตกลงแล้ว ข้าพเจ้าจึงได้ลงลายมือชื่ออิเล็กทรอนิกส์รับรองเป็นพยานในบันทึกข้อตกลงพร้อมนี้</P>
 
 {signatoryTableHtmlWitnesses}
 </body>

@@ -901,14 +901,14 @@ namespace BatchAndReport.DAO
                         }
                     }
                     nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
-                        ? $"({signer.Signatory_Name}) </br>พยาน"
+                        ? $"({signer.Signatory_Name}) "
                         : $"({signer.Signatory_Name})";
                     sealInserted = true;
                 }
                 else
                 {
                     nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
-                        ? $"({signer.Signatory_Name})</br>พยาน"
+                        ? $"({signer.Signatory_Name})"
                         : $"({signer.Signatory_Name})";
                 }
 
@@ -1091,7 +1091,7 @@ namespace BatchAndReport.DAO
                 else
                 {
                     nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
-                        ? $"({signer.Signatory_Name})พยาน"
+                        ? $"({signer.Signatory_Name})"
                         : $"({signer.Signatory_Name})";
                 }
 

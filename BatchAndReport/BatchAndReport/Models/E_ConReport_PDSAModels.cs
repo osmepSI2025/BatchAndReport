@@ -29,6 +29,8 @@ namespace BatchAndReport.Models
         public string? Flag_Delete { get; set; }
         public string? Request_ID { get; set; }
         public string? Contract_Status { get; set; }
+        public string? Organization_Logo { get; set; }
+        
     }
 
     public class PDSA_LegalBasisSharing

@@ -151,10 +151,11 @@ public class WordEContract_MemorandumService
         }}
          .t-12 {{ font-size: 1em; }}
         .t-14 {{ font-size: 1.1em; }}
-        .t-16 {{ font-size: 1.5em; }}
+        .t-15 {{ font-size: 1.2em; }}
+        .t-16 {{ font-size: 1.3em; }}
         .t-18 {{ font-size: 1.7em; }}
         .t-20 {{ font-size: 1.9em; }}
-        .t-22 {{ font-size: 2.1em; }}
+        .t-22 {{ font-size: 1.37em; }}
 
  .tab0 {{text-align: justify;  }}
            .tab1 {{ text-indent: 48px; text-align: justify;  }}
@@ -233,12 +234,12 @@ public class WordEContract_MemorandumService
 </table>
 </br>
 </br>
-    <div class='t-16 text-center'><B>บันทึกข้อตกลงความร่วมมือ</B></div>
-   <div class='t-16 text-center'><B>โครงการ {result.ProjectTitle}</B></div>
-    <div class='t-14 text-center'><B>ระหว่าง</B></div>
-    <div class='t-16 text-center'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B></div>
-    <div class='t-14 text-center'><B>กับ</B></div>
-    <div class='t-16 text-center'><B>{result.OrgName ?? ""}</B></div>
+    <div class='t-22 text-center'><B>บันทึกข้อตกลงความร่วมมือ</B></div>
+   <div class='t-22 text-center'><B>โครงการ {result.ProjectTitle}</B></div>
+    <div class='t-12 text-center'><B>ระหว่าง</B></div>
+    <div class='t-12 text-center'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B></div>
+    <div class='t-12 text-center'><B>กับ</B></div>
+    <div class='t-15 text-center'><B>{result.OrgName ?? ""}</B></div>
     <br/>
      <P class='t-12 tab2'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลาง และขนาดย่อม เมื่อ {strSign_Date} ระหว่าง</P>
     <P class='t-12 tab2'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B>  โดย {result.OSMEP_NAME} ตำแหน่ง {result.OSMEP_POSITION} {strAttorneyOsmep} สำนักงานตั้งอยู่เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550 (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ</P>

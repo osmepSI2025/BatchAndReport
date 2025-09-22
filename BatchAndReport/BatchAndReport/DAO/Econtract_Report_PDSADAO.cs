@@ -54,8 +54,8 @@ namespace BatchAndReport.DAO
                 UpdateBy,
                 Flag_Delete,
                 Request_ID,
-                Contract_Status
-
+                Contract_Status,
+Organization_Logo
             FROM PDSA
             WHERE PDSA_ID = @PDSA_ID", connection);
 

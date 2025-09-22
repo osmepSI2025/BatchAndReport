@@ -413,7 +413,9 @@ public class WordEContract_PersernalProcessService
             hyphens: none;
         }}
          .t-12 {{ font-size: 1em; }}
-        .t-14 {{ font-size: 1.1em; }}
+
+          .t-14 {{ font-size: 1.1em; }}
+        .t-15 {{ font-size: 1.2em; }}
         .t-16 {{ font-size: 1.5em; }}
         .t-18 {{ font-size: 1.7em; }}
         .t-20 {{ font-size: 1.9em; }}
@@ -494,11 +496,11 @@ public class WordEContract_PersernalProcessService
     </tr>
 </table>
 </br>
-    <div class='t-16 text-center'><b>ข้อตกลงการประมวลผลข้อมูลส่วนบุคคล</b></div>
-    <div class='t-16 text-center'><b>(Data Processing Agreement)</b></div>
-    <div class='t-16 text-center'><b>โครงการ {result.Project_Name ?? ""}</b></div>
-    <div class='t-14 text-center'><b>ระหว่าง</b></div>
-    <div class='t-14 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม กับ {result.Contract_Organization ?? ""}</b></div>
+    <div class='t-12 text-center'><b>ข้อตกลงการประมวลผลข้อมูลส่วนบุคคล</b></div>
+    <div class='t-12 text-center'><b>(Data Processing Agreement)</b></div>
+    <div class='t-12 text-center'><b>โครงการ {result.Project_Name ?? ""}</b></div>
+    <div class='t-12 text-center'><b>ระหว่าง</b></div>
+    <div class='t-12 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม กับ {result.Contract_Organization ?? ""}</b></div>
     <div class='t-16 text-center'>---------------------------------</div>
   </br>
 <p class='t-12 tab3'>
