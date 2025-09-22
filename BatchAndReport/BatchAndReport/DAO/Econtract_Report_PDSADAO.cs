@@ -52,11 +52,12 @@ namespace BatchAndReport.DAO
                 CreateBy,
                 UpdateDate,
                 UpdateBy,
-                Flag_Delete,
+                PDSA.Flag_Delete,
                 Request_ID,
                 Contract_Status,
-Organization_Logo
+                doc.FilePath as Organization_Logo
             FROM PDSA
+            left join [RelatedDocuments] doc on doc.Contract_ID = [PDSA_ID] and doc.DocumentTitle = N'โลโก้หน่วยงาน' and doc.Contract_Type = 'PDSA'
             WHERE PDSA_ID = @PDSA_ID", connection);
 
                 if (!int.TryParse((id).Trim(), out var pdsaId)) return null;
@@ -93,6 +94,7 @@ Organization_Logo
                         Flag_Delete = reader["Flag_Delete"] as string,
                         Contract_Status = reader["Contract_Status"] as string,
                         Request_ID = reader["Contract_Status"] as string,
+                        Organization_Logo = reader["Organization_Logo"] as string,
                     };
                 }
                 return null;
