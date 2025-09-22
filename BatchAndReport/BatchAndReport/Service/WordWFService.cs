@@ -95,80 +95,99 @@ public class WordWFService : IWordWFService
     }
     public byte[] GenWorkSystem(WorkSystemModels model)
     {
-        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-        using var package = new ExcelPackage();
-        var ws = package.Workbook.Worksheets.Add("AnnualProcess");
+        try {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using var package = new ExcelPackage();
+            var ws = package.Workbook.Worksheets.Add("AnnualProcess");
 
-        // ===== Row 1 =====
-        ws.Cells["A1:I1"].Merge = true;
-        ws.Cells["A1"].Value = "กระบวนการทบทวนแบ่งตามกระบวนงาน";
-        ws.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-        ws.Cells["A1"].Style.Font.Bold = true;
-        ws.Cells["A1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
-        ws.Cells["A1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(0, 32, 96));
-        ws.Cells["A1"].Style.Font.Color.SetColor(System.Drawing.Color.White);
+            // ===== Row 1 =====
+            ws.Cells["A1:I1"].Merge = true;
+            ws.Cells["A1"].Value = "กระบวนการทบทวนแบ่งตามกระบวนงาน";
+            ws.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            ws.Cells["A1"].Style.Font.Bold = true;
+            ws.Cells["A1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            ws.Cells["A1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(0, 32, 96));
+            ws.Cells["A1"].Style.Font.Color.SetColor(System.Drawing.Color.White);
 
-        // ===== Row 2 =====
-        var yStr = model?.ProcessDetails?[0].ProcessYear?.ToString();
-        int.TryParse(yStr, out var y);
-        
-        ws.Cells["A2:C2"].Merge = true;
-        ws.Cells["A2"].Value = $"กระบวนการ (ทบทวน ปี {model?.ProcessDetails?[0].ProcessYear?.ToString()})";
-        ws.Cells["D2"].Value = $"{y - 1}";
-        ws.Cells["E2"].Value = "หน่วยงาน";
-        ws.Cells["F2"].Value = "Workflow";
-        ws.Cells["G2"].Value = "WI";
-        ws.Cells["H2"].Value = "ที่มา";
-        ws.Cells["I2"].Value = "มีการใช้ระบบดิจิทัล";
-        ws.Cells["A2:I2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
-        ws.Cells["A2:I2"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(0, 84, 127));
-        ws.Cells["A2:I2"].Style.Font.Color.SetColor(System.Drawing.Color.White);
-        ws.Cells["A2:I2"].Style.Font.Bold = true;
+            // ===== Row 2 =====
+            var yStr = model?.ProcessDetails?[0].FISCAL_YEAR_DESC?.ToString();
+            int.TryParse(yStr, out var y);
 
-        // ===== Row 3 (Sub Header) =====
-        ws.Cells["A3:I3"].Merge = true;
-        ws.Cells["A3"].Value = "Core Process";
-        ws.Cells["A3:I3"].Style.Fill.PatternType = ExcelFillStyle.Solid;
-        ws.Cells["A3:I3"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(0, 112, 192));
-        ws.Cells["A3:I3"].Style.Font.Color.SetColor(System.Drawing.Color.White);
-        ws.Cells["A3:I3"].Style.Font.Bold = true;
+            ws.Cells["A2:C2"].Merge = true;
+            ws.Cells["A2"].Value = $"กระบวนการ (ทบทวน ปี {model?.ProcessDetails?[0].FISCAL_YEAR_DESC?.ToString()})";
+            ws.Cells["D2"].Value = $"{y - 1}";
+            ws.Cells["E2"].Value = "หน่วยงาน";
+            ws.Cells["F2"].Value = "Workflow";
+            ws.Cells["G2"].Value = "WI";
+            ws.Cells["H2"].Value = "ที่มา";
+            ws.Cells["I2"].Value = "มีการใช้ระบบดิจิทัล";
+            ws.Cells["A2:I2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            ws.Cells["A2:I2"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(0, 84, 127));
+            ws.Cells["A2:I2"].Style.Font.Color.SetColor(System.Drawing.Color.White);
+            ws.Cells["A2:I2"].Style.Font.Bold = true;
 
-        // ===== Row 4 (Column Headers) =====
-        ws.Cells["A4"].Value = "No.";
-        ws.Cells["B4"].Value = "C1";
-        ws.Cells["C4"].Value = "การรวบรวมและวิเคราะห์ข้อมูล (BIG DATA)";
-        ws.Cells["D4"].Value = "";
-        ws.Cells["E4"].Value = "";
-        ws.Cells["F4"].Value = "";
-        ws.Cells["G4"].Value = "";
-        ws.Cells["H4"].Value = "";
-        ws.Cells["I4"].Value = "";
+            // ===== Row 3 (Sub Header) =====
+            ws.Cells["A3:I3"].Merge = true;
+            ws.Cells["A3"].Value = "Core Process";
+            ws.Cells["A3:I3"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            ws.Cells["A3:I3"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(0, 112, 192));
+            ws.Cells["A3:I3"].Style.Font.Color.SetColor(System.Drawing.Color.White);
+            ws.Cells["A3:I3"].Style.Font.Bold = true;
 
-        ws.Cells["A4:I4"].Style.Fill.PatternType = ExcelFillStyle.Solid;
-        ws.Cells["A4:I4"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(221, 235, 247)); // ฟ้าอ่อน
-        ws.Cells["A4:I4"].Style.Font.Bold = true;
-        ws.Cells["A4:I4"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-        // ✅ เพิ่มตรงนี้
-        int startRow = 5;
-        int no = 1;
-        foreach (var item in model.ProcessDetails)
+          
+            // ✅ เพิ่มตรงนี้
+            int startRow = 4;
+            int no = 1;
+
+
+            var groupedDetails = model.ProcessDetails
+      .Where(e => !string.IsNullOrWhiteSpace(e.PROCESS_GROUP_CODE))
+      .GroupBy(e => e.PROCESS_MASTER_DETAIL_ID)
+          .OrderBy(g => g.First().PROCESS_GROUP_CODE)
+      .ToList();
+
+            foreach (var group in groupedDetails)
+            {
+                // You can get the first item for group info (e.g., code/name)
+                var first = group.First();
+
+                ws.Cells[startRow, 1].Value = ""; // Group header row
+                ws.Cells[startRow, 2].Value = first.PROCESS_GROUP_CODE ?? "";
+                ws.Cells[startRow, 3].Value = first.PROCESS_GROUP_NAME ?? "";
+                ws.Cells[startRow, 4].Value = "";
+                ws.Cells[startRow, 5].Value = "";
+                ws.Cells[startRow, 6].Value = "";
+                ws.Cells[startRow, 7].Value = "";
+                ws.Cells[startRow, 8].Value = "";
+                ws.Cells[startRow, 9].Value = "";
+                startRow++;
+
+                foreach (var item in group.OrderBy(e => e.ProcessCode ?? ""))
+                {
+                    ws.Cells[startRow, 1].Value = no;
+                    ws.Cells[startRow, 2].Value = item.ProcessCode ?? "";
+                    ws.Cells[startRow, 3].Value = item.ProcessName ?? "";
+                    ws.Cells[startRow, 4].Value = item.PrevProcessCode ?? "";
+                    ws.Cells[startRow, 5].Value = item.Department ?? "";
+                    ws.Cells[startRow, 6].Value = item.Workflow ?? "";
+                    ws.Cells[startRow, 7].Value = item.WI ?? "";
+                    ws.Cells[startRow, 8].Value = "";
+                    ws.Cells[startRow, 9].Value = item.isDigital ?? "";
+                    startRow++;
+                    no++;
+                }
+            }
+
+
+
+            ws.Cells.AutoFitColumns();
+            return package.GetAsByteArray();
+        } catch (Exception ex) 
         {
-            ws.Cells[startRow, 1].Value = no;
-            ws.Cells[startRow, 2].Value = item.ProcessCode;
-            ws.Cells[startRow, 3].Value = item.ProcessName;
-            ws.Cells[startRow, 4].Value = item.PrevProcessCode;
-            ws.Cells[startRow, 5].Value = item.Department;
-            ws.Cells[startRow, 6].Value = item.Workflow;
-            ws.Cells[startRow, 7].Value = item.WI;
-            ws.Cells[startRow, 8].Value = ""; // ที่มา
-            ws.Cells[startRow, 9].Value = item.isDigital;
-            startRow++;
-            no++;
+
+            return null; 
         }
-
-
-        ws.Cells.AutoFitColumns();
-        return package.GetAsByteArray();
+        
     }
 
     public byte[] GenCreateWFStatus(List<WFCreateProcessStatusModels> model)
