@@ -190,7 +190,9 @@ namespace BatchAndReport.DAO
                                     on review.FiscalYearId equals fcy.FiscalYearId
                                 where plan_cat_detail.IsActive == true
                                       && plan_cat_detail.IsDeleted == false
-                                      && detail.IsCgdControlProcess == true
+                                      //&& detail.IsCgdControlProcess == true
+                                      && detail.ProcessReviewTypeId == 2
+                                      && detail.IsUsed == true
                                       && (fiscalYearId == null || review.FiscalYearId == fiscalYearId)
                                       && (businessUnitId == null || review.OwnerBusinessUnitId == businessUnitId)
                                       && (processTypeCode == null || pm.ProcessTypeCode == processTypeCode)
