@@ -3584,7 +3584,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
    
-        public async Task OnGetWordContact_NDA_PDF(string ContractId = "1")
+        public async Task OnGetWordContact_NDA_PDF(string ContractId = "4")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
             if (!Directory.Exists(folderPath))
@@ -5635,7 +5635,7 @@ namespace BatchAndReport.Pages.Report
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 
         #region 4.1.1.2.xxxx.บันทึกข้อตกลงความเข้าใจ MOA
-        public async Task OnGetWordContact_MOA_PDF(string ContractId = "1")
+        public async Task OnGetWordContact_MOA_PDF(string ContractId = "4")
         {
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA");
@@ -6479,7 +6479,7 @@ namespace BatchAndReport.Pages.Report
             MOVEFILE_DELAY_UNTIL_REBOOT = 0x4,
             MOVEFILE_WRITE_THROUGH = 0x8
         }
-        public async Task OnGetWordContact_JOA_PDF(string ContractId = "3", string Name = "สมใจ ทดสอบ")
+        public async Task OnGetWordContact_JOA_PDF(string ContractId = "95", string Name = "สมใจ ทดสอบ")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
             if (!Directory.Exists(folderPath))
@@ -6960,7 +6960,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.16 แบบฟอร์มบันทึกข้อตกลงเป็นหนังสือ MIW
 
-        public async Task OnGetWordContact_MIW_PDF(string ContractId = "1")
+        public async Task OnGetWordContact_MIW_PDF(string ContractId = "3")
         {
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MIW");
