@@ -36,8 +36,14 @@ public class WordEContract_AMJOAService
             var bytes = File.ReadAllBytes(fontPath);
             fontBase64 = Convert.ToBase64String(bytes);
         }
-        var cssPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css", "contract.css").Replace("\\", "/");
-        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+        // Read CSS file content
+        var cssPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css", "contract.css");
+        string contractCss = "";
+        if (File.Exists(cssPath))
+        {
+            contractCss = File.ReadAllText(cssPath, Encoding.UTF8);
+        }
+       var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
         string logoBase64 = "";
         if (System.IO.File.Exists(logoPath))
         {
@@ -55,7 +61,7 @@ public class WordEContract_AMJOAService
                 var contractlogoBase64 = dataResult.Organization_Logo.Substring(contentStart, contentEnd - contentStart);
 
                 contractLogoHtml = $@"<div style='display:inline-block; padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{contractlogoBase64}' width='240' height='80' />
+             <img src='data:image/jpeg;base64,{contractlogoBase64}' height='80' />
             </div>";
             }
             catch
@@ -145,73 +151,7 @@ public class WordEContract_AMJOAService
         font-weight: normal;
         font-style: normal;
     }}
-  body {{font-family: 'TH Sarabun PSK', Arial, Tahoma, sans-serif !important;
-    font-size: 22px !important;
-    color: #000 !important;
-    word-break: keep-all;
-    overflow-wrap: break-word;
-    -webkit-line-break: after-white-space;
-    hyphens: none;
-}}
-    body, p, div {{
-    font-family: 'TH Sarabun PSK', Arial, Tahoma, sans-serif !important;
-    font-size: 22px !important;
-    color: #000 !important;
-    word-break: keep-all;
-    overflow-wrap: break-word;
-    -webkit-line-break: after-white-space;
-    hyphens: none;
-    }}
-  .t-12 {{ font-size: 1em; }}
-             .t-14 {{ font-size: 1.1em; }}
-        .t-15 {{ font-size: 1.2em; }}
-
-    .t-16 {{ font-size: 1.5em; }}
-
-
-    .t-18 {{ font-size: 1.7em; !important; }}
-    .t-22 {{ font-size: 1.9em;!important; }}
-    .tab0 {{ text-indent: 0px; }}
-    .tab1 {{ text-indent: 48px; }}
-    .tab2 {{ text-indent: 96px; }}
-    .tab3 {{ text-indent: 144px; }}
-    .tab4 {{ text-indent: 192px; }}
-    .d-flex {{ display: flex; }}
-    .w-100 {{ width: 100%; }}
-    .w-40 {{ width: 40%; }}
-    .w-50 {{ width: 50%; }}
-    .w-60 {{ width: 60%; }}
-    .text-center {{ text-align: center; }}
-    .sign-single-right {{
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        left: 20%;
-    }}
-    .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 28pt; }}
-    .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
-    .sign-double {{ display: flex; }}
-    .text-center-right-brake {{ margin-left: 50%; }}
-    .text-right {{ text-align: right; }}
-    .contract, .section {{ margin: 12px 0; line-height: 1.7; }}
-    .section {{ font-weight: bold; font-size: 1.2em; text-align: left; margin-top: 24px; }}
-    .signature-table {{ width: 100%; margin-top: 32px; border-collapse: collapse; }}
-    .signature-table td {{ padding: 16px; text-align: center; vertical-align: top; font-size: 1.1em; }}
-    .logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
-    .logo-table td {{ border: none; }}
-    p {{ margin: 0; padding: 0; }}
-.editor-content,
-.editor-content p,
-.editor-content span,
-.editor-content li {{
-
-    color: inherit !important;
-}}
-    body, p, div, span, li, td, th, table, b, strong, h1, h2, h3, h4, h5, h6 {{
-        font-family: 'TH Sarabun PSK', Arial, Tahoma, sans-serif !important;
-      
-        color: #000 !important;
-    }}
+{contractCss}
 </style>
 </head><body>
 

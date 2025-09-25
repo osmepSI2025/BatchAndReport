@@ -132,14 +132,8 @@ namespace BatchAndReport.Pages.Report
         #endregion สสว. สัญญาเงินกู้ยืม โครงการพลิกฟื้นวิสาห 
 
         #region  4.1.3.3. สัญญาจ้างลูกจ้าง EC
-        public async Task<IActionResult> OnGetWordContact_EC(string ContractId = "7")
-        {
-            var wordBytes = await _HireEmployee.OnGetWordContact_HireEmployee(ContractId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "สัญญาจ้างลูกจ้าง.docx");
 
-        }
-
-        public async Task OnGetWordContact_EC_PDF(string ContractId = "55")
+        public async Task OnGetWordContact_EC_PDF(string ContractId = "2")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
             if (!Directory.Exists(folderPath))
@@ -3986,7 +3980,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.6.บันทึกข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล PDSA
 
-        public async Task OnGetWordContact_PDSA_PDF(string ContractId = "1")
+        public async Task OnGetWordContact_PDSA_PDF(string ContractId = "5")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDSA");
             if (!Directory.Exists(folderPath))
@@ -4398,7 +4392,7 @@ namespace BatchAndReport.Pages.Report
         #region 4.1.1.2.5.บันทึกข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วมตัวอย่างหน้าจอ JDCA
 
       
-        public async Task OnGetWordContact_JDCA_PDF(string ContractId = "2")
+        public async Task OnGetWordContact_JDCA_PDF(string ContractId = "3")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JDCA");
             if (!Directory.Exists(folderPath))
@@ -4811,7 +4805,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
  
-        public async Task OnGetWordContact_PDPA_PDF(string ContractId = "2")
+        public async Task OnGetWordContact_PDPA_PDF(string ContractId = "5")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
             if (!Directory.Exists(folderPath))
@@ -5228,7 +5222,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
  
-        public async Task OnGetWordContact_MOU_PDF(string ContractId = "7")
+        public async Task OnGetWordContact_MOU_PDF(string ContractId = "23")
         {
              var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
             if (!Directory.Exists(folderPath))
@@ -6479,7 +6473,7 @@ namespace BatchAndReport.Pages.Report
             MOVEFILE_DELAY_UNTIL_REBOOT = 0x4,
             MOVEFILE_WRITE_THROUGH = 0x8
         }
-        public async Task OnGetWordContact_JOA_PDF(string ContractId = "95", string Name = "สมใจ ทดสอบ")
+        public async Task OnGetWordContact_JOA_PDF(string ContractId = "8", string Name = "สมใจ ทดสอบ")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
             if (!Directory.Exists(folderPath))
@@ -7376,7 +7370,7 @@ namespace BatchAndReport.Pages.Report
 
         #region  4.1.6 เอกสารแนบท้ายบันทึกข้อตกลงความร่วมมือและสัญญาร่วมดำเนินการ AMJOA
 
-        public async Task OnGetWordContact_AMJOA_PDF(string ContractId = "2")
+        public async Task OnGetWordContact_AMJOA_PDF(string ContractId = "4")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA");
             if (!Directory.Exists(folderPath))

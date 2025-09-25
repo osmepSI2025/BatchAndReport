@@ -329,7 +329,13 @@ public class WordEContract_PersernalProcessService
             {
                 throw new Exception("PDPA data not found.");
             }
-
+            // Read CSS file content
+            var cssPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css", "contract.css");
+            string contractCss = "";
+            if (File.Exists(cssPath))
+            {
+                contractCss = File.ReadAllText(cssPath, Encoding.UTF8);
+            }
             // Logo
             var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
             string logoBase64 = "";
@@ -401,83 +407,7 @@ public class WordEContract_PersernalProcessService
             font-weight: normal;
             font-style: normal;
         }}
-        body {{
-            font-size: 22px;
-            font-family: 'TH Sarabun PSK', Arial, sans-serif;
-        }}
-        /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
-        body, p, div {{
-            word-break: keep-all;            /* ห้ามตัดกลางคำ */
-            overflow-wrap: break-word;       /* ตัดเฉพาะเมื่อจำเป็น (ยาวจนล้นบรรทัด) */
-            -webkit-line-break: after-white-space; /* ช่วย WebKit เก่าจัดบรรทัด */
-            hyphens: none;
-        }}
-         .t-12 {{ font-size: 1em; }}
-
-          .t-14 {{ font-size: 1.1em; }}
-        .t-15 {{ font-size: 1.2em; }}
-        .t-16 {{ font-size: 1.5em; }}
-        .t-18 {{ font-size: 1.7em; }}
-        .t-20 {{ font-size: 1.9em; }}
-        .t-22 {{ font-size: 2.1em; }}
-
-           .tab1 {{ text-indent: 48px; text-align: justify;  }}
-        .tab2 {{ text-indent: 96px;  text-align: left; }}
-        .tab3 {{ text-indent: 144px; text-align: left; }}
-        .tab4 {{ text-indent: 192px;  text-align: left;}}
-       .normal {{text-align: justify;
-        text-align-last: justify;
-        width: 100%;
-        display: block;
-        min-width: 100%;
-  letter-spacing: 0.1em; /* เพิ่มช่องไฟเล็กน้อย */
-    }}
-        .d-flex {{ display: flex; }}
-        .w-100 {{ width: 100%; }}
-        .w-40 {{ width: 40%; }}
-        .w-50 {{ width: 50%; }}
-        .w-60 {{ width: 60%; }}
-        .text-center {{ text-align: center; }}
-        .sign-single-right {{
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            left: 20%;
-        }}
-        .sign-double {{ display: flex; }}
-        .text-center-right-brake {{
-            margin-left: 50%;
-            word-break: break-all;
-        }}
-        .text-right {{ text-align: right; }}
-        .contract, .section {{
-            margin: 12px 0;
-            line-height: 1.7;
-        }}
-        .section {{
-            font-weight: bold;
-            font-size: 1.2em;
-            text-align: left;
-            margin-top: 24px;
-        }}
-        .signature-table {{
-            width: 100%;
-            margin-top: 32px;
-            border-collapse: collapse;
-        }}
-        .signature-table td {{
-            padding: 16px;
-            text-align: center;
-            vertical-align: top;
-            font-size: 1.4em;
-        }}
-
-.logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
-        .logo-table td {{ border: none; }}
-        p {{
-            margin: 0;
-            padding: 0;
-        }}
+   {contractCss}
     </style>
 </head>
 <body>
@@ -501,7 +431,7 @@ public class WordEContract_PersernalProcessService
     <div class='t-12 text-center'><b>โครงการ {result.Project_Name ?? ""}</b></div>
     <div class='t-12 text-center'><b>ระหว่าง</b></div>
     <div class='t-12 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม กับ {result.Contract_Organization ?? ""}</b></div>
-    <div class='t-16 text-center'>---------------------------------</div>
+    <div class='t-12 text-center'>---------------------------------</div>
   </br>
 <p class='t-12 tab2'>
         ข้อตกลงการประมวลผลข้อมูลส่วนบุคคล (“ข้อตกลง”) ฉบับนี้ทำขึ้น เมื่อ {signDate} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม
@@ -546,7 +476,7 @@ public class WordEContract_PersernalProcessService
 <p class='t-12 tab2'>
     ๓. {result.Contract_Organization ?? ""} จะควบคุมดูแลให้เจ้าหน้าที่ และ/หรือลูกจ้าง ตัวแทนหรือบุคคลใด ๆ ที่ปฏิบัติหน้าที่ในการประมวลผลข้อมูล ส่วนบุคคล ปฏิบัติตามกฎหมายคุ้มครองข้อมูลส่วนบุคคลอย่างเคร่งครัด และดำเนินการประมวลผลข้อมูลส่วนบุคคล ตามวัตถุประสงค์ของการดำเนินการ ตามข้อตกลงฉบับนี้เท่านั้น โดยจะไม่ทำซ้ำ คัดลอก ทำสำเนา บันทึกภาพข้อมูลส่วนบุคคลไม่ว่าทั้งหมด หรือแต่บางส่วนเป็นอันขาด เว้นแต่เป็นไปตามเงื่อนไขของบันทึกความร่วมมือหรือสัญญา หรือกฎหมายที่เกี่ยวข้องจะระบุหรือบัญญัติไว้เป็นประการอื่น
 </P>
-<!-- Continue with other contract sections as needed -->
+
 <p class='t-12 tab2'>
     ๔. {result.Contract_Organization ?? ""} จะดำเนินการเพื่อช่วยเหลือหรือสนับสนุน สสว. ในการตอบสนองต่อ คำร้องที่เจ้าของข้อมูล ส่วนบุคคลแจ้งต่อ สสว. อันเป็นการใช้สิทธิของเจ้าของข้อมูล ส่วนบุคคลตามกฎหมายคุ้มครองข้อมูลส่วนบุคคลในส่วนที่เกี่ยวข้องกับการประมวลผลข้อมูลส่วนบุคคลในขอบเขตของข้อตกลงฉบับนี้
 </P>

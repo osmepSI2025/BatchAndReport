@@ -833,14 +833,14 @@ namespace BatchAndReport.DAO
                         var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
 
                         signatureHtml = $@"<div >
-            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 40px;' />
         </div>";
                     }
                     catch
                     {
                         signatureHtml = !string.IsNullOrEmpty(noSignBase64)
                             ? $@"<div >
-            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
         </div>"
                             : "<div >(ลงชื่อ....................)</div>";
                     }
@@ -849,7 +849,7 @@ namespace BatchAndReport.DAO
                 {
                     signatureHtml = !string.IsNullOrEmpty(noSignBase64)
                         ? $@"<div >
-            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
         </div>"
                         : "<div >(ลงชื่อ....................)</div>";
                 }
@@ -892,7 +892,7 @@ namespace BatchAndReport.DAO
 
                             // Enlarge the seal image here
                             sealHtml = $@"<span style='display:inline-block; vertical-align:middle; margin-left:8px;'>
-                            <img src='data:image/png;base64,{base64}' alt='company-seal' style='max-height: 120px; max-width: 120px;' />
+                            <img src='data:image/png;base64,{base64}' alt='company-seal' style='max-height: 40px;' />
                         </span>";
                         }
                         catch
@@ -931,14 +931,14 @@ namespace BatchAndReport.DAO
                         var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
 
                         signatureHtml = $@"<div >
-            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 40px;' />
         </div>";
                     }
                     catch
                     {
                         signatureHtml = !string.IsNullOrEmpty(noSignBase64)
                             ? $@"<div >
-            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
         </div>"
                             : "<div >(ลงชื่อ....................)</div>";
                     }
@@ -947,7 +947,7 @@ namespace BatchAndReport.DAO
                 {
                     signatureHtml = !string.IsNullOrEmpty(noSignBase64)
                         ? $@"<div >
-            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
         </div>"
                         : "<div >(ลงชื่อ....................)</div>";
                 }
@@ -962,20 +962,20 @@ namespace BatchAndReport.DAO
 
             // Build the 3-column table
             var signatoryTableHtml = $@"
-        <table class='signature-table'>
-            <tr>
-                <td style='width:40%; vertical-align:top;'>
-                    {smeSignHtml}
-                </td>
-                <td style='width:40%; vertical-align:top;'>
-                    {customerSignHtml}
-                </td>
-                <td style='width:20%; vertical-align:top; text-align:center;'>
-                    {sealHtml}
-                </td>
-            </tr>
-        </table>
-        ";
+    <table class='signature-table' style='width:100%; table-layout:fixed;' cellpadding='0' cellspacing='0'>
+        <tr>
+            <td style='width:33%; vertical-align:top;'>
+                {smeSignHtml}
+            </td>
+            <td style='width:33%; vertical-align:top;'>
+                {customerSignHtml}
+            </td>
+            <td style='width:34%; vertical-align:top; text-align:center;'>
+                {sealHtml}
+            </td>
+        </tr>
+    </table>
+";
 
             return signatoryTableHtml;
         }
@@ -1015,14 +1015,14 @@ namespace BatchAndReport.DAO
                         var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
 
                         signatureHtml = $@"<div >
-            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 40px;' />
         </div>";
                     }
                     catch
                     {
                         signatureHtml = !string.IsNullOrEmpty(noSignBase64)
                             ? $@"<div >
-            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
         </div>"
                             : "<div >(ลงชื่อ....................)</div>";
                     }
@@ -1031,7 +1031,7 @@ namespace BatchAndReport.DAO
                 {
                     signatureHtml = !string.IsNullOrEmpty(noSignBase64)
                         ? $@"<div >
-            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
         </div>"
                         : "<div >(ลงชื่อ....................)</div>";
                 }
@@ -1114,14 +1114,14 @@ namespace BatchAndReport.DAO
                         var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
 
                         signatureHtml = $@"<div >
-            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 40px;' />
         </div>";
                     }
                     catch
                     {
                         signatureHtml = !string.IsNullOrEmpty(noSignBase64)
                             ? $@"<div >
-            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
         </div>"
                             : "<div >(ลงชื่อ....................)</div>";
                     }
@@ -1130,7 +1130,7 @@ namespace BatchAndReport.DAO
                 {
                     signatureHtml = !string.IsNullOrEmpty(noSignBase64)
                         ? $@"<div >
-            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 80px;' />
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
         </div>"
                         : "<div >(ลงชื่อ....................)</div>";
                 }
@@ -1148,13 +1148,13 @@ namespace BatchAndReport.DAO
             var signatoryTableHtml = $@"
         <table class='signature-table'>
             <tr>
-                <td style='width:40%; vertical-align:top;'>
+                <td style='width:33%; vertical-align:top;'>
                     {smeSignHtml}
                 </td>
-                <td style='width:40%; vertical-align:top;'>
+                <td style='width:33%; vertical-align:top;'>
                     {customerSignHtml}
                 </td>
-                <td style='width:20%; vertical-align:top; text-align:center;'>
+                <td style='width:34%; vertical-align:top; text-align:center;'>
 
                 </td>
             </tr>
@@ -1165,6 +1165,45 @@ namespace BatchAndReport.DAO
         }
         #endregion
 
+        public async Task<List<OrganizationLogosModels>> Getsp_GetOrganizationLogosAsync(string? conId = "0", string conType = "")
+        {
+            try
+            {
+                var conn = _k2context_EContract.Database.GetDbConnection();
+                await using var connection = new SqlConnection(conn.ConnectionString);
+                await using var command = new SqlCommand("sp_GetOrganizationLogos", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
 
+                command.Parameters.AddWithValue("@Contract_ID_INPUT", conId);
+                command.Parameters.AddWithValue("@Contract_Type_INPUT", conType);
+                await connection.OpenAsync();
+
+                var result = new List<OrganizationLogosModels>();
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new OrganizationLogosModels
+                    {
+                        Contract_ID = reader["Contract_ID"] as int?,
+                        Contract_Type = reader["Contract_Type"] as string,
+                        LogoIndex = reader["LogoIndex"] as int?,
+                        Organization_Logo = reader["Organization_Logo"] as string,
+                        File_Name = reader["File_Name"] as string,
+                        File_Location = reader["File_Location"] as string,
+                        TotalLogos = reader["TotalLogos"] as int?,
+                         DocumentTitle = reader["DocumentTitle"] as string
+
+                    });
+                }
+
+                return result;
+            }
+            catch (Exception)
+            {
+                return new List<OrganizationLogosModels>(); // <-- Return empty list instead of null
+            }
+        }
     }
 }

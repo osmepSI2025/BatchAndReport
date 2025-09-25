@@ -30,6 +30,13 @@ public class WordEContract_ControlDataService
         {
             throw new Exception("ไม่พบข้อมูลสัญญา");
         }
+        // Read CSS file content
+        var cssPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css", "contract.css");
+        string contractCss = "";
+        if (File.Exists(cssPath))
+        {
+            contractCss = File.ReadAllText(cssPath, Encoding.UTF8);
+        }
         // Logo
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
         string logoBase64 = "";
@@ -69,7 +76,7 @@ public class WordEContract_ControlDataService
                 var contractlogoBase64 = result.Organization_Logo.Substring(contentStart, contentEnd - contentStart);
 
                 contractLogoHtml = $@"<div style='display:inline-block; padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{contractlogoBase64}' width='240' height='80' />
+             <img src='data:image/jpeg;base64,{contractlogoBase64}' height='80' />
             </div>";
             }
             catch
@@ -110,84 +117,8 @@ public class WordEContract_ControlDataService
             font-weight: normal;
             font-style: normal;
         }}
-        body {{
-            font-size: 22px;
-            font-family: 'TH Sarabun PSK', Arial, sans-serif;
-        }}
-        /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
-        body, p, div {{
-            word-break: keep-all;            /* ห้ามตัดกลางคำ */
-            overflow-wrap: break-word;       /* ตัดเฉพาะเมื่อจำเป็น (ยาวจนล้นบรรทัด) */
-            -webkit-line-break: after-white-space; /* ช่วย WebKit เก่าจัดบรรทัด */
-            hyphens: none;
-        }}
-         .t-12 {{ font-size: 1em; }}
-         .t-14 {{ font-size: 1.1em; }}
-        .t-15 {{ font-size: 1.2em; }}
-        .t-16 {{ font-size: 1.5em; }}
-        .t-18 {{ font-size: 1.7em; }}
-        .t-20 {{ font-size: 1.9em; }}
-        .t-22 {{ font-size: 2.1em; }}
-
-           .tab1 {{ text-indent: 48px; text-align: justify;  }}
-        .tab2 {{ text-indent: 96px;  text-align: left; }}
-        .tab3 {{ text-indent: 144px; text-align: left; }}
-        .tab4 {{ text-indent: 192px;  text-align: left;}}
-       .normal {{text-align: justify;
-        text-align-last: justify;
-        width: 100%;
-        display: block;
-        min-width: 100%;
-  letter-spacing: 0.1em; /* เพิ่มช่องไฟเล็กน้อย */
-    }}
-        .d-flex {{ display: flex; }}
-        .w-100 {{ width: 100%; }}
-        .w-40 {{ width: 40%; }}
-        .w-50 {{ width: 50%; }}
-        .w-60 {{ width: 60%; }}
-        .text-center {{ text-align: center; }}
-        .sign-single-right {{
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            left: 20%;
-        }}
-        .sign-double {{ display: flex; }}
-        .text-center-right-brake {{
-            margin-left: 50%;
-            word-break: break-all;
-        }}
-        .text-right {{ text-align: right; }}
-        .contract, .section {{
-            margin: 12px 0;
-            line-height: 1.7;
-        }}
-        .section {{
-            font-weight: bold;
-            font-size: 1.2em;
-            text-align: left;
-            margin-top: 24px;
-        }}
-        .signature-table {{
-            width: 100%;
-            margin-top: 32px;
-            border-collapse: collapse;
-        }}
-        .signature-table td {{
-            padding: 16px;
-            text-align: center;
-            vertical-align: top;
-            font-size: 1.4em;
-        }}
-
-.logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
-        .logo-table td {{ border: none; }}
-        p {{
-            margin: 0;
-            padding: 0;
-        }}
-    .table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 1em; }}
-    .table th, .table td {{ border: 1px solid #000; padding: 8px; }}
+{contractCss}
+   
     </style>
 
 </head>
@@ -211,11 +142,11 @@ public class WordEContract_ControlDataService
 
 </br>
     <div class='t-14 text-center'><b>ข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม</b></div>
-    <div class='t-14 text-center'><b>(Joint Controller Agreement)</b></div>
+    <div class='t-12 text-center'><b>(Joint Controller Agreement)</b></div>
     <div class='t-12 text-center'><b>ระหว่าง</b></div>
-    <div class='t-14 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.)</b></div>
+    <div class='t-12 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.)</b></div>
     <div class='t-12 text-center'><b>กับ</b></div>
-<div class='t-14 text-center'><b>{result.Contract_Party_Name ?? ""}</b></div>
+<div class='t-12 text-center'><b>{result.Contract_Party_Name ?? ""}</b></div>
 </br>
    <p class='t-12 tab2'>ข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม (“{result.Contract_Number ?? "-"}”) ฉบับนี้ ทำขึ้นเมื่อ {strDateTH} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</P>
    <p class='t-12 tab2'>โดยที่ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สสว.” ฝ่ายหนึ่ง ได้ตกลงใน {result.MOU_Name ?? ""} ฉบับลงวันที่ {strDateTH} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สัญญาหลัก” กับ  {result.Contract_Party_Name ?? ""}  ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “{result.Contract_Party_Abb_Name ?? ""}” อีกฝ่ายหนึ่ง รวมทั้งสองฝ่ายว่า “คู่สัญญา”</P>
