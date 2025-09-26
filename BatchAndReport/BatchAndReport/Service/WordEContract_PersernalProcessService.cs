@@ -506,19 +506,19 @@ public class WordEContract_PersernalProcessService
 เปิดเผยหรือโอนข้อมูลส่วนบุคคลโดยไม่ชอบด้วยกฎหมาย เป็นต้น
 </P>
 <p class='t-12 tab2'>
-    ๗. เว้นแต่กฎหมายที่เกี่ยวข้องจะบัญญัติไว้เป็นประการอื่น {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} จะทำการลบหรือ 
+    ๗. เว้นแต่กฎหมายที่เกี่ยวข้องจะบัญญัติไว้เป็นประการอื่น {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName) ?? ""} จะทำการลบหรือ 
 ทำลายข้อมูลส่วนบุคคล ที่ทำการประมวลผลภายใต้ข้อตกลงฉบับนี้ภายใน {CommonDAO.ConvertStringArabicToThaiNumerals(result.RetentionPeriodDays.ToString()) ?? ""} วัน นับแต่วันที่ดำเนินการประมวลผลเสร็จสิ้น หรือวันที่ สสว. และ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} ได้ตกลงเป็นลายลักษณ์อักษรให้ยกเลิก {CommonDAO.ConvertStringArabicToThaiNumerals(result.Master_Contract_Number) ?? ""} แล้วแต่กรณีใดจะเกิดขึ้นก่อน
 </P>
 <p class='t-12 tab2'>
-    นอกจากนี้ ในกรณีปรากฏว่า {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} หมดความจำเป็นจะต้องเก็บรักษาข้อมูล ส่วนบุคคลตาม ข้อตกลงฉบับนี้ ก่อนสิ้นระยะเวลา ตามวรรคหนึ่ง {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} จะทำการลบหรือทำลาย ข้อมูลส่วนบุคคลตาม ข้อตกลงฉบับนี้ทันที
+    นอกจากนี้ ในกรณีปรากฏว่า {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName) ?? ""} หมดความจำเป็นจะต้องเก็บรักษาข้อมูล ส่วนบุคคลตาม ข้อตกลงฉบับนี้ ก่อนสิ้นระยะเวลา ตามวรรคหนึ่ง {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} จะทำการลบหรือทำลาย ข้อมูลส่วนบุคคลตาม ข้อตกลงฉบับนี้ทันที
 </P>
 <p class='t-12 tab2'>
-    ๘. กรณีที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} พบพฤติการณ์ใด ๆ ที่มีลักษณะที่กระทบ 
-ต่อการรักษาความปลอดภัย ของข้อมูลบุคคลที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} ประมวลผลภายใต้ข้อตกลงฉบับนี้ 
-ซึ่งอาจก่อให้เกิดความเสียหายจากการละเมิด อุบัติเหตุ การลบ ทำลาย สูญหาย เปลี่ยนแปลง แก้ไข เข้าถึง ใช้ เปิดเผยหรือโอนข้อมูลส่วนบุคคลโดยไม่ชอบด้วยกฎหมาย แล้ว {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} จะดำเนินการแจ้งให้ สสว. ทราบโดยทันทีภายในเวลาไม่เกิน {CommonDAO.ConvertStringArabicToThaiNumerals(result.IncidentNotifyPeriod.ToString()) ?? "๐"} ชั่วโมง
+    ๘. กรณีที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName) ?? ""} พบพฤติการณ์ใด ๆ ที่มีลักษณะที่กระทบ 
+ต่อการรักษาความปลอดภัย ของข้อมูลบุคคลที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName) ?? ""} ประมวลผลภายใต้ข้อตกลงฉบับนี้ 
+ซึ่งอาจก่อให้เกิดความเสียหายจากการละเมิด อุบัติเหตุ การลบ ทำลาย สูญหาย เปลี่ยนแปลง แก้ไข เข้าถึง ใช้ เปิดเผยหรือโอนข้อมูลส่วนบุคคลโดยไม่ชอบด้วยกฎหมาย แล้ว {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName) ?? ""} จะดำเนินการแจ้งให้ สสว. ทราบโดยทันทีภายในเวลาไม่เกิน {CommonDAO.ConvertStringArabicToThaiNumerals(result.IncidentNotifyPeriod.ToString()) ?? "๐"} ชั่วโมง
 </P>
 <p class='t-12 tab2'>
-    ๙. การแจ้งถึงเหตุการละเมิดข้อมูลส่วนบุคคลที่เกิดขึ้นภายใต้ข้อตกลงนี้ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} จะใช้มาตรการ ตามที่เห็นสมควร ในการระบุ ถึงสาเหตุของการละเมิด 
+    ๙. การแจ้งถึงเหตุการละเมิดข้อมูลส่วนบุคคลที่เกิดขึ้นภายใต้ข้อตกลงนี้ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName) ?? ""} จะใช้มาตรการ ตามที่เห็นสมควร ในการระบุ ถึงสาเหตุของการละเมิด 
 และป้องกันปัญหาดังกล่าวมิให้เกิดซ้ำ และจะให้ข้อมูลแก่ สสว. ภายใต้ขอบเขตที่กฎหมายคุ้มครองข้อมูลส่วนบุคคลได้กำหนด ดังต่อไปนี้</p>
  
            <p class='t-12 tab3'>-รายละเอียดของลักษณะและผลกระทบที่อาจเกิดขึ้นของการละเมิด</p>
@@ -528,8 +528,8 @@ public class WordEContract_PersernalProcessService
     
 
 <p class='t-12 tab2'>
-    ๑๐. หน้าที่และความรับผิดของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} ในการปฏิบัติตามข้อตกลงจะสิ้นสุดลงนับแต่วันที่ปฏิบัติงาน 
-ที่ตกลงเสร็จสิ้น หรือ วันที่ {CommonDAO.ToThaiDateStringCovert(result.End_Date.HasValue ? result.End_Date.Value : DateTime.Now)} {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} และ สสว. ได้ตกลงเป็นลายลักษณ์อักษรให้ยกเลิก {CommonDAO.ConvertStringArabicToThaiNumerals(result.Master_Contract_Number) ?? ""} แล้วแต่กรณีใดจะเกิดขึ้นก่อน อย่างไรก็ดี การสิ้นผลลงของ ข้อตกลงนี้ไม่กระทบต่อหน้าที่ของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} ในการลบหรือทำลายข้อมูลส่วนบุคคลตามที่ได้กำหนดในข้อ 7 ของข้อตกลงฉบับนี้
+    ๑๐. หน้าที่และความรับผิดของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName) ?? ""} ในการปฏิบัติตามข้อตกลงจะสิ้นสุดลงนับแต่วันที่ปฏิบัติงาน 
+ที่ตกลงเสร็จสิ้น หรือ วันที่ {CommonDAO.ToThaiDateStringCovert(result.End_Date.HasValue ? result.End_Date.Value : DateTime.Now)} {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName) ?? ""} และ สสว. ได้ตกลงเป็นลายลักษณ์อักษรให้ยกเลิก {CommonDAO.ConvertStringArabicToThaiNumerals(result.Master_Contract_Number) ?? ""} แล้วแต่กรณีใดจะเกิดขึ้นก่อน อย่างไรก็ดี การสิ้นผลลงของ ข้อตกลงนี้ไม่กระทบต่อหน้าที่ของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization) ?? ""} ในการลบหรือทำลายข้อมูลส่วนบุคคลตามที่ได้กำหนดในข้อ 7 ของข้อตกลงฉบับนี้
 </P>
 <p class='t-12 tab2'>
     บันทึกข้อตกลงนี้ทำขึ้นเป็นบันทึกข้อตกลงอิเล็กทรอนิกส์ คู่ตกลงได้อ่าน เข้าใจเงื่อนไข และยอมรับเงื่อนไข และได้ยืนยันว่าเป็นผู้มีอำนาจลงนามในบันทึกข้อตกลง จึงได้ลงลายมืออิเล็กทรอนิกส์พร้อมทั้งประทับตรา (ถ้ามี) ในบันทึกข้อตกลงไว้ และต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับในระบบของตน 

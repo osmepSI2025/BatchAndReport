@@ -91,7 +91,7 @@ namespace BatchAndReport.DAO
                     CommandType = CommandType.StoredProcedure
                 };
                 signatoryCmd.Parameters.AddWithValue("@con_id", id);
-                signatoryCmd.Parameters.AddWithValue("@con_type", "JOA"); // ใช้ค่าตามที่ระบบระบุ
+                signatoryCmd.Parameters.AddWithValue("@con_type", "EC"); // ใช้ค่าตามที่ระบบระบุ
 
                 using var signatoryReader = await signatoryCmd.ExecuteReaderAsync();
                 while (await signatoryReader.ReadAsync())
