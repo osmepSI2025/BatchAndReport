@@ -183,7 +183,7 @@ EContractDAO eContractDAO
 โดยทั้งสองฝ่ายได้ตกลงทำร่วมกันดังมีรายละเอียดต่อไปนี้
 </p>
 <p class='tab2 t-12'>
-    ๑. ผู้ว่าจ้างตกลงจ้างลูกจ้างปฏิบัติงานกับผู้ว่าจ้าง โดยให้ปฏิบัติงานภายใต้โครงการ {CommonDAO.ConvertStringArabicToThaiNumerals(result.WorkDetail) ?? ""} ในตำแหน่ง {CommonDAO.ConvertStringArabicToThaiNumerals(result.WorkPosition) ?? ""} โดยมีรายละเอียดหน้าที่ความรับผิดชอบปรากฏตามเอกสารแนบท้ายสัญญาจ้าง ตั้งแต่ {strHiringStart} ถึง {strHiringEnd}
+    ๑. ผู้ว่าจ้างตกลงจ้างลูกจ้างปฏิบัติงานกับผู้ว่าจ้าง โดยให้ปฏิบัติงานภายใต้โครงการ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Work_Location) ?? ""} ในตำแหน่ง {CommonDAO.ConvertStringArabicToThaiNumerals(result.WorkDetail) ?? ""} โดยมีรายละเอียดหน้าที่ความรับผิดชอบปรากฏตามเอกสารแนบท้ายสัญญาจ้าง ตั้งแต่ {strHiringStart} ถึง {strHiringEnd}
 </p>
 <p class='tab2 t-12'>
 ๒. ผู้ว่าจ้างจะจ่ายค่าจ้างให้แก่ลูกจ้างในระหว่างระยะเวลาการปฏิบัติงานของลูกจ้างตามสัญญานี้ ในอัตราเดือนละ {CommonDAO.ConvertCurrencyToThaiNumerals(result.Salary.HasValue ? (int)result.Salary.Value : 0)}  บาท ({strSalary}) 
@@ -233,7 +233,7 @@ EContractDAO eContractDAO
 
 </p>
 <p class='tab2 t-12'>
-   ๑๑. ลูกจ้างมีสิทธิบอกเลิกสัญญาจ้างได้ก่อนสัญญาครบกำหนด โดยทำหนังสือแจ้งเป็นลายลักษณ์อักษรต่อผู้ว่าจ้างได้ทราบล่วงหน้าไม่น้อยกว่า ๒๐ วัน เมื่อผู้ว่าจ้างได้อนุมัติแล้ว ให้ถือว่าสัญญาจ้างนี้ได้สิ้นสุดลง
+   ๑๑. ลูกจ้างมีสิทธิบอกเลิกสัญญาจ้างได้ก่อนสัญญาครบกำหนด โดยทำหนังสือแจ้งเป็นลายลักษณ์อักษรต่อผู้ว่าจ้างได้ทราบล่วงหน้าไม่น้อยกว่า ๓๐ วัน เมื่อผู้ว่าจ้างได้อนุมัติแล้ว ให้ถือว่าสัญญาจ้างนี้ได้สิ้นสุดลง
 </p>
 <p class='tab2 t-12'>
   ๑๒. ในกรณีที่ลูกจ้างกระทำการใดอันทำให้ผู้ว่าจ้างได้รับความเสียหาย ไม่ว่าเหตุนั้นผู้ว่าจ้างจะนำมาเป็นเหตุบอกเลิกสัญญาจ้างหรือไม่ก็ตาม ผู้ว่าจ้างมีสิทธิจะเรียกร้องค่าเสียหาย และลูกจ้างยินยอมชดใช้ค่าเสียหายตามที่ผู้ว่าจ้างเรียกร้องทุกประการ 
@@ -248,12 +248,12 @@ EContractDAO eContractDAO
 </br>
 </br>
 {signatoryTableHtml} 
-
-
+</br>
+{signatoryTableHtmlWitnesses} 
 
 <div style='page-break-before: always;'></div>
 <p class='text-center t-14' style='font-weight:bold;'>เอกสารแนบท้ายสัญญาจ้างลูกจ้าง</p>
-<p class='text-center t-14' style='font-weight:bold;'>งานศูนย์ให้บริการ SMEs ครบวงจร</p>
+
 </br>
 
 <div class='t-12 editor-content'>

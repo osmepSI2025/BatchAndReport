@@ -77,8 +77,8 @@ namespace BatchAndReport.DAO
                     AttorneyLetterNumber = reader["AttorneyLetterNumber"] as string,
                     OSMEP_NAME = reader["OSMEP_NAME"] as string,
                     OSMEP_POSITION = reader["OSMEP_POSITION"] as string,
-                    Work_Location = reader["Work_Location"] as string,
-                    Work_Detail = reader["Work_Detail"] as string
+                    Work_Location = reader["M_WorkLocation"] as string,
+                    Work_Detail = reader["M_WorkDetail"] as string
                 };
                 // 🔹 Convert JOA_ID to int for @con_id
                 //int conId = 0;
