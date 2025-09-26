@@ -119,7 +119,7 @@ public class WordEContract_MemorandumInWritingService
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("(บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม" +
                         "เมื่อ"+ strDateTH + " ระหว่าง", null, "32"));
 
-                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย "+result.OrgCommonName+" เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550 (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.”ฝ่ายหนึ่ง กับ", null, "32"));
+                body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม โดย "+result.OrgCommonName+ " เลขที่ ๑๒๐ หมู่ ๓ ศูนย์ราชการเฉลิมพระเกียรติ ๘๐ พรรษา ๕ ธันวาคม ๒๕๕๐ (อาคารซี) ชั้น ๒, ๑๐, ๑๑ ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ ๑๐๒๑๐ ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.”ฝ่ายหนึ่ง กับ", null, "32"));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("“ชื่อเต็มของหน่วยงาน” โดย "+result.Requestor+" ตำแหน่ง "+result.RequestorPosition+ "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลง"+ strDateTH + "สำนักงานตั้งอยู่เลขที่ ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “  ” อีกฝ่ายหนึ่ง", null, "32"));
                 body.AppendChild(WordServiceSetting.JustifiedParagraph("วัตถุประสงค์ของความร่วมมือ", "32", true));
                 body.AppendChild(WordServiceSetting.NormalParagraphWith_2Tabs("ทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ (ชื่อโครงการที่ระบุไว้ข้างต้น) ซึ่งในบันทึกข้อตกลงฉบับนี้ต่อไปจะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการแผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของบันทึกข้อตกลงฉบับนี้ มีระยะเวลา" +
@@ -214,9 +214,9 @@ public class WordEContract_MemorandumInWritingService
 
         // Logo
         string strContract_Value = CommonDAO.NumberToThaiText(result.Contract_Value ?? 0);
-        string strSign_Date = CommonDAO.ToArabicDateStringCovert(result.Sign_Date ?? DateTime.Now);
-        string strStart_Date = CommonDAO.ToArabicDateStringCovert(result.Start_Date ?? DateTime.Now);
-        string strEnd_Date = CommonDAO.ToArabicDateStringCovert(result.End_Date ?? DateTime.Now);
+        string strSign_Date = CommonDAO.ToThaiDateStringCovert(result.Sign_Date ?? DateTime.Now);
+        string strStart_Date = CommonDAO.ToThaiDateStringCovert(result.Start_Date ?? DateTime.Now);
+        string strEnd_Date = CommonDAO.ToThaiDateStringCovert(result.End_Date ?? DateTime.Now);
 
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
         string logoBase64 = "";
@@ -225,19 +225,57 @@ public class WordEContract_MemorandumInWritingService
             var bytes = System.IO.File.ReadAllBytes(logoPath);
             logoBase64 = Convert.ToBase64String(bytes);
         }
-        string contractLogoHtml;
-        if (!string.IsNullOrEmpty(result.Organization_Logo) && result.Organization_Logo.Contains("<content>"))
+        string contractLogoHtml = "";
+        var logoOrgList = await _eContractReportDAO.Getsp_GetOrganizationLogosAsync(id, "MOA");
+        // Read CSS file content
+        var cssPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css", "contract.css");
+        string contractCss = "";
+        if (File.Exists(cssPath))
+        {
+            contractCss = File.ReadAllText(cssPath, Encoding.UTF8);
+        }
+        if (logoOrgList.Count > 0)
         {
             try
             {
-                // ตัดเอาเฉพาะ Base64 ในแท็ก <content>...</content>
-                var contentStart = result.Organization_Logo.IndexOf("<content>") + "<content>".Length;
-                var contentEnd = result.Organization_Logo.IndexOf("</content>");
-                var contractlogoBase64 = result.Organization_Logo.Substring(contentStart, contentEnd - contentStart);
+                int logoCount = logoOrgList.Count;
+                int logoHeight;
 
-                contractLogoHtml = $@"<div style='display:inline-block; padding:20px; font-size:32pt;'>
-                 <img src='data:image/jpeg;base64,{contractlogoBase64}'  height='80' />
-                </div>";
+                // Adjust logo size based on count
+                if (logoCount <= 2)
+                    logoHeight = 70;
+                else if (logoCount <= 5)
+                    logoHeight = 50;
+                else
+                    logoHeight = 40;
+
+                var logosHtml = new StringBuilder();
+                logosHtml.Append("<div style='width:100%; margin-top:40px; text-align:center;'>");
+
+                // SME logo first
+                logosHtml.Append($"<img src='data:image/jpeg;base64,{logoBase64}' height='{logoHeight}' style='margin-right:10px;' />");
+
+                int count = 1; // SME logo is already added
+                foreach (var logo in logoOrgList)
+                {
+                    string? logox = logo.Organization_Logo;
+                    if (!string.IsNullOrEmpty(logox) && logox.Contains("<content>"))
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(logox, @"<content>(.*?)</content>", System.Text.RegularExpressions.RegexOptions.Singleline);
+                        if (match.Success)
+                        {
+                            var base64String = match.Groups[1].Value;
+                            logosHtml.Append($"<img src='data:image/png;base64,{base64String}' height='{logoHeight}' style='margin-right:10px;' />");
+                            count++;
+                            if (count % 5 == 0)
+                            {
+                                logosHtml.Append("<br/>");
+                            }
+                        }
+                    }
+                }
+                logosHtml.Append("</div>");
+                contractLogoHtml = logosHtml.ToString();
             }
             catch
             {
@@ -249,8 +287,8 @@ public class WordEContract_MemorandumInWritingService
             contractLogoHtml = "";
         }
         #region checkมอบอำนาจ
-        string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(result.Effective_Date ?? DateTime.Now);
-        string strAttorneyLetterDate_CP = CommonDAO.ToArabicDateStringCovert(result.CP_S_AttorneyLetterDate ?? DateTime.Now);
+        string strAttorneyLetterDate = CommonDAO.ToThaiDateStringCovert(result.Effective_Date ?? DateTime.Now);
+        string strAttorneyLetterDate_CP = CommonDAO.ToThaiDateStringCovert(result.CP_S_AttorneyLetterDate ?? DateTime.Now);
         string strAttorneyOsmep = "";
         var HtmlAttorneyOsmep = new StringBuilder();
         if (result.AttorneyFlag == true)
@@ -317,136 +355,49 @@ public class WordEContract_MemorandumInWritingService
             font-weight: normal;
             font-style: normal;
         }}
-        body {{
-            font-size: 22px;
-            font-family: 'TH Sarabun PSK', Arial, sans-serif;
-        }}
-        /* แก้การตัดคำไทย: ไม่หั่นกลางคำ, ตัดเมื่อจำเป็น */
-        body, p, div {{
-            word-break: keep-all;            /* ห้ามตัดกลางคำ */
-            overflow-wrap: break-word;       /* ตัดเฉพาะเมื่อจำเป็น (ยาวจนล้นบรรทัด) */
-            -webkit-line-break: after-white-space; /* ช่วย WebKit เก่าจัดบรรทัด */
-            hyphens: none;
-        }}
-         .t-12 {{ font-size: 1em; }}
-        .t-14 {{ font-size: 1.1em; }}
-        .t-16 {{ font-size: 1.5em; }}
-        .t-18 {{ font-size: 1.7em; }}
-        .t-20 {{ font-size: 1.9em; }}
-        .t-22 {{ font-size: 2.1em; }}
-
-           .tab1 {{ text-indent: 48px; text-align: justify;  }}
-        .tab2 {{ text-indent: 96px;  text-align: left; }}
-        .tab3 {{ text-indent: 144px; text-align: left; }}
-        .tab4 {{ text-indent: 192px;  text-align: left;}}
-       .normal {{text-align: justify;
-        text-align-last: justify;
-        width: 100%;
-        display: block;
-        min-width: 100%;
-  letter-spacing: 0.1em; /* เพิ่มช่องไฟเล็กน้อย */
-    }}
-        .d-flex {{ display: flex; }}
-        .w-100 {{ width: 100%; }}
-        .w-40 {{ width: 40%; }}
-        .w-50 {{ width: 50%; }}
-        .w-60 {{ width: 60%; }}
-        .text-center {{ text-align: center; }}
-        .sign-single-right {{
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            left: 20%;
-        }}
-        .sign-double {{ display: flex; }}
-        .text-center-right-brake {{
-            margin-left: 50%;
-            word-break: break-all;
-        }}
-        .text-right {{ text-align: right; }}
-        .contract, .section {{
-            margin: 12px 0;
-            line-height: 1.7;
-        }}
-        .section {{
-            font-weight: bold;
-            font-size: 1.2em;
-            text-align: left;
-            margin-top: 24px;
-        }}
-        .signature-table {{
-            width: 100%;
-            margin-top: 32px;
-            border-collapse: collapse;
-        }}
-        .signature-table td {{
-            padding: 16px;
-            text-align: center;
-            vertical-align: top;
-            font-size: 1.4em;
-        }}
-
-.logo-table {{ width: 100%; border-collapse: collapse; margin-top: 40px; }}
-        .logo-table td {{ border: none; }}
-        p {{
-            margin: 0;
-            padding: 0;
-        }}
+     {contractCss}
     </style>
 
 </head>
 <body>
-<table style='width:100%; border-collapse:collapse; margin-top:40px;'>
-    <tr>
-        <!-- Left: SME logo -->
-        <td style='width:60%; text-align:left; vertical-align:top;'>
-        <div style='display:inline-block; padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{logoBase64}'  height='80' />
-           </div>
-        </td>
-        <!-- Right: Contract code box (replace with your actual contract code if needed) -->
-        <td style='width:40%; text-align:center; vertical-align:top;'>
-            {contractLogoHtml}
-        </td>
-    </tr>
-</table>
+  {contractLogoHtml}
 </br>
 </br>
     <div class='t-14 text-center'><B>บันทึกข้อตกลงความเข้าใจ</B></div>
-   <div class='t-14 text-center'><B> {result.ProjectTitle}</B></div>
-    <div class='t-14 text-center'><B>ระหว่าง</B></div>
-    <div class='t-14 text-center'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B></div>
-    <div class='t-14 text-center'><B>กับ</B></div>
-    <div class='t-14 text-center'><B>{result.OrgName ?? ""}</B></div>
+   <div class='t-14 text-center'><B> {CommonDAO.ConvertStringArabicToThaiNumerals(result.ProjectTitle)}</B></div>
+    <div class='t-12 text-center'><B>ระหว่าง</B></div>
+    <div class='t-12 text-center'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B></div>
+    <div class='t-12 text-center'><B>กับ</B></div>
+    <div class='t-12 text-center'><B>{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}</B></div>
     <br/>
      <P class='t-12 tab2'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจ ขนาดกลางและขนาดย่อม เมื่อ {strSign_Date} ระหว่าง</P>
-    <P class='t-12 tab2'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B>  โดย {result.OSMEP_NAME} ตำแหน่ง {result.OSMEP_POSITION} {strAttorneyOsmep} สำนักงานตั้งอยู่เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550 (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ</P>
-    <P class='t-12 tab2'><B>“{result.OrgCommonName ?? ""}”</B> โดย {result.CP_S_NAME} ตำแหน่ง {result.CP_S_POSITION} {strAttorney} สำนักงานตั้งอยู่เลขที่ {result.Office_Loc} ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “{result.OrgName ?? ""}” อีกฝ่ายหนึ่ง</P>
+    <P class='t-12 tab2'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B>  โดย {result.OSMEP_NAME} ตำแหน่ง {CommonDAO.ConvertStringArabicToThaiNumerals(result.OSMEP_POSITION)} {CommonDAO.ConvertStringArabicToThaiNumerals(strAttorneyOsmep)} สำนักงานตั้งอยู่เลขที่ ๑๒๐ หมู่ ๓ ศูนย์ราชการเฉลิมพระเกียรติ ๘๐ พรรษา ๕ ธันวาคม ๒๕๕๐ (อาคารซี) ชั้น ๒, ๑๐, ๑๑ ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ ๑๐๒๑๐ ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ</P>
+    <P class='t-12 tab2'><B>“{result.OrgCommonName ?? ""}”</B> โดย {result.CP_S_NAME} ตำแหน่ง {result.CP_S_POSITION} {CommonDAO.ConvertStringArabicToThaiNumerals(strAttorney)} สำนักงานตั้งอยู่เลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Office_Loc)} ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” อีกฝ่ายหนึ่ง</P>
     <P class='t-12 tab1'><B>วัตถุประสงค์ของความร่วมมือ</B></P>
     <P class='t-12 tab2'>ทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ {result.ProjectTitle} ซึ่งในบันทึกข้อตกลงฉบับนี้ต่อไปจะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการแผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของบันทึกข้อตกลงฉบับนี้ มีระยะเวลา ตั้งแต่วันที่ {strStart_Date} จนถึงวันที่ {strEnd_Date} โดยมีวัตถุประสงค์ ในการดำเนินโครงการ ดังนี้</P>
 {(purposeList != null && purposeList.Count > 0
     ? string.Join("", purposeList.Select((p, i) =>
-        $"<div class='t-12 tab2'>{p.Detail}</div>"))
+        $"<div class='t-12 tab2'>{CommonDAO.ConvertStringArabicToThaiNumerals(p.Detail)}</div>"))
     : "")}  
 
-  <P class='t-12 tab2'><b>ข้อ 1 ขอบเขตความร่วมมือของ “สสว.”</b></P>
-    <P class='t-12 tab3'>1.1 ตกลงร่วมดำเนินการโครงการโดยสนับสนุนงบประมาณ จำนวน {result.Contract_Value?.ToString("N2") ?? "0.00"} บาท ( {strContract_Value} ) ซึ่งได้รวมภาษีมูลค่าเพิ่ม ตลอดจนค่าภาษีอากรอื่น ๆ แล้วให้กับ “{result.OrgName ?? ""}” และการใช้จ่ายเงินให้เป็นไปตามแผนการจ่ายเงินตามเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้</P>
-    <P class='t-12 tab3'>1.2 ประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์</P>
-    <P class='t-12 tab3'>1.3 กำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ</P>
-    <P class='t-12 tab2'><b>ข้อ 2 ขอบเขตความร่วมมือของ “{result.OrgName ?? ""}”</b></P>
-    <P class='t-12 tab3'>2.1 ตกลงที่จะร่วมดำเนินการโครงการตามวัตถุประสงค์ของโครงการและ ขอบเขตการดำเนินการตามรายละเอียดโครงการ แผนการดำเนินการ และแผนการ ใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ที่แนบท้ายบันทึกข้อตกลงฉบับนี้</P>
-    <P class='t-12 tab3'>2.2 ต้องดำเนินโครงการ ปฏิบัติตามแผนการดำเนินงาน แผนการใช้จ่ายเงิน (หรืออาจมีคู่มือการดำเนินโครงการก็ได้) อย่างเคร่งครัดและให้แล้วเสร็จภายใน ระยะเวลาโครงการ</P>
-    <P class='t-12 tab3'>2.3 ต้องประสานการดำเนินโครงการ เพื่อให้โครงการบรรลุวัตถุประสงค์ เป้าหมายผลผลิต และผลลัพธ์</P>
-    <P class='t-12 tab3'>2.4 ต้องให้ความร่วมมือกับ สสว.ในการกำกับ ติดตามและประเมิน ผลการดำเนินงาน ของโครงการ</P>
-    <P class='t-12 tab2'><b>ข้อ 3 อื่น ๆ</b></P>
-    <P class='t-12 tab3'>3.1 หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอแก้ไข เปลี่ยนแปลง ขยายระยะเวลา ของโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษร และต้องได้ รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และต้องทำ บันทึกข้อตกลงแก้ไข เปลี่ยนแปลง ขยายระยะเวลา เพื่อลงนามยินยอมทั้งสองฝ่าย</P>
+  <P class='t-12 tab2'><b>ข้อ ๑ ขอบเขตความร่วมมือของ “สสว.”</b></P>
+    <P class='t-12 tab3'>๑.๑ ตกลงร่วมดำเนินการโครงการโดยสนับสนุนงบประมาณ จำนวน {CommonDAO.ConvertCurrencyToThaiNumerals(result.Contract_Value.HasValue ? (int)result.Contract_Value.Value : 0)} ซึ่งได้รวมภาษีมูลค่าเพิ่ม ตลอดจนค่าภาษีอากรอื่น ๆ แล้วให้กับ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” และการใช้จ่ายเงินให้เป็นไปตามแผนการจ่ายเงินตามเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้</P>
+    <P class='t-12 tab3'>๑.๒ ประสานการดำเนินโครงการ เพื่อให้บรรลุวัตถุประสงค์ เป้าหมายผลผลิตและผลลัพธ์</P>
+    <P class='t-12 tab3'>๑.๓ กำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ</P>
+    <P class='t-12 tab2'><b>ข้อ ๒ ขอบเขตความร่วมมือของ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}”</b></P>
+    <P class='t-12 tab3'>๒.๑ ตกลงที่จะร่วมดำเนินการโครงการตามวัตถุประสงค์ของโครงการและ ขอบเขตการดำเนินการตามรายละเอียดโครงการ แผนการดำเนินการ และแผนการ ใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ที่แนบท้ายบันทึกข้อตกลงฉบับนี้</P>
+    <P class='t-12 tab3'>๒.๒ ต้องดำเนินโครงการ ปฏิบัติตามแผนการดำเนินงาน แผนการใช้จ่ายเงิน (หรืออาจมีคู่มือการดำเนินโครงการก็ได้) อย่างเคร่งครัดและให้แล้วเสร็จภายใน ระยะเวลาโครงการ</P>
+    <P class='t-12 tab3'>๒.๓ ต้องประสานการดำเนินโครงการ เพื่อให้โครงการบรรลุวัตถุประสงค์ เป้าหมายผลผลิต และผลลัพธ์</P>
+    <P class='t-12 tab3'>๒.๔ ต้องให้ความร่วมมือกับ สสว.ในการกำกับ ติดตามและประเมิน ผลการดำเนินงาน ของโครงการ</P>
+    <P class='t-12 tab2'><b>ข้อ ๓ อื่น ๆ</b></P>
+    <P class='t-12 tab3'>๓.๑ หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอแก้ไข เปลี่ยนแปลง ขยายระยะเวลา ของโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษร และต้องได้ รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และต้องทำ บันทึกข้อตกลงแก้ไข เปลี่ยนแปลง ขยายระยะเวลา เพื่อลงนามยินยอมทั้งสองฝ่าย</P>
     
-<P class='t-12 tab3'>3.2 หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอบอกเลิกบันทึกข้อตกลงความร่วมมือ ก่อนครบกำหนด ระยะเวลาดำเนินโครงการจะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่ง ได้ทราบเป็นลายลักษณ์อักษรไม่น้อยกว่า 30 วัน และต้องได้รับความยินยอมเป็นลายลักษณ์ อักษรจากอีกฝ่ายหนึ่ง และ “{result.OrgName ?? ""}” จะต้องคืนเงินในส่วน ที่ยังไม่ได้ใช้จ่ายหรือส่วนที่เหลือทั้งหมดพร้อมดอกผล (ถ้ามี) ให้แก่ สสว. ภายใน 15 วัน นับจากวันที่ได้รับหนังสือของฝ่ายที่ยินยอมให้บอกเลิก</P>
+<P class='t-12 tab3'>๓.๒ หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอบอกเลิกบันทึกข้อตกลงความร่วมมือ ก่อนครบกำหนด ระยะเวลาดำเนินโครงการจะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่ง ได้ทราบเป็นลายลักษณ์อักษรไม่น้อยกว่า ๓๐ วัน และต้องได้รับความยินยอมเป็นลายลักษณ์ อักษรจากอีกฝ่ายหนึ่ง และ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” จะต้องคืนเงินในส่วน ที่ยังไม่ได้ใช้จ่ายหรือส่วนที่เหลือทั้งหมดพร้อมดอกผล (ถ้ามี) ให้แก่ สสว. ภายใน ๑๕ วัน นับจากวันที่ได้รับหนังสือของฝ่ายที่ยินยอมให้บอกเลิก</P>
  
-<P class='t-12 tab3'>3.3 สสว. อาจบอกเลิกบันทึกข้อตกลงความร่วมมือได้ทันที หากตรวจสอบ หรือปรากฏข้อเท็จจริงว่า การใช้จ่ายเงินของ “{result.OrgName ?? ""}” ไม่เป็นไปตามวัตถุประสงค์ ของโครงการ แผนการดำเนินงาน และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ทั้งมีสิทธิเรียกเงินคงเหลือพร้อมดอกผล (ถ้ามี) คืนทั้งหมดได้ทันที</P>
-    <P class='t-12 tab3'>3.4 ทรัพย์สินใด ๆ และ/หรือ สิทธิใด ๆ ที่ได้มาจากเงินสนับสนุนตาม บันทึกข้อตกลงฉบับนี้ เมื่อสิ้นสุดโครงการให้ตกได้แก่ สสว. ทั้งสิ้น เว้นแต่ สสว. จะกำหนดให้เป็นอย่างอื่น</P>
-    <P class='t-12 tab3'>3.5 “{result.OrgName ?? ""}” ต้องไม่ดำเนินการในลักษณะการจ้างเหมา กับหน่วยงาน องค์กร หรือบุคคลอื่น ๆ ยกเว้นกรณีการจัดหา จัดจ้าง เป็นกิจกรรมหรือเป็นเรื่อง ๆ</P>
-    <P class='t-12 tab3'>3.6 ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับ ข้อมูลส่วนบุคคล และการคุ้มครองทรัพย์สินทางปัญญา “{result.OrgName ?? ""}” จะต้องปฏิบัติ ตามกฎหมาย ว่าด้วยการคุ้มครอง ข้อมูลส่วนบุคคลและ การคุ้มครองทรัพย์สินทางปัญญา อย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้องร้องใดๆ “{result.OrgName ?? ""}” จะต้องเป็นผู้รับผิดชอบ ต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าว แต่เพียงฝ่ายเดียว โดยสิ้นเชิง</P>
+<P class='t-12 tab3'>๓.๓ สสว. อาจบอกเลิกบันทึกข้อตกลงความร่วมมือได้ทันที หากตรวจสอบ หรือปรากฏข้อเท็จจริงว่า การใช้จ่ายเงินของ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” ไม่เป็นไปตามวัตถุประสงค์ ของโครงการ แผนการดำเนินงาน และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ทั้งมีสิทธิเรียกเงินคงเหลือพร้อมดอกผล (ถ้ามี) คืนทั้งหมดได้ทันที</P>
+    <P class='t-12 tab3'>๓.๔ ทรัพย์สินใด ๆ และ/หรือ สิทธิใด ๆ ที่ได้มาจากเงินสนับสนุนตาม บันทึกข้อตกลงฉบับนี้ เมื่อสิ้นสุดโครงการให้ตกได้แก่ สสว. ทั้งสิ้น เว้นแต่ สสว. จะกำหนดให้เป็นอย่างอื่น</P>
+    <P class='t-12 tab3'>๓.๕ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” ต้องไม่ดำเนินการในลักษณะการจ้างเหมา กับหน่วยงาน องค์กร หรือบุคคลอื่น ๆ ยกเว้นกรณีการจัดหา จัดจ้าง เป็นกิจกรรมหรือเป็นเรื่อง ๆ</P>
+    <P class='t-12 tab3'>๓.๖ ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับ ข้อมูลส่วนบุคคล และการคุ้มครองทรัพย์สินทางปัญญา “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” จะต้องปฏิบัติ ตามกฎหมาย ว่าด้วยการคุ้มครอง ข้อมูลส่วนบุคคลและ การคุ้มครองทรัพย์สินทางปัญญา อย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้องร้องใดๆ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” จะต้องเป็นผู้รับผิดชอบ ต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าว แต่เพียงฝ่ายเดียว โดยสิ้นเชิง</P>
     <P class='t-12 tab3'>บันทึกความเข้าใจนี้ทำขึ้นเป็นบันทึกความเข้าใจทางอิเล็กทรอนิกส์ คู่ตกลงได้อ่าน เข้าใจเงื่อนไข และยอมรับเงื่อนไข และได้ยืนยันว่าเป็นผู้มีอำนาจลงนามในบันทึกความเข้าใจ จึงได้ลงลายมืออิเล็กทรอนิกส์พร้อมทั้งประทับตรา (ถ้ามี) ในบันทึกความเข้าใจไว้ และต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับในระบบของตน  </P>
 
 

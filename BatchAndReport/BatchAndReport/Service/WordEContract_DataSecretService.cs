@@ -35,7 +35,7 @@ public class WordEContract_DataSecretService
             purposeHtml += "<p class='tab2 t-12'>โดยที่ผู้ให้ข้อมูลเป็นเจ้าของข้อมูล ผู้รับข้อมูลมีความต้องการที่จะใช้ข้อมูลของผู้ให้ข้อมูลเพื่อที่จะดำเนินการตามวัตถุประสงค์ ดังนี้ </p>";
             foreach (var purpose in conPurpose)
             {
-                purposeHtml += $"<p class='tab2 t-12'>{System.Net.WebUtility.HtmlEncode(purpose.Detail)}</p>";
+                purposeHtml += $"<p class='tab2 t-12'>{System.Net.WebUtility.HtmlEncode(CommonDAO.ConvertStringArabicToThaiNumerals(purpose.Detail))}</p>";
             }
         }
         
@@ -45,7 +45,7 @@ public class WordEContract_DataSecretService
         {
             foreach (var confidential in conConfidentialType)
             {
-                conConfidentialHtml += $"<div class='tab2 t-12'>{System.Net.WebUtility.HtmlEncode(confidential.Detail)}</div>";
+                conConfidentialHtml += $"<div class='tab2 t-12'>{System.Net.WebUtility.HtmlEncode(CommonDAO.ConvertStringArabicToThaiNumerals(confidential.Detail))}</div>";
             }
         }
         if (result == null)
@@ -98,8 +98,8 @@ public class WordEContract_DataSecretService
             contractLogoHtml = "";
         }
         #region checkมอบอำนาจ
-        string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(result.Grant_Date ?? DateTime.Now);
-        string strAttorneyLetterDate_CP = CommonDAO.ToArabicDateStringCovert(result.CP_S_AttorneyLetterDate ?? DateTime.Now);
+        string strAttorneyLetterDate = CommonDAO.ToThaiDateStringCovert(result.Grant_Date ?? DateTime.Now);
+        string strAttorneyLetterDate_CP = CommonDAO.ToThaiDateStringCovert(result.CP_S_AttorneyLetterDate ?? DateTime.Now);
         string strAttorneyOsmep = "";
         var HtmlAttorneyOsmep = new StringBuilder();
         if (result.AttorneyFlag == true)
@@ -188,11 +188,12 @@ public class WordEContract_DataSecretService
         สัญญาการรักษาข้อมูลที่เป็นความลับ (“สัญญา”) ฉบับนี้จัดขึ้น เมื่อ {strDateTH} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.) ระหว่าง
     </p>
    <p class='tab2 t-12'>
-        สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B>  โดย {result.OSMEP_NAME} ตำแหน่ง {result.OSMEP_POSITION} {strAttorneyOsmep} สำนักงานตั้งอยู่เลขที่ 120 หมู่ 3 ศูนย์ราชการเฉลิมพระเกียรติ 80 พรรษา 5 ธันวาคม 2550 (อาคารซี) ชั้น 2, 10, 11 ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ 10210 ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เปิดเผยข้อมูล”
+        สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B>  โดย {CommonDAO.ConvertStringArabicToThaiNumerals(result.OSMEP_NAME)} ตำแหน่ง {CommonDAO.ConvertStringArabicToThaiNumerals(result.OSMEP_POSITION)} {CommonDAO.ConvertStringArabicToThaiNumerals(
+strAttorneyOsmep)} สำนักงานตั้งอยู่เลขที่ ๑๒๐ หมู่ ๓ ศูนย์ราชการเฉลิมพระเกียรติ ๘๐ พรรษา ๕ ธันวาคม ๒๕๕๐ (อาคารซี) ชั้น ๒, ๑๐, ๑๑ ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ ๑๐๒๑๐ ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้เปิดเผยข้อมูล”
         </p>
 </br> 
-<p class='tab2 t-12'>กับ {result.Contract_Party_Name} โดย {result.CP_S_NAME} ตำแหน่ง {result.CP_S_POSITION} {strAttorney} 
-     สำนักงานตั้งอยู่เลขที่ {result.OfficeLoc} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้รับข้อมูล”
+<p class='tab2 t-12'>กับ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Party_Name)} โดย {CommonDAO.ConvertStringArabicToThaiNumerals(result.CP_S_NAME)} ตำแหน่ง {CommonDAO.ConvertStringArabicToThaiNumerals(result.CP_S_POSITION)} {CommonDAO.ConvertStringArabicToThaiNumerals(strAttorney)} 
+     สำนักงานตั้งอยู่เลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.OfficeLoc)} ซึ่งต่อไปในสัญญานี้จะเรียกว่า “ผู้รับข้อมูล”
     </p>
    <p class='tab2 t-12'>คู่สัญญาได้ตกลงทำสัญญากันมีข้อความดังต่อไปนี้</p>
 
@@ -202,7 +203,8 @@ public class WordEContract_DataSecretService
 
    <p class='tab2 t-12'>โดยผู้รับข้อมูลประสงค์ให้ผู้ให้ข้อมูลเปิดเผยข้อมูลแก่ผู้รับข้อมูลอย่างเป็นความลับทั้งก่อน
 หรือหลังจากวันที่สัญญาฉบับนี้มีผลใช้บังคับดังที่ระบุไว้ข้างต้น โดยผู้ให้ข้อมูลมีความจำเป็นต้องเปิดเผยข้อมูล
-ที่เป็นความลับของผู้ให้ข้อมูล เพื่อผู้รับข้อมูลจะได้นำข้อมูลดังกล่าวไปประกอบการจัดทำ {result.Contract_Party_Name} ร่วมกัน โดยผู้ให้ข้อมูลประสงค์
+ที่เป็นความลับของผู้ให้ข้อมูล เพื่อผู้รับข้อมูลจะได้นำข้อมูลดังกล่าวไปประกอบการจัดทำ {CommonDAO.ConvertStringArabicToThaiNumerals(
+result.Contract_Party_Name)} ร่วมกัน โดยผู้ให้ข้อมูลประสงค์
 ให้ผู้รับข้อมูลเก็บรักษาความลับไว้ภายใต้สัญญานี้
 </p>
 
@@ -299,7 +301,7 @@ public class WordEContract_DataSecretService
 
     <!-- Clause 7 -->
    <p class='tab2 t-12'><b>ข้อ ๗ ระยะเวลาตามสัญญา</b></p>
-   <p class='tab2 t-12'>สัญญานี้มีผลบังคับใช้นับตั้งแต่วันที่ทำสัญญานี้ โดยมีกำหนดระยะเวลาทั้งสิ้น {(result.EnforcePeriods.HasValue ? result.EnforcePeriods.Value.ToString() : "-")} ปี นับตั้งแต่
+   <p class='tab2 t-12'>สัญญานี้มีผลบังคับใช้นับตั้งแต่วันที่ทำสัญญานี้ โดยมีกำหนดระยะเวลาทั้งสิ้น {(result.EnforcePeriods.HasValue ? CommonDAO.ConvertStringArabicToThaiNumerals(result.EnforcePeriods.Value.ToString()) : "-")} ปี นับตั้งแต่
 
 วันที่ทำสัญญาฉบับนี้</p>
    <p class='tab2 t-12'>เมื่อครบกำหนดระยะเวลาตามวรรคหนึ่ง หรือเมื่อมีการบอกเลิกสัญญา หรือผู้ให้ข้อมูล

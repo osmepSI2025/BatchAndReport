@@ -146,12 +146,13 @@ public class WordEContract_DataPersonalService
     <div class='t-12 text-center'><b>ข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล</b></div>
     <div class='t-12 text-center'><b>(Personal Data Sharing Agreement)</b></div>
     <div class='t-12 text-center'><b>ระหว่าง</b></div>
-    <div class='t-12 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม กับ {result.ContractPartyName}</b></div>
+    <div class='t-12 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม กับ {CommonDAO.ConvertStringArabicToThaiNumerals(CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName))}</b></div>
     <div class='t-12 text-center'>---------------------------------------------</div>
     <!-- Paragraphs -->
     <p class='tab2 t-12'>ข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล (“ข้อตกลง”) ฉบับนี้ทำขึ้น เมื่อ {datestring} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</p>
 <p class='tab2 t-12'>
-    โดยที่ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สสว.” ฝ่ายหนึ่ง ได้ตกลงใน {result.ContractPartyName} สัญญาเลขที่ {result.Master_Contract_Number} ฉบับลง{datestring} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สัญญาหลัก” กับ {result.ContractPartyName} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “{result.ContractPartyName}” อีกฝ่ายหนึ่ง รวมเรียกว่า “คู่สัญญา”
+    โดยที่ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สสว.” ฝ่ายหนึ่ง ได้ตกลงใน {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)} 
+สัญญาเลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Master_Contract_Number)} ฉบับลง{datestring} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สัญญาหลัก” กับ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “{CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)}” อีกฝ่ายหนึ่ง รวมเรียกว่า “คู่สัญญา”
 </p>
 <p class='tab2 t-12'>เพื่อให้บรรลุวัตถุประสงค์ภายใต้ความตกลงของสัญญาหลัก คู่สัญญามีความจำเป็นต้อง
 แบ่งปัน โอน แลกเปลี่ยน หรือเปิดเผย (รวมเรียกว่า “แบ่งปัน”) ข้อมูลส่วนบุคคลที่ตนเก็บรักษาแก่อีกฝ่าย
@@ -178,15 +179,15 @@ public class WordEContract_DataPersonalService
             <th>ข้อมูลส่วนบุคคลที่แบ่งปันโดย สสว.</th>
             <th>วัตถุประสงค์ในการแบ่งปันข้อมูลส่วนบุคคล</th>
         </tr>
-{string.Join("", rSd.Where(e => e.Owner == "OSMEP").Select(item => $"<tr><td>{item.Detail ?? "-"}</td><td>{item.Objective ?? "-"}</td></tr>"))}
+{string.Join("", rSd.Where(e => e.Owner == "OSMEP").Select(item => $"<tr><td>{CommonDAO.ConvertStringArabicToThaiNumerals(item.Detail) ?? "-"}</td><td>{CommonDAO.ConvertStringArabicToThaiNumerals(item.Objective) ?? "-"}</td></tr>"))}
     </table>
     <!-- Table: ข้อมูลส่วนบุคคลที่แบ่งปันโดยคู่สัญญา -->
    <table class='table t-12'>
         <tr>
-            <th>ข้อมูลส่วนบุคคลที่แบ่งปันโดย {result.ContractPartyName}</th>
+            <th>ข้อมูลส่วนบุคคลที่แบ่งปันโดย {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)}</th>
             <th>วัตถุประสงค์ในการแบ่งปันข้อมูลส่วนบุคคล</th>
         </tr>
-      {string.Join("", rSd.Where(e => e.Owner == "CP").Select(item => $"<tr><td>{item.Detail ?? "-"}</td><td>{item.Objective ?? "-"}</td></tr>"))}
+      {string.Join("", rSd.Where(e => e.Owner == "CP").Select(item => $"<tr><td>{CommonDAO.ConvertStringArabicToThaiNumerals(item.Detail) ?? "-"}</td><td>{CommonDAO.ConvertStringArabicToThaiNumerals(item.Objective) ?? "-"}</td></tr>"))}
     </table>
     <!-- Table: ฐานกฎหมายในการแบ่งปันข้อมูลส่วนบุคคล -->
 
@@ -197,13 +198,13 @@ public class WordEContract_DataPersonalService
         <tr>
             <th>ฐานกฎหมายของ สสว.</th>
         </tr>
-   {string.Join("", rLe.Where(e => e.Owner == "OSMEP").Select(item => $"<tr><td>{item.Detail ?? "-"}</td></tr>"))}
+   {string.Join("", rLe.Where(e => e.Owner == "OSMEP").Select(item => $"<tr><td>{CommonDAO.ConvertStringArabicToThaiNumerals(item.Detail) ?? "-"}</td></tr>"))}
     </table>
    <table class='table t-12'>
         <tr>
-            <th>ฐานกฎหมายของ {result.ContractPartyName}</th>
+            <th>ฐานกฎหมายของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)}</th>
         </tr>
-    {string.Join("", rLe.Where(e => e.Owner == "CP").Select(item => $"<tr><td>{item.Detail ?? "-"}</td></tr>"))}
+    {string.Join("", rLe.Where(e => e.Owner == "CP").Select(item => $"<tr><td>{CommonDAO.ConvertStringArabicToThaiNumerals(item.Detail) ?? "-"}</td></tr>"))}
     </table>
 <!-- No file path since this is a template snippet -->
  <p class='tab2 t-12'>๔. คู่สัญญารับทราบและตกลงว่า แต่ละฝ่ายต่างเป็นผู้ควบคุมข้อมูลส่วนบุคคลในส่วนของ
@@ -279,7 +280,7 @@ public class WordEContract_DataPersonalService
 ข้อมูลส่วนบุคคล คู่สัญญาฝ่ายนั้นยังคงต้องมีความรับผิดต่ออีกฝ่ายสำหรับการกระทำการหรือละเว้นกระทำ
 การใด ๆ ของผู้ประมวลผลข้อมูลส่วนบุคคลนั้น</p>
  <p class='tab2 t-12'>๑๗. เว้นแต่กฎหมายที่เกี่ยวข้องจะบัญญัติไว้เป็นประการอื่นคู่สัญญาจะทำการลบหรือทำลาย
-ข้อมูลส่วนบุคคลที่ตนได้รับจากอีกฝ่ายภายใต้ข้อตกลงฉบับนี้ภายใน {result.RetentionPeriodDays} วัน นับแต่วันที่ดำเนินการประมวล
+ข้อมูลส่วนบุคคลที่ตนได้รับจากอีกฝ่ายภายใต้ข้อตกลงฉบับนี้ภายใน {CommonDAO.ConvertStringArabicToThaiNumerals(result.RetentionPeriodDays.ToString())} วัน นับแต่วันที่ดำเนินการประมวล
 ผลตามวัตถุประสงค์ภายใต้ข้อตกลงฉบับนี้เสร็จสิ้น หรือวันที่คู่สัญญาได้ตกลงเป็นลายลักษณ์อักษรให้ยกเลิก
 สัญญาหลักแล้วแต่กรณีใดจะเกิดขึ้นก่อน</p>
  <p class='tab2 t-12'>๑๘. คู่สัญญาแต่ละฝ่ายจะต้องชดใช้ความเสียหายให้แก่อีกฝ่ายในค่าปรับ ความสูญหายหรือ

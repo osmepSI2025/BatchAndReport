@@ -128,26 +128,32 @@ namespace BatchAndReport.DAO
         {'8', '๘'},
         {'9', '๙'}
     };
-
-            // ใช้ StringBuilder เพื่อประสิทธิภาพในการจัดการสตริง
-            var sb = new StringBuilder();
-
-            foreach (char c in input)
+            if (input != null)
             {
-                // ตรวจสอบว่าอักขระปัจจุบันมีใน Dictionary หรือไม่
-                if (arabicToThai.ContainsKey(c))
-                {
-                    // ถ้ามี ให้เพิ่มเลขไทยลงใน StringBuilder
-                    sb.Append(arabicToThai[c]);
-                }
-                else
-                {
-                    // ถ้าไม่มี ให้เพิ่มอักขระเดิมลงไป
-                    sb.Append(c);
-                }
-            }
+                // ใช้ StringBuilder เพื่อประสิทธิภาพในการจัดการสตริง
+                var sb = new StringBuilder();
 
-            return sb.ToString();
+                foreach (char c in input)
+                {
+                    // ตรวจสอบว่าอักขระปัจจุบันมีใน Dictionary หรือไม่
+                    if (arabicToThai.ContainsKey(c))
+                    {
+                        // ถ้ามี ให้เพิ่มเลขไทยลงใน StringBuilder
+                        sb.Append(arabicToThai[c]);
+                    }
+                    else
+                    {
+                        // ถ้าไม่มี ให้เพิ่มอักขระเดิมลงไป
+                        sb.Append(c);
+                    }
+                }
+
+                return sb.ToString();
+            }
+            else {
+
+                return "";
+            }
         }
         public static string ConvertCurrencyToThaiNumerals(decimal amount)
         {

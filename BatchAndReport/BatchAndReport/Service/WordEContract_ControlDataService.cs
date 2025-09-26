@@ -166,7 +166,7 @@ public class WordEContract_ControlDataService
 
 <p class='t-12 tab2'>วัตถุประสงค์</P>
 {(purplist != null && purplist.Count > 0
-    ? string.Join("", purplist.Select(p => $"<p class='tab3 t-12'>{p.Detail}</P>"))
+    ? string.Join("", purplist.Select(p => $"<p class='tab3 t-12'>{CommonDAO.ConvertStringArabicToThaiNumerals(p.Detail)}</P>"))
     : "<p class='t-12 tab2'>- ไม่มีข้อมูลวัตถุประสงค์ -</P>")}
 
    <p class='t-12 tab2'>ซึ่งจากรายการกิจกรรมการประมวลผลหลักที่คู่สัญญาร่วมกันกำหนดวัตถุประสงค์ข้างต้น คู่สัญญาแต่ละฝ่ายมีการประมวลผลข้อมูลส่วนบุคคล (“กิจกรรมการประมวลผลข้อมูลส่วนบุคคลย่อย”) ดังรายละเอียดต่อไปนี้</P>
@@ -180,13 +180,13 @@ public class WordEContract_ControlDataService
        {(activityListOSMEP != null && activityListOSMEP.Count > 0
     ? string.Join("", activityListOSMEP.Select(x => $@"
         <tr>
-            <td>{x.Activity}</td>
-            <td>{x.LegalBasis}</td>
-            <td>{x.PersonalData}</td>
+            <td>{CommonDAO.ConvertStringArabicToThaiNumerals(x.Activity)}</td>
+            <td>{CommonDAO.ConvertStringArabicToThaiNumerals(x.LegalBasis)}</td>
+            <td>{CommonDAO.ConvertStringArabicToThaiNumerals(x.PersonalData)}</td>
         </tr>"))
     : @"<tr><td colspan='3'>ไม่พบข้อมูลกิจกรรมของ สสว.</td></tr>")}
     </table>
-   <p class='t-12 tab2'><b>(๒) กิจกรรมการประมวลผลข้อมูลส่วนบุคคลย่อยซึ่งดำเนินการโดย ({result.Contract_Party_Name ?? ""})</b></P>
+   <p class='t-12 tab2'><b>(๒) กิจกรรมการประมวลผลข้อมูลส่วนบุคคลย่อยซึ่งดำเนินการโดย ({CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Party_Name) ?? ""})</b></P>
     <table class='table t-12 '>
         <tr>
             <th>รายการกิจกรรมการประมวลผล</th>
@@ -195,9 +195,9 @@ public class WordEContract_ControlDataService
         </tr>
         {string.Join("", activityListCP.Select(x => $@"
         <tr>
-            <td>{x.Activity}</td>
-            <td>{x.LegalBasis}</td>
-            <td>{x.PersonalData}</td>
+          <td>{CommonDAO.ConvertStringArabicToThaiNumerals(x.Activity)}</td>
+            <td>{CommonDAO.ConvertStringArabicToThaiNumerals(x.LegalBasis)}</td>
+            <td>{CommonDAO.ConvertStringArabicToThaiNumerals(x.PersonalData)}</td>
         </tr>"))}
     </table>
     <!-- Add more sections as needed, following your Word structure -->
@@ -260,7 +260,8 @@ public class WordEContract_ControlDataService
 ถึงที่สุดให้คู่สัญญาร่วมกันรับผิดดังกล่าว คู่สัญญาตกลงกันแบ่งความรับผิดเป็นสัดส่วนดังต่อไปนี้</P>
 
 <p class='t-12 tab2'>(๑) สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.) ร้อยละ ๕๐</P>
-<p class='t-12 tab2'>(๒) {result.Contract_Party_Name} ร้อยละ ๕๐</P>
+<p class='t-12 tab2'>(๒) {CommonDAO.ConvertStringArabicToThaiNumerals(
+result.Contract_Party_Name)} ร้อยละ ๕๐</P>
 <p class='t-12 tab2'>ทั้งนี้การตกลงกันของคู่สัญญานี้ ไม่มีอำนาจเหนือไปกว่าคำพิพากษาหรือคำสั่งถึงที่สุดของ
 ศาลหรือหน่วยงานผู้มีอำนาจที่กำหนดให้คู่สัญญาหรือคู่สัญญาฝ่ายหนึ่งฝ่ายใดต้องถูกปรับหรือชดใช้ค่าเสียหาย</P>
 
@@ -273,15 +274,17 @@ public class WordEContract_ControlDataService
     <p class='t-12 tab2'><b>๕ ผู้แทนของคู่สัญญาแต่ละฝ่าย</b></P>
    <p class='t-12 tab2'>คู่สัญญาตกลงแต่งตั้งผู้แทนของแต่ละฝ่าย ดังรายการต่อไปนี้</P>
    <p class='t-12 tab2'><b>(๑) สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.)</b></P>
-   <p class='t-12 tab3'><b>ผู้แทน</b> : {result.OSMEP_ContRep ?? ""}</P>
-   <p class='t-12 tab3'><b>ติดต่อได้ที่</b> : {result.OSMEP_ContRep_Contact ?? ""}</P>
-   <p class='t-12 tab3'><b>เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล</b> : {result.OSMEP_DPO ?? ""}</P>
-   <p class='t-12 tab3'><b>ติดต่อได้ที่ </b>: {result.OSMEP_DPO_Contact ?? ""}</P>
-   <p class='t-12 tab2'><b>(๒) {result.Contract_Party_Name ?? ""}</b></P>
-   <p class='t-12 tab3'><b>ผู้แทน</b> : {result.CP_ContRep ?? ""}</P>
-   <p class='t-12 tab3'><b>ติดต่อได้ที่</b> : {result.CP_ContRep_Contact ?? ""}</P>
-   <p class='t-12 tab3'><b>เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล (ถ้ามี)</b> : {result.CP_DPO ?? ""}</P>
-   <p class='t-12 tab3'><b>ติดต่อได้ที่</b> : {result.CP_DPO_Contact ?? ""}</P>
+   <p class='t-12 tab3'><b>ผู้แทน</b> : {CommonDAO.ConvertStringArabicToThaiNumerals(
+result.OSMEP_ContRep) ?? ""}</P>
+   <p class='t-12 tab3'><b>ติดต่อได้ที่</b> : {CommonDAO.ConvertStringArabicToThaiNumerals(
+result.OSMEP_ContRep_Contact) ?? ""}</P>
+   <p class='t-12 tab3'><b>เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล</b> : {CommonDAO.ConvertStringArabicToThaiNumerals(result.OSMEP_DPO) ?? ""}</P>
+   <p class='t-12 tab3'><b>ติดต่อได้ที่ </b>: {CommonDAO.ConvertStringArabicToThaiNumerals(result.OSMEP_DPO_Contact) ?? ""}</P>
+   <p class='t-12 tab2'><b>(๒) {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Party_Name) ?? ""}</b></P>
+   <p class='t-12 tab3'><b>ผู้แทน</b> : {CommonDAO.ConvertStringArabicToThaiNumerals(result.CP_ContRep) ?? ""}</P>
+   <p class='t-12 tab3'><b>ติดต่อได้ที่</b> : {CommonDAO.ConvertStringArabicToThaiNumerals(result.CP_ContRep_Contact) ?? ""}</P>
+   <p class='t-12 tab3'><b>เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล (ถ้ามี)</b> : {CommonDAO.ConvertStringArabicToThaiNumerals(result.CP_DPO) ?? ""}</P>
+   <p class='t-12 tab3'><b>ติดต่อได้ที่</b> : {CommonDAO.ConvertStringArabicToThaiNumerals(result.CP_DPO_Contact) ?? ""}</P>
 
 <p class='t-12 tab2'><b>๖.การบังคับใช้</b></P>
 <p class='t-12 tab2'>ในกรณีที่ข้อตกลง คำรับรอง การเจรจาหรือข้อผูกพันใดที่คู่สัญญามีต่อกันไม่ว่าด้วย 

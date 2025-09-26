@@ -89,8 +89,8 @@ EContractDAO eContractDAO
                 contractLogoHtml = "";
             }
             #region checkมอบอำนาจ
-            string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(dataResult.Grant_Date ?? DateTime.Now);
-            string strAttorneyLetterDate_CP = CommonDAO.ToArabicDateStringCovert(dataResult.CP_S_AttorneyLetterDate ?? DateTime.Now);
+            string strAttorneyLetterDate = CommonDAO.ToThaiDateStringCovert(dataResult.Grant_Date ?? DateTime.Now);
+            string strAttorneyLetterDate_CP = CommonDAO.ToThaiDateStringCovert(dataResult.CP_S_AttorneyLetterDate ?? DateTime.Now);
             string strAttorneyOsmep = "";
             var HtmlAttorneyOsmep = new StringBuilder();
             if (dataResult.AttorneyFlag == true)
@@ -137,7 +137,7 @@ EContractDAO eContractDAO
             var listDocAtt = await _eContractDAO.GetRelatedDocumentsAsync(conId, "MIW");
             var htmlDocAtt = listDocAtt != null
                 ? string.Join("", listDocAtt.Select(docItem =>
-                    $"<p class='tab3 t-14'>{docItem.DocumentTitle} จำนวน {docItem.PageAmount} หน้า</div>"))
+                    $"<p class='tab3 t-12'>{CommonDAO.ConvertStringArabicToThaiNumerals(docItem.DocumentTitle)} จำนวน {CommonDAO.ConvertStringArabicToThaiNumerals(docItem.PageAmount.ToString())} หน้า</div>"))
                 : "";
             #endregion
 
@@ -161,26 +161,29 @@ EContractDAO eContractDAO
 
 </br>
     <div class='t-12 text-center'><b>บันทึกข้อตกลง</b></div>
-    <div class='t-12 text-center'><b>จ้างเหมาบริการ {dataResult.ServiceName} </b></div>
+    <div class='t-12 text-center'><b>จ้างเหมาบริการ {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.ServiceName)} </b></div>
 </br>
-    <div class='t-12 text-right'><b>บันทึกข้อตกลงเลขที่ {dataResult.Contract_Number}</b></div>
+    <div class='t-12 text-right'><b>บันทึกข้อตกลงเลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Contract_Number)}</b></div>
  
 </br>
     <P class='t-12 tab2'>
         บันทึกข้อตกลงฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เลขที่ ๑๒๐ หมู่ ๓ ศูนย์ราชการเฉลิมพระเกียรติ ๘๐ พรรษา ๕ ธันวาคม ๒๕๕๐ (อาคารซี) ชั้น ๒, ๑๐, ๑๑ ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพมหานคร ๑๐๒๑๐ 
- เมื่อวันที่ {dataResult.ContractSignDate.Value.ToString("dd/MM/yyyy")} ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม 
-โดย {dataResult.OSMEP_NAME} ตำแหน่ง {dataResult.OSMEP_POSITION} {strAttorneyOsmep}  ซึ่งต่อไปในบันทึกข้อตกลงนี้เรียกว่า “ผู้ว่าจ้าง” ฝ่ายหนึ่ง 
-กับ {dataResult.ContractPartyName} ผู้ถือบัตรประจำตัวประชาชนเลขที่ {dataResult.IdenID}
-วันออกบัตร {dataResult.IdenIssue_Date.Value.ToString("dd/MM/yyyy")} บัตรหมดอายุ {dataResult.IdenExpiry_Date.Value.ToString("dd/MM/yyyy")} 
-อยู่บ้านเลขที่ {dataResult.AddressNo} ถนน {dataResult.AddressStreet} 
-ตำบล {dataResult.AddressSubDistrict} อำเภอ {dataResult.AddressDistrict} จังหวัด {dataResult.AddressProvince + " " + dataResult.AddressZipCode} 
+เมื่อ{(dataResult.ContractSignDate.HasValue ? CommonDAO.ToThaiDateStringCovert(dataResult.ContractSignDate.Value) : "")}
+ระหว่าง สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม 
+โดย {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.OSMEP_NAME)} ตำแหน่ง {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.OSMEP_POSITION)} {CommonDAO.ConvertStringArabicToThaiNumerals(strAttorneyOsmep)}  ซึ่งต่อไปในบันทึกข้อตกลงนี้เรียกว่า “ผู้ว่าจ้าง” ฝ่ายหนึ่ง 
+กับ {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.ContractPartyName)} ผู้ถือบัตรประจำตัวประชาชนเลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.IdenID)}
+วันออกบัตร {(dataResult.IdenIssue_Date.HasValue ? CommonDAO.ToThaiDateStringCovert(dataResult.IdenIssue_Date.Value) : "")} 
+บัตรหมดอายุ {(dataResult.IdenExpiry_Date.HasValue ? CommonDAO.ToThaiDateStringCovert(dataResult.IdenExpiry_Date.Value) : "")}
+อยู่บ้านเลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.AddressNo)} ถนน {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.AddressStreet)} 
+ตำบล {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.AddressSubDistrict)} อำเภอ {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.AddressDistrict)} 
+จังหวัด {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.AddressProvince + " " + dataResult.AddressZipCode)} 
 ปรากฏตามเอกสารแนบท้ายบันทึกข้อตกลงนี้ ซึ่งต่อไปในบันทึกข้อตกลงนี้เรียกว่า “ผู้รับจ้าง” อีกฝ่ายหนึ่ง
 
     </P>
 
 <p class='t-12 tab2'>ทั้งสองฝ่ายได้ตกลงกันมีข้อความดังต่อไปนี้</p>
 <p class='t-12 tab2'><b>ข้อ ๑.ข้อตกลงว่าจ้าง</b></p>
-  <P class='t-12 tab2'>จ้างและผู้รับจ้างตกลงรับจ้างเหมาบริการ {dataResult.HiringAgreement}
+  <P class='t-12 tab2'>จ้างและผู้รับจ้างตกลงรับจ้างเหมาบริการ {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.HiringAgreement)}
 ตามข้อกำหนดและเงื่อนไขของบันทึกข้อตกลงนี้รวมทั้งเอกสารแนบท้ายบันทึกข้อตกลง
     </P>
     <P class='t-12 tab2'><b>ข้อ ๒.เอกสารแนบท้ายบันทึกข้อตกลง</b>
@@ -195,20 +198,20 @@ EContractDAO eContractDAO
 </P>
     <P class='t-12 tab2'><B>ข้อ ๓. ค่าจ้างและการจ่ายเงิน 
 </B></P>
-    <p class='t-12 tab3'>ผู้ว่าจ้างตกลงจ่ายและผู้รับจ้างตกลงรับเงินค่าจ้างจำนวนเงิน  {dataResult.HiringAmount??0} บาท( {CommonDAO.NumberToThaiText(dataResult.HiringAmount ?? 0)} )
-ซึ่งได้รวมภาษีอากรอื่นๆ และค่าใช้จ่ายทั้งปวงด้วยแล้ว โดยกำหนดการจ่ายเงินเป็นรายเดือน จำนวนเงินเดือนละ {dataResult.Salary??0} บาท ( {CommonDAO.NumberToThaiText(dataResult.Salary ?? 0)} )
+<p class='t-12 tab3'>ผู้ว่าจ้างตกลงจ่ายและผู้รับจ้างตกลงรับเงินค่าจ้างจำนวนเงิน  {CommonDAO.ConvertCurrencyToThaiNumerals(dataResult.HiringAmount ?? 0)} บาท( {CommonDAO.NumberToThaiText(dataResult.HiringAmount ?? 0)} )
+ซึ่งได้รวมภาษีอากรอื่นๆ และค่าใช้จ่ายทั้งปวงด้วยแล้ว โดยกำหนดการจ่ายเงินเป็นรายเดือน จำนวนเงินเดือนละ {CommonDAO.ConvertCurrencyToThaiNumerals(dataResult.Salary ?? 0)} บาท ( {CommonDAO.NumberToThaiText(dataResult.Salary ?? 0)} )
 เมื่อผู้รับจ้างได้ปฏิบัติงานและนำส่งรายงานผลการปฏิบัติงาน และใบบันทึกลงเวลาการปฏิบัติงานในแต่ละเดือนให้แก่ผู้ว่าจ้าง 
-ภายในวันที่ ๕ ของเดือนถัดไป นับจากวันสิ้นสุดของงานในแต่ละงวด ยกเว้นงวดสุดท้ายให้ส่งมอบภายในวันที่ {(dataResult.Delivery_Due_Date.HasValue ? dataResult.Delivery_Due_Date.Value.ToString("dd/MM/yyyy") : DateTime.Now.ToString("dd/MM/yyyy"))}
+ภายในวันที่ ๕ ของเดือนถัดไป นับจากวันสิ้นสุดของงานในแต่ละงวด ยกเว้นงวดสุดท้ายให้ส่งมอบภายใน{CommonDAO.ToThaiDateStringCovert(dataResult.Delivery_Due_Date.Value)}
 ซึ่งมีรายละเอียดของงานปรากฏตามเอกสารแนบท้ายบันทึกข้อตกลง และผู้ว่าจ้างได้ตรวจรับงานจ้างไว้โดยครบถ้วนแล้ว</p>
-   <P class='t-12 tab3'>ทั้งนี้ หากเดือนใดมีการปฏิบัติงานไม่เต็มเดือนปฏิทิน ให้คิดค่าจ้างเหมาเป็นรายวัน ในอัตราวันละ {dataResult.DailyRate} บาท  ( {CommonDAO.NumberToThaiText(dataResult.DailyRate ?? 0)} ) </P>
-    <P class='t-12 tab3'>การจ่ายเงินตามเงื่อนไขแห่งสัญญานี้ ผู้ว่าจ้างจะโอนเงินเข้าบัญชีเงินฝากธนาคาร ของผู้รับจ้าง 
-ชื่อธนาคาร {dataResult.ContractBankName} สาขา {dataResult.ContractBankBranch} ชื่อบัญชี {dataResult.ContractBankAccountName}
-เลขที่บัญชี {dataResult.ContractBankAccountNumber} ทั้งนี้ ผู้รับจ้างตกลงเป็นผู้รับภาระเงินค่าธรรมเนียมหรือค่าบริการอื่นใดเกี่ยวกับการโอน
+   <P class='t-12 tab3'>ทั้งนี้ หากเดือนใดมีการปฏิบัติงานไม่เต็มเดือนปฏิทิน ให้คิดค่าจ้างเหมาเป็นรายวัน ในอัตราวันละ {CommonDAO.ConvertCurrencyToThaiNumerals(dataResult.DailyRate ?? 0)} บาท  ( {CommonDAO.NumberToThaiText(dataResult.DailyRate ?? 0)} ) </P>
+
+<P class='t-12 tab3'>การจ่ายเงินตามเงื่อนไขแห่งสัญญานี้ ผู้ว่าจ้างจะโอนเงินเข้าบัญชีเงินฝากธนาคาร ของผู้รับจ้าง 
+ชื่อธนาคาร {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.ContractBankName)} สาขา {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.ContractBankBranch)} ชื่อบัญชี {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.ContractBankAccountName)}
+เลขที่บัญชี {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.ContractBankAccountNumber)} ทั้งนี้ ผู้รับจ้างตกลงเป็นผู้รับภาระเงินค่าธรรมเนียมหรือค่าบริการอื่นใดเกี่ยวกับการโอน
 รวมทั้งค่าใช้จ่ายอื่นใด (ถ้ามี) ที่ธนาคารเรียกเก็บ และยินยอมให้มีการหักเงินดังกล่าวจากจำนวนเงินโอนในงวด</P>
 
   <P class='t-12 tab2'><b>ข้อ ๔.กำหนดเวลาแล้วเสร็จและสิทธิของผู้ว่าจ้างในการบอกเลิกบันทึกข้อตกลง</b></P>
-    <p class='t-12 tab3'>ผู้รับจ้างต้องเริ่มทำงานที่รับจ้างภายในวันที่  {dataResult.WorkStartDate.Value.ToString("dd/MM/yyyy")} และจะต้องทำงานให้แล้วเสร็จบริบูรณ์ภายในวันที่ {dataResult.WorkEndDate.Value.ToString("dd/MM/yyyy")}
-ตามรายละเอียดเอกสารแนบท้ายบันทึกข้อตกลงนี้ และต้องผ่านการตรวจรับผลการปฏิบัติงานจากผู้ว่าจ้างในแต่ละเดือน
+<p class='t-12 tab3'>ผู้รับจ้างต้องเริ่มทำงานที่รับจ้างภายใน{CommonDAO.ToThaiDateStringCovert(dataResult.WorkStartDate.Value)} และจะต้องทำงานให้แล้วเสร็จบริบูรณ์ภายใน{CommonDAO.ToThaiDateStringCovert(dataResult.WorkEndDate.Value)}ตามรายละเอียดเอกสารแนบท้ายบันทึกข้อตกลงนี้ และต้องผ่านการตรวจรับผลการปฏิบัติงานจากผู้ว่าจ้างในแต่ละเดือน
 ถ้าผู้รับจ้างมิได้ลงมือทำงานภายในกำหนดเวลา หรือไม่สามารถทำงานให้ครบถ้วนตามเงื่อนไขของบันทึกข้อตกลงนี้
 หรือมีเหตุให้เชื่อได้ว่า ผู้รับจ้างไม่สามารถทำงานให้แล้วเสร็จภายในกำหนดเวลา
 หรือจะแล้วเสร็จล่าช้าเกินกว่ากำหนดเวลา หรือตกเป็นผู้ถูกพิทักษ์ทรัพย์เด็ดขาดหรือตกเป็นบุคคลล้มละลาย
@@ -228,7 +231,7 @@ EContractDAO eContractDAO
 <P class='t-12 tab3'>กรณีผู้รับจ้างไปจ้างช่วงงานแต่บางส่วนโดยฝ่าฝืนความในวรรคหนึ่งผู้รับจ้างต้องชำระค่าปรับให้แก่ผู้ว่าจ้างเป็น 
 จำนวนเงินในอัตราร้อยละ ๑๐.๐๐ (สิบ) ของวงเงินของงานที่จ้างช่วงตามบันทึกข้อตกลง ทั้งนี้ ไม่ตัดสิทธิผู้ว่าจ้างในการบอกเลิก บันทึกข้อตกลง</P>
 
-<P class='t-12 tab2'><b>ข้อ ๖.ความรับผิดของผู้รับจ้าง</b></P>
+<P class='t-12 tab2'><b>ข้อ ๖. ความรับผิดของผู้รับจ้าง</b></P>
 <P class='t-12 tab3'>ผู้รับจ้างจะต้องรับผิดต่ออุบัติเหตุ ความเสียหาย หรือภยันตรายใดๆ อันเกิดจากการปฏิบัติงานของผู้รับจ้าง
 และจะต้องรับผิดต่อความเสียหายจากการกระทำของลูกจ้างหรือตัวแทนของผู้รับจ้าง และจากการปฏิบัติงานของผู้รับจ้างช่วงด้วย (ถ้ามี)</P>
  <P class='t-12 tab3'>ความเสียหายใดๆ อันเกิดแก่งานที่ผู้รับจ้างได้ทำขึ้น แม้จะเกิดขึ้นเพราะเหตุสุดวิสัยก็ตาม 
