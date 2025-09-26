@@ -38,7 +38,6 @@ public class WordEContract_JointOperationService
         var dataResult = await _eContractReportDAO.GetJOAAsync(conId);
         if (dataResult == null)
             throw new Exception("JOA data not found.");
-        // var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
 
         // Read CSS file content
         var cssPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css", "contract.css");
@@ -120,7 +119,7 @@ public class WordEContract_JointOperationService
 
         if (dataResult.Signatories.Count > 0)
         {
-            signatoryTableHtml = await _eContractReportDAO.RenderSignatory(dataResult.Signatories);
+            signatoryTableHtml = await _eContractReportDAO.RenderSignatory(dataResult.Signatories, CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Organization));
            
            
         }
@@ -129,7 +128,7 @@ public class WordEContract_JointOperationService
 
         if (dataResult.Signatories.Count > 0)
         {
-            signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(dataResult.Signatories);
+            signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(dataResult.Signatories, CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Organization));
         }
 
 
@@ -172,12 +171,12 @@ public class WordEContract_JointOperationService
 </table>
 </br>
 </br>
-    <div class='t-14 text-center'><b>สัญญาร่วมดำเนินการ 5555</b></div>
-    <div class='t-14 text-center'><b>โครงการ {dataResult.Project_Name}</b></div>
+    <div class='t-14 text-center'><b>สัญญาร่วมดำเนินการ </b></div>
+    <div class='t-14 text-center'><b>โครงการ {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Project_Name)}</b></div>
     <div class='t-12 text-center'><b>ระหว่าง</b></div>
     <div class='t-14 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</b></div>
     <div class='t-12 text-center'><b>กับ</b></div>
-    <div class='t-14 text-center'><b>{dataResult.Organization ?? ""}</b></div>
+    <div class='t-14 text-center'><b>{CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Organization) ?? ""}</b></div>
 </br>
     <P class='t-12 tab2'>
         สัญญาร่วมดำเนินการฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เมื่อวันที่ {strDateTH[0]} เดือน {strDateTH[1]} พ.ศ.{strDateTH[2]} ระหว่าง

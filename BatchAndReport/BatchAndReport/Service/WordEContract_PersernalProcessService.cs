@@ -385,7 +385,7 @@ public class WordEContract_PersernalProcessService
             var signatoryTableHtml = "";
             if (signlist.Count > 0)
             {
-                signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist);
+                signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist, CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization));
 
             }
 
@@ -393,7 +393,7 @@ public class WordEContract_PersernalProcessService
 
             if (signlist.Count > 0)
             {
-                signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist);
+                signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist, CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Organization));
             }
             #endregion signlist
             var html = $@"

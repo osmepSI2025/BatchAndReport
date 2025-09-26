@@ -133,14 +133,14 @@ public class WordEContract_DataSecretService
         var signatoryTableHtml = "";
         if (signlist.Count > 0)
         {
-            signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist);
+            signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist, result.Contract_Party_Name);
 
         }
         var signatoryTableHtmlWitnesses = "";
 
         if (signlist.Count > 0)
         {
-            signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist);
+            signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist, result.Contract_Party_Name);
         }
 
         #endregion signlist
@@ -178,10 +178,10 @@ public class WordEContract_DataSecretService
     <!-- Titles -->
     <div class='text-center t-14'><B>สัญญาการรักษาข้อมูลที่เป็นความลับ</B></div>
     <div class='text-center t-14'><B>(Non-disclosure Agreement : NDA)</B></div>
-    <div class='text-center t-14'><B>ระหว่าง</B></div>
-    <div class='text-center t-14'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B></div>
-    <div class='text-center t-14'><B>กับ {result.Contract_Party_Name}</B></div>
-    <div class='text-center  t-14'>---------------------------------------------</div>
+    <div class='text-center t-12'><B>ระหว่าง</B></div>
+    <div class='text-center t-12'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B></div>
+    <div class='text-center t-12'><B>กับ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Party_Name)}</B></div>
+    <div class='text-center  t-12'>---------------------------------------------</div>
 </br>
     <!-- Main contract body -->
    <p class='tab2 t-12'>

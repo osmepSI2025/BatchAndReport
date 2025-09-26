@@ -93,14 +93,14 @@ public class WordEContract_ControlDataService
         var signatoryTableHtml = "";
         if (signlist.Count > 0)
         {
-            signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist);
+            signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist, result.Contract_Party_Name);
 
         }
         var signatoryTableHtmlWitnesses = "";
 
         if (signlist.Count > 0)
         {
-            signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist);
+            signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist, result.Contract_Party_Name);
         }
    
         #endregion signlist
@@ -146,9 +146,9 @@ public class WordEContract_ControlDataService
     <div class='t-12 text-center'><b>ระหว่าง</b></div>
     <div class='t-12 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม (สสว.)</b></div>
     <div class='t-12 text-center'><b>กับ</b></div>
-<div class='t-12 text-center'><b>{result.Contract_Party_Name ?? ""}</b></div>
+<div class='t-12 text-center'><b>{CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Party_Name) ?? ""}</b></div>
 </br>
-   <p class='t-12 tab2'>ข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม (“{result.Contract_Party_Name ?? "-"}”) ฉบับนี้ ทำขึ้นเมื่อ {strDateTH} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</P>
+   <p class='t-12 tab2'>ข้อตกลงการเป็นผู้ควบคุมข้อมูลส่วนบุคคลร่วม (“{CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Party_Name) ?? "-"}”) ฉบับนี้ ทำขึ้นเมื่อ {strDateTH} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</P>
    <p class='t-12 tab2'>โดยที่ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สสว.” ฝ่ายหนึ่ง ได้ตกลงใน {result.MOU_Name ?? ""} ฉบับลง{strDateTH} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สัญญาหลัก” กับ  {result.Contract_Party_Name ?? ""}  ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “{result.Contract_Party_Abb_Name ?? ""}” อีกฝ่ายหนึ่ง รวมทั้งสองฝ่ายว่า “คู่สัญญา”</P>
    <p class='t-12 tab2'>เพื่อให้บรรลุตามวัตถุประสงค์ที่คู่สัญญาได้ตกลงกันภายใต้สัญญาหลัก คู่สัญญามีความจำเป็นต้องร่วมกันเก็บ รวบรวม ใช้ หรือเปิดเผย (รวมเรียกว่า “ประมวลผล”) ข้อมูลส่วนบุคคลตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. ๒๕๖๒ โดยที่คู่สัญญามีอำนาจตัดสินใจ กำหนดรูปแบบ รวมถึงวัตถุประสงค์ในการประมวลผลข้อมูลส่วนบุคคลนั้นร่วมกัน ในลักษณะของผู้ควบคุมข้อมูลส่วนบุคคลร่วม</P>
    <p class='t-12 tab2'>คู่สัญญาจึงตกลงจัดทำข้อตกลงฉบับนี้ และให้ถือเป็นส่วนหนึ่งของสัญญาหลัก เพื่อกำหนด

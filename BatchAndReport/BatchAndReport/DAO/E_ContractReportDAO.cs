@@ -3,6 +3,7 @@ using BatchAndReport.Models;
 using BatchAndReport.Models.BatchAndReport.Models;
 using DocumentFormat.OpenXml.Wordprocessing;
 using iText.Kernel.Pdf.Canvas.Wmf;
+using iText.Layout.Element;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -798,10 +799,16 @@ namespace BatchAndReport.DAO
 
         // RenderSignatory
 
-        public async Task<string> RenderSignatory(List<E_ConReport_SignatoryModels?> Signatories)
+        public async Task<string> RenderSignatory(List<E_ConReport_SignatoryModels?> Signatories,string fixCompany ="")
         {
+        
             var signatoryHtml = new StringBuilder();
             var companySealHtml = new StringBuilder();
+            string OneCompany = "";
+            if (fixCompany != "")
+            {
+                OneCompany = "<div> "+ fixCompany + "</div>";
+            }  
 
             var dataSignatories = Signatories.Where(e => e?.Signatory_Type != null).ToList();
             // Group signatories
@@ -958,7 +965,7 @@ namespace BatchAndReport.DAO
             {signatureHtml}
             <div >{nameBlock}</div>
             <div >{signer?.Position}</div>
-         
+        {OneCompany}
         </div>");
             }
 
@@ -982,11 +989,15 @@ namespace BatchAndReport.DAO
             return signatoryTableHtml;
         }
 
-        public async Task<string> RenderSignatory_Witnesses(List<E_ConReport_SignatoryModels?> Signatories)
+        public async Task<string> RenderSignatory_Witnesses(List<E_ConReport_SignatoryModels?> Signatories, string fixCompany = "")
         {
             var signatoryHtml = new StringBuilder();
             var companySealHtml = new StringBuilder();
-
+            string OneCompany = "";
+            if (fixCompany != "")
+            {
+                OneCompany = "<div> " + fixCompany + "</div>";
+            }
             var dataSignatories = Signatories.Where(e => e?.Signatory_Type != null).ToList();
             // Group signatories
             var dataSignatoriesTypeOSMEP = dataSignatories
@@ -1144,7 +1155,7 @@ namespace BatchAndReport.DAO
             <div >{nameBlock}</div>
             <div >พยาน</div>
             <div >{signer?.Position}</div>
-
+            {OneCompany}
         </div>");
             }
 

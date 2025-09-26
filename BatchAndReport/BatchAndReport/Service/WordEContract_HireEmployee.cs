@@ -11,6 +11,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
 using Spire.Doc.Documents;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Paragraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 
@@ -113,7 +114,50 @@ EContractDAO eContractDAO
 
             #endregion signlist
 
+            #region cleanCode
+            // ตัวอย่างการใช้ Regex เพื่อลบ style attribute ออก
+            var cleanDescription = Regex.Replace(CommonDAO.ConvertStringArabicToThaiNumerals(result.Work_Detail), "style=\"[^\"]*\"", string.Empty);
 
+            // หรือใช้ HtmlAgilityPack ที่แนะนำมากกว่า
+            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+            htmlDoc.LoadHtml(cleanDescription);
+
+            // ลบ style และ dir attributes ออกจากทุก element
+            foreach (var element in htmlDoc.DocumentNode.DescendantsAndSelf())
+            {
+                if (element.Attributes.Contains("style"))
+                {
+                    element.Attributes["style"].Remove();
+                }
+                if (element.Attributes.Contains("dir"))
+                {
+                    element.Attributes["dir"].Remove();
+                }
+            }
+
+            // ลบ tag <span> ที่ไม่มี attribute หรือ class และคงไว้แต่ข้อความ
+            foreach (var span in htmlDoc.DocumentNode.Descendants("span").ToList())
+            {
+                // ตรวจสอบว่า tag <span> ไม่มี attributes และไม่มี child nodes ที่เป็น element (มีแค่ text)
+                if (!span.HasAttributes && !span.ChildNodes.Any(n => n.NodeType == HtmlAgilityPack.HtmlNodeType.Element))
+                {
+                    var textNode = htmlDoc.CreateTextNode(span.InnerText);
+                    span.ParentNode.ReplaceChild(textNode, span);
+                }
+            }
+            // ⭐ เพิ่ม class="t-12" ให้กับทุก <p>
+            foreach (var p in htmlDoc.DocumentNode.Descendants("p"))
+            {
+                var existingClass = p.GetAttributeValue("class", "");
+                if (!existingClass.Contains("t-12"))
+                {
+                    p.SetAttributeValue("class", (existingClass + " t-12 tab3").Trim());
+                }
+            }
+
+            string cleanedHtml = htmlDoc.DocumentNode.OuterHtml;
+
+            #endregion
 
 
             // ── 5) เนื้อหา HTML (ใช้ ?? "" กัน null string) ────────────────────────
@@ -211,7 +255,11 @@ EContractDAO eContractDAO
 <p class='text-center t-14' style='font-weight:bold;'>เอกสารแนบท้ายสัญญาจ้างลูกจ้าง</p>
 <p class='text-center t-14' style='font-weight:bold;'>งานศูนย์ให้บริการ SMEs ครบวงจร</p>
 </br>
-<p class='tab2 t-12'>หน้าที่ความรับผิดชอบ : {CommonDAO.ConvertStringArabicToThaiNumerals(result.Work_Detail) ?? ""}</p>
+
+<div class='t-12 editor-content'>
+    {cleanedHtml}
+</div>
+
 
 ";
 

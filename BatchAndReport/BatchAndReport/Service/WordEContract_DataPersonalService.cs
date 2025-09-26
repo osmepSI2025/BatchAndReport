@@ -91,7 +91,7 @@ public class WordEContract_DataPersonalService
             var signatoryTableHtml = "";
             if (signlist.Count > 0)
             {
-                signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist);
+                signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist, CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName));
 
             }
 
@@ -99,7 +99,7 @@ public class WordEContract_DataPersonalService
 
             if (signlist.Count > 0)
             {
-                signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist);
+                signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist, CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName));
             }
 
             #endregion signlist
@@ -146,7 +146,7 @@ public class WordEContract_DataPersonalService
     <div class='t-12 text-center'><b>ข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล</b></div>
     <div class='t-12 text-center'><b>(Personal Data Sharing Agreement)</b></div>
     <div class='t-12 text-center'><b>ระหว่าง</b></div>
-    <div class='t-12 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม กับ {CommonDAO.ConvertStringArabicToThaiNumerals(CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName))}</b></div>
+    <div class='t-12 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม กับ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)}</b></div>
     <div class='t-12 text-center'>---------------------------------------------</div>
     <!-- Paragraphs -->
     <p class='tab2 t-12'>ข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล (“ข้อตกลง”) ฉบับนี้ทำขึ้น เมื่อ {datestring} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</p>

@@ -84,20 +84,23 @@ public class WordEContract_AMJOAService
         var signatoryTableHtml = "";
         if (signlist.Count > 0)
         {
-            signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist);
+            signatoryTableHtml = await _eContractReportDAO.RenderSignatory(signlist,CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Contract_Partner));
 
         }
         var signatoryTableHtmlWitnesses = "";
 
         if (signlist.Count > 0)
         {
-            signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist);
+            signatoryTableHtmlWitnesses = await _eContractReportDAO.RenderSignatory_Witnesses(signlist,CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Contract_Partner));
         }
         #endregion signlist
 
-        #region
+        #region clean html
+        // แปลงเลขอารบิกเป็นเลขไทยก่อนทำความสะอาด HTML
+        var descriptionWithThaiNumerals = CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Contract_Description);
+
         // ตัวอย่างการใช้ Regex เพื่อลบ style attribute ออก
-        var cleanDescription = Regex.Replace(dataResult.Contract_Description, "style=\"[^\"]*\"", string.Empty);
+        var cleanDescription = Regex.Replace(descriptionWithThaiNumerals, "style=\"[^\"]*\"", string.Empty);
 
         // หรือใช้ HtmlAgilityPack ที่แนะนำมากกว่า
         var htmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -137,9 +140,7 @@ public class WordEContract_AMJOAService
         }
 
         string cleanedHtml = htmlDoc.DocumentNode.OuterHtml;
-
         #endregion
-
         var html = $@"<html>
 <head>
     <meta charset='utf-8'>
@@ -166,12 +167,12 @@ public class WordEContract_AMJOAService
     </tr>
 </table>
 
-    <div  class='t-14 text-center'><b>{dataResult.Contract_Title}</b></div >
-  <div  class='t-14 text-center'><b>โครงการ {dataResult.Contract_Name}</b></div >
+    <div  class='t-14 text-center'><b>{CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Contract_Title)}</b></div >
+  <div  class='t-14 text-center'><b>โครงการ {CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Contract_Name)}</b></div >
   <div  class='t-12 text-center'><b>ระหว่าง</b></div>
    <div  class='t-12 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ( สสว. )</b></div >
  <div  class='t-12 text-center'><b>กับ</b></div>
-<div  class='t-12 text-center'><b>{dataResult.Contract_Partner} </b></div >
+<div  class='t-12 text-center'><b>{CommonDAO.ConvertStringArabicToThaiNumerals(dataResult.Contract_Partner)} </b></div >
 </br>
 <div class='t-12 editor-content'>
     {cleanedHtml}
