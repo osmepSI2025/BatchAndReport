@@ -93,8 +93,8 @@ public class WordEContract_MemorandumService
 //        #region checkมอบอำนาจ
 //        string strAttorneyLetterDate = CommonDAO.ToArabicDateStringCovert(result.Effective_Date ?? DateTime.Now);
 //        string strAttorneyLetterDate_CP = CommonDAO.ToArabicDateStringCovert(result.CP_S_AttorneyLetterDate ?? DateTime.Now);
-//        string strAttorneyOsmep = result.AttorneyFlag == true ? "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + result.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "" : "";
-//        string strAttorney = result.AttorneyFlag == true ? "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate + "" : "";
+//        string strAttorneyOsmep = result.AttorneyFlag == true ? "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + result.AttorneyLetterNumber + " ฉบับลง" + strAttorneyLetterDate + "" : "";
+//        string strAttorney = result.AttorneyFlag == true ? "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลง" + strAttorneyLetterDate + "" : "";
 //        #endregion
 
 //        // Font
@@ -362,7 +362,7 @@ public class WordEContract_MemorandumService
         var HtmlAttorneyOsmep = new StringBuilder();
         if (result.AttorneyFlag == true)
         {
-            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + result.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + result.AttorneyLetterNumber + " ฉบับลง" + strAttorneyLetterDate + "";
 
         }
         else
@@ -373,7 +373,7 @@ public class WordEContract_MemorandumService
         var HtmlAttorney = new StringBuilder();
         if (result.AttorneyFlag == true)
         {
-            strAttorney = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+            strAttorney = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลง" + strAttorneyLetterDate + "";
 
         }
         else
@@ -432,7 +432,7 @@ public class WordEContract_MemorandumService
     </br>
     </br>
         <div class='t-16 text-center'><B>บันทึกข้อตกลงความร่วมมือ</B></div>
-       <div class='t-16 text-center'><B>โครงการ {result.ProjectTitle}</B></div>
+       <div class='t-16 text-center'><B>{result.ProjectTitle}</B></div>
         <div class='t-12 text-center'><B>ระหว่าง</B></div>
         <div class='t-12 text-center'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B></div>
         <div class='t-12 text-center'><B>กับ</B></div>

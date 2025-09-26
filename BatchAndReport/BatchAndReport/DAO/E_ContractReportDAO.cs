@@ -128,7 +128,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT JOAP_ID, JOA_ID, Detail
         FROM JOA_Purpose
-        WHERE JOA_ID = @JOA_ID", connection);
+        WHERE JOA_ID = @JOA_ID and Flag_Delete ='F'", connection);
 
                 command.Parameters.AddWithValue("@JOA_ID", Joa_id ?? "0");
                 await connection.OpenAsync();
@@ -287,7 +287,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT MOUP_ID, MOU_ID, Detail
         FROM MOU_Purpose
-        WHERE MOU_ID = @MOU_ID", connection);
+        WHERE MOU_ID = @MOU_ID and flag_delete ='F'", connection);
 
                 command.Parameters.AddWithValue("@MOU_ID", Mou_id ?? "0");
                 await connection.OpenAsync();
@@ -320,7 +320,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT MOAP_ID, MOA_ID, Detail
         FROM MOA_Purpose
-        WHERE MOA_ID = @MOA_ID", connection);
+        WHERE MOA_ID = @MOA_ID and Flag_Delete ='F'", connection);
 
                 command.Parameters.AddWithValue("@MOA_ID", Moa_id ?? "0");
                 await connection.OpenAsync();
@@ -410,7 +410,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT PD_Objectives_ID, PDPA_ID, Objective_Description
         FROM PDPA_Objectives
-        WHERE PDPA_ID = @PDPA_ID", connection);
+        WHERE PDPA_ID = @PDPA_ID and flag_delete ='F'", connection);
 
                 command.Parameters.AddWithValue("@PDPA_ID", id ?? "0");
                 await connection.OpenAsync();
@@ -444,7 +444,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT PD_List_ID, PDPA_ID, PD_Detail
         FROM PDPA_Agreement_List
-        WHERE PDPA_ID = @PDPA_ID", connection);
+        WHERE PDPA_ID = @PDPA_ID and flag_delete ='F'", connection);
 
                 command.Parameters.AddWithValue("@PDPA_ID", id ?? "0");
                 await connection.OpenAsync();
@@ -534,7 +534,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT JP_ID, JDCA_ID, Detail
         FROM JDCA_JointPurp
-        WHERE JDCA_ID = @JDCA_ID", connection);
+        WHERE JDCA_ID = @JDCA_ID and Flag_Delete ='F'", connection);
 
                 command.Parameters.AddWithValue("@JDCA_ID", id ?? "0");
                 await connection.OpenAsync();
@@ -568,7 +568,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT PD_List_ID, PDPA_ID, PD_Detail
         FROM PDPA_Agreement_List
-        WHERE JDCA_ID = @JDCA_ID", connection);
+        WHERE JDCA_ID = @JDCA_ID and Flag_Delete ='F'", connection);
 
                 command.Parameters.AddWithValue("@JDCA_ID", id ?? "0");
                 await connection.OpenAsync();
@@ -602,7 +602,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT SubPA_ID, JDCA_ID, Activity,LegalBasis,PersonalData,Owner
         FROM JDCA_SubProcessActivities
-        WHERE JDCA_ID = @JDCA_ID", connection);
+        WHERE JDCA_ID = @JDCA_ID and Flag_Delete ='F'", connection);
 
                 command.Parameters.AddWithValue("@JDCA_ID", id ?? "0");
                 await connection.OpenAsync();
@@ -701,7 +701,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT Conf_ID, NDA_ID, Detail
         FROM NDA_ConfidentialType
-        WHERE NDA_ID = @NDA_ID", connection);
+        WHERE NDA_ID = @NDA_ID and Flag_Delte='F' ", connection);
 
                 command.Parameters.AddWithValue("@NDA_ID", id ?? "0");
                 await connection.OpenAsync();
@@ -735,7 +735,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT Detail, RP_ID, NDA_ID
         FROM NDA_RequestPurpose
-        WHERE NDA_ID = @NDA_ID", connection);
+        WHERE NDA_ID = @NDA_ID and Flag_Delte='F'", connection);
 
                 command.Parameters.AddWithValue("@NDA_ID", id ?? "0");
                 await connection.OpenAsync();
@@ -856,7 +856,7 @@ namespace BatchAndReport.DAO
 
                 string name = signer?.Signatory_Name ?? "";
                 string nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
-                    ? $"({name})พยาน"
+                    ? $"({name})"
                     : $"({name})";
 
                 return $@"
@@ -864,6 +864,7 @@ namespace BatchAndReport.DAO
             {signatureHtml}
             <div >{nameBlock}</div>
             <div >{signer?.Position}</div>
+   <div >สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
         </div>";
             }
 
@@ -957,6 +958,7 @@ namespace BatchAndReport.DAO
             {signatureHtml}
             <div >{nameBlock}</div>
             <div >{signer?.Position}</div>
+         
         </div>");
             }
 
@@ -1047,6 +1049,7 @@ namespace BatchAndReport.DAO
             <div >{nameBlock}</div>
             <div >พยาน</div>
             <div >{signer?.Position}</div>
+ <div >สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
         </div>";
             }
 
@@ -1141,6 +1144,7 @@ namespace BatchAndReport.DAO
             <div >{nameBlock}</div>
             <div >พยาน</div>
             <div >{signer?.Position}</div>
+
         </div>");
             }
 
@@ -1157,6 +1161,373 @@ namespace BatchAndReport.DAO
                 <td style='width:34%; vertical-align:top; text-align:center;'>
 
                 </td>
+            </tr>
+        </table>
+        ";
+
+            return signatoryTableHtml;
+        }
+
+
+        public async Task<string> RenderSignatory_2Column(List<E_ConReport_SignatoryModels?> Signatories)
+        {
+            var signatoryHtml = new StringBuilder();
+            var companySealHtml = new StringBuilder();
+
+            var dataSignatories = Signatories.Where(e => e?.Signatory_Type != null).ToList();
+            // Group signatories
+            var dataSignatoriesTypeOSMEP = dataSignatories
+                .Where(e => e?.Signatory_Type == "OSMEP_S")
+                .ToList();
+            var dataSignatoriesTypeCP = dataSignatories
+                .Where(e => e?.Signatory_Type == "CP_S")
+                .ToList();
+
+            // Helper to render a signatory block
+            string RenderSignatory(E_ConReport_SignatoryModels signer)
+            {
+                string signatureHtml;
+                string noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "No-sign.png");
+                string noSignBase64 = "";
+                if (File.Exists(noSignPath))
+                {
+                    var bytes = File.ReadAllBytes(noSignPath);
+                    noSignBase64 = Convert.ToBase64String(bytes);
+                }
+
+                if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+                {
+                    try
+                    {
+                        var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                        var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                        signatureHtml = $@"<div >
+            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 40px;' />
+        </div>";
+                    }
+                    catch
+                    {
+                        signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                            ? $@"<div >
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
+        </div>"
+                            : "<div >(ลงชื่อ....................)</div>";
+                    }
+                }
+                else
+                {
+                    signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                        ? $@"<div >
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
+        </div>"
+                        : "<div >(ลงชื่อ....................)</div>";
+                }
+
+                string name = signer?.Signatory_Name ?? "";
+                string nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
+                    ? $"({name})"
+                    : $"({name})";
+
+                return $@"
+        <div class='sign-single-right'>
+            {signatureHtml}
+            <div >{nameBlock}</div>
+            <div >{signer?.Position}</div>
+   <div >สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
+        </div>";
+            }
+
+            // Build HTML for each column
+            var smeSignHtml = new StringBuilder();
+            foreach (var signer in dataSignatoriesTypeOSMEP)
+            {
+                smeSignHtml.AppendLine(RenderSignatory(signer));
+            }
+            var customerSignHtml = new StringBuilder();
+            string sealHtml = ""; // Store seal HTML for the third column
+            bool sealInserted = false;
+            foreach (var signer in dataSignatoriesTypeCP)
+            {
+                string nameBlock;
+                // For the first CP_S, extract the seal HTML
+                if (!sealInserted && signer.Signatory_Type == "CP_S")
+                {
+                    if (!string.IsNullOrEmpty(signer.Company_Seal) && signer.Company_Seal.Contains("<content>"))
+                    {
+                        try
+                        {
+                            var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                            var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                            var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                            // Enlarge the seal image here
+                            sealHtml = $@"<span style='display:inline-block; vertical-align:middle; margin-left:8px;'>
+                            <img src='data:image/png;base64,{base64}' alt='company-seal' style='max-height: 40px;' />
+                        </span>";
+                        }
+                        catch
+                        {
+                            sealHtml = "";
+                        }
+                    }
+                    nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
+                        ? $"({signer.Signatory_Name}) "
+                        : $"({signer.Signatory_Name})";
+                    sealInserted = true;
+                }
+                else
+                {
+                    nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
+                        ? $"({signer.Signatory_Name})"
+                        : $"({signer.Signatory_Name})";
+                }
+
+                // Render signatory block with nameBlock
+                string signatureHtml;
+                string noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "No-sign.png");
+                string noSignBase64 = "";
+                if (File.Exists(noSignPath))
+                {
+                    var bytes = File.ReadAllBytes(noSignPath);
+                    noSignBase64 = Convert.ToBase64String(bytes);
+                }
+
+                if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+                {
+                    try
+                    {
+                        var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                        var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                        signatureHtml = $@"<div >
+            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 40px;' />
+        </div>";
+                    }
+                    catch
+                    {
+                        signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                            ? $@"<div >
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
+        </div>"
+                            : "<div >(ลงชื่อ....................)</div>";
+                    }
+                }
+                else
+                {
+                    signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                        ? $@"<div >
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
+        </div>"
+                        : "<div >(ลงชื่อ....................)</div>";
+                }
+
+                customerSignHtml.AppendLine($@"
+        <div class='sign-single-right'>
+            {signatureHtml}
+            <div >{nameBlock}</div>
+            <div >{signer?.Position}</div>
+         
+        </div>");
+            }
+
+            // Build the 3-column table
+            var signatoryTableHtml = $@"
+    <table class='signature-table' style='width:100%; table-layout:fixed;' cellpadding='0' cellspacing='0'>
+        <tr>
+            <td style='width:55%; vertical-align:top;'>
+                {smeSignHtml}
+            </td>
+            <td style='width:45%; vertical-align:top;'>
+                {customerSignHtml}
+            </td>
+         
+        </tr>
+    </table>
+";
+
+            return signatoryTableHtml;
+        }
+
+        public async Task<string> RenderSignatory_Witnesses_2Column(List<E_ConReport_SignatoryModels?> Signatories)
+        {
+            var signatoryHtml = new StringBuilder();
+            var companySealHtml = new StringBuilder();
+
+            var dataSignatories = Signatories.Where(e => e?.Signatory_Type != null).ToList();
+            // Group signatories
+            var dataSignatoriesTypeOSMEP = dataSignatories
+                .Where(e => e?.Signatory_Type == "OSMEP_W")
+                .ToList();
+            var dataSignatoriesTypeCP = dataSignatories
+                .Where(e => e?.Signatory_Type == "CP_W")
+                .ToList();
+
+            // Helper to render a signatory block
+            string RenderSignatory(E_ConReport_SignatoryModels signer)
+            {
+                string signatureHtml;
+                string noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "No-sign.png");
+                string noSignBase64 = "";
+                if (File.Exists(noSignPath))
+                {
+                    var bytes = File.ReadAllBytes(noSignPath);
+                    noSignBase64 = Convert.ToBase64String(bytes);
+                }
+
+                if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+                {
+                    try
+                    {
+                        var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                        var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                        signatureHtml = $@"<div >
+            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 40px;' />
+        </div>";
+                    }
+                    catch
+                    {
+                        signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                            ? $@"<div >
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
+        </div>"
+                            : "<div >(ลงชื่อ....................)</div>";
+                    }
+                }
+                else
+                {
+                    signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                        ? $@"<div >
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
+        </div>"
+                        : "<div >(ลงชื่อ....................)</div>";
+                }
+
+                string name = signer?.Signatory_Name ?? "";
+                string nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
+                    ? $"({name})"
+                    : $"({name})";
+
+                return $@"
+        <div class='sign-single-right'>
+            {signatureHtml}
+            <div >{nameBlock}</div>
+            <div >พยาน</div>
+            <div >{signer?.Position}</div>
+ <div >สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
+        </div>";
+            }
+
+            // Build HTML for each column
+            var smeSignHtml = new StringBuilder();
+            foreach (var signer in dataSignatoriesTypeOSMEP)
+            {
+                smeSignHtml.AppendLine(RenderSignatory(signer));
+            }
+            var customerSignHtml = new StringBuilder();
+            string sealHtml = ""; // Store seal HTML for the third column
+            bool sealInserted = false;
+            foreach (var signer in dataSignatoriesTypeCP)
+            {
+                string nameBlock;
+                // For the first CP_S, extract the seal HTML
+                if (!sealInserted && signer.Signatory_Type == "CP_S")
+                {
+                    if (!string.IsNullOrEmpty(signer.Company_Seal) && signer.Company_Seal.Contains("<content>"))
+                    {
+                        try
+                        {
+                            var contentStart = signer.Company_Seal.IndexOf("<content>") + "<content>".Length;
+                            var contentEnd = signer.Company_Seal.IndexOf("</content>");
+                            var base64 = signer.Company_Seal.Substring(contentStart, contentEnd - contentStart);
+
+                            // Enlarge the seal image here
+                            sealHtml = $@"<span style='display:inline-block; vertical-align:middle; margin-left:8px;'>
+                            <img src='data:image/png;base64,{base64}' alt='company-seal' style='max-height: 120px; max-width: 120px;' />
+                        </span>";
+                        }
+                        catch
+                        {
+                            sealHtml = "";
+                        }
+                    }
+                    nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
+                        ? $"({signer.Signatory_Name})"
+                        : $"({signer.Signatory_Name})";
+                    sealInserted = true;
+                }
+                else
+                {
+                    nameBlock = (signer?.Signatory_Type != null && signer.Signatory_Type.EndsWith("_W"))
+                        ? $"({signer.Signatory_Name})"
+                        : $"({signer.Signatory_Name})";
+                }
+
+                // Render signatory block with nameBlock
+                string signatureHtml;
+                string noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "No-sign.png");
+                string noSignBase64 = "";
+                if (File.Exists(noSignPath))
+                {
+                    var bytes = File.ReadAllBytes(noSignPath);
+                    noSignBase64 = Convert.ToBase64String(bytes);
+                }
+
+                if (!string.IsNullOrEmpty(signer?.DS_FILE) && signer.DS_FILE.Contains("<content>"))
+                {
+                    try
+                    {
+                        var contentStart = signer.DS_FILE.IndexOf("<content>") + "<content>".Length;
+                        var contentEnd = signer.DS_FILE.IndexOf("</content>");
+                        var base64 = signer.DS_FILE.Substring(contentStart, contentEnd - contentStart);
+
+                        signatureHtml = $@"<div >
+            <img src='data:image/png;base64,{base64}' alt='signature' style='max-height: 40px;' />
+        </div>";
+                    }
+                    catch
+                    {
+                        signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                            ? $@"<div >
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
+        </div>"
+                            : "<div >(ลงชื่อ....................)</div>";
+                    }
+                }
+                else
+                {
+                    signatureHtml = !string.IsNullOrEmpty(noSignBase64)
+                        ? $@"<div >
+            <img src='data:image/png;base64,{noSignBase64}' alt='no-signature' style='max-height: 40px;' />
+        </div>"
+                        : "<div >(ลงชื่อ....................)</div>";
+                }
+
+                customerSignHtml.AppendLine($@"
+        <div class='sign-single-right'>
+            {signatureHtml}
+            <div >{nameBlock}</div>
+            <div >พยาน</div>
+            <div >{signer?.Position}</div>
+
+        </div>");
+            }
+
+            // Build the 3-column table
+            var signatoryTableHtml = $@"
+        <table class='signature-table'>
+            <tr>
+                <td style='width:55%; vertical-align:top;'>
+                    {smeSignHtml}
+                </td>
+                <td style='width:45%; vertical-align:top;'>
+                    {customerSignHtml}
+                </td>
+           
             </tr>
         </table>
         ";

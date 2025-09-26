@@ -72,7 +72,7 @@ public class WordEContract_JointOperationService
                 var contractlogoBase64 = dataResult.Organization_Logo.Substring(contentStart, contentEnd - contentStart);
 
                 contractLogoHtml = $@"<div style='display:inline-block; padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{contractlogoBase64}' width='240' height='80' />
+             <img src='data:image/jpeg;base64,{contractlogoBase64}'  height='80' />
             </div>";
             }
             catch
@@ -91,7 +91,7 @@ public class WordEContract_JointOperationService
         var HtmlAttorneyOsmep = new StringBuilder();
         if (dataResult.AttorneyFlag == true)
         {
-            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + dataResult.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + dataResult.AttorneyLetterNumber + " ฉบับลง" + strAttorneyLetterDate + "";
 
         }
         else
@@ -102,7 +102,7 @@ public class WordEContract_JointOperationService
         var HtmlAttorney = new StringBuilder();
         if (dataResult.CP_S_AttorneyFlag == true)
         {
-            strAttorney = "ผู้มีอำนาจ กระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate_CP + "";
+            strAttorney = "ผู้มีอำนาจ กระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลง" + strAttorneyLetterDate_CP + "";
 
         }
         else
@@ -161,7 +161,7 @@ public class WordEContract_JointOperationService
         <!-- Left: SME logo -->
         <td style='width:60%; text-align:left; vertical-align:top;'>
         <div style='display:inline-block;  padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+             <img src='data:image/jpeg;base64,{logoBase64}'  height='80' />
             </div>
         </td>
         <!-- Right: Contract code box (replace with your actual contract code if needed) -->

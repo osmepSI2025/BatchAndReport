@@ -236,7 +236,7 @@ public class WordEContract_MemorandumInWritingService
                 var contractlogoBase64 = result.Organization_Logo.Substring(contentStart, contentEnd - contentStart);
 
                 contractLogoHtml = $@"<div style='display:inline-block; padding:20px; font-size:32pt;'>
-                 <img src='data:image/jpeg;base64,{contractlogoBase64}' width='240' height='80' />
+                 <img src='data:image/jpeg;base64,{contractlogoBase64}'  height='80' />
                 </div>";
             }
             catch
@@ -255,7 +255,7 @@ public class WordEContract_MemorandumInWritingService
         var HtmlAttorneyOsmep = new StringBuilder();
         if (result.AttorneyFlag == true)
         {
-            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + result.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + result.AttorneyLetterNumber + " ฉบับลง" + strAttorneyLetterDate + "";
 
         }
         else
@@ -266,7 +266,7 @@ public class WordEContract_MemorandumInWritingService
         var HtmlAttorney = new StringBuilder();
         if (result.AttorneyFlag == true)
         {
-            strAttorney = "ผู้มีอำนาจกระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+            strAttorney = "ผู้มีอำนาจกระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลง" + strAttorneyLetterDate + "";
 
         }
         else
@@ -401,7 +401,7 @@ public class WordEContract_MemorandumInWritingService
         <!-- Left: SME logo -->
         <td style='width:60%; text-align:left; vertical-align:top;'>
         <div style='display:inline-block; padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+             <img src='data:image/jpeg;base64,{logoBase64}'  height='80' />
            </div>
         </td>
         <!-- Right: Contract code box (replace with your actual contract code if needed) -->
@@ -412,8 +412,8 @@ public class WordEContract_MemorandumInWritingService
 </table>
 </br>
 </br>
-    <div class='t-14 text-center'><B>บันทึกข้อตกลงความร่วมมือ</B></div>
-   <div class='t-14 text-center'><B>โครงการ {result.ProjectTitle}</B></div>
+    <div class='t-14 text-center'><B>บันทึกข้อตกลงความเข้าใจ</B></div>
+   <div class='t-14 text-center'><B> {result.ProjectTitle}</B></div>
     <div class='t-14 text-center'><B>ระหว่าง</B></div>
     <div class='t-14 text-center'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B></div>
     <div class='t-14 text-center'><B>กับ</B></div>
@@ -446,7 +446,7 @@ public class WordEContract_MemorandumInWritingService
 <P class='t-12 tab3'>3.3 สสว. อาจบอกเลิกบันทึกข้อตกลงความร่วมมือได้ทันที หากตรวจสอบ หรือปรากฏข้อเท็จจริงว่า การใช้จ่ายเงินของ “{result.OrgName ?? ""}” ไม่เป็นไปตามวัตถุประสงค์ ของโครงการ แผนการดำเนินงาน และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ทั้งมีสิทธิเรียกเงินคงเหลือพร้อมดอกผล (ถ้ามี) คืนทั้งหมดได้ทันที</P>
     <P class='t-12 tab3'>3.4 ทรัพย์สินใด ๆ และ/หรือ สิทธิใด ๆ ที่ได้มาจากเงินสนับสนุนตาม บันทึกข้อตกลงฉบับนี้ เมื่อสิ้นสุดโครงการให้ตกได้แก่ สสว. ทั้งสิ้น เว้นแต่ สสว. จะกำหนดให้เป็นอย่างอื่น</P>
     <P class='t-12 tab3'>3.5 “{result.OrgName ?? ""}” ต้องไม่ดำเนินการในลักษณะการจ้างเหมา กับหน่วยงาน องค์กร หรือบุคคลอื่น ๆ ยกเว้นกรณีการจัดหา จัดจ้าง เป็นกิจกรรมหรือเป็นเรื่อง ๆ</P>
-    <P class='t-12 tab3'>3.6 ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับ ข้อมูลส่วนบุคคล และการคุ้มครองทรัพย์สินทางปัญญา “{result.OrgName ?? ""}” จะต้องปฏิบัติ ตามกฎหมาย ว่าด้วยการคุ้มครอง ข้อมูลส่วนบุคคลและ การคุ้มครองทรัพย์สินทางปัญญา อย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้องร้องใดๆ “{result.OrgName ?? ""}” จะจะต้องเป็นผู้รับผิดชอบ ต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าว แต่เพียงฝ่ายเดียว โดยสิ้นเชิง</P>
+    <P class='t-12 tab3'>3.6 ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับ ข้อมูลส่วนบุคคล และการคุ้มครองทรัพย์สินทางปัญญา “{result.OrgName ?? ""}” จะต้องปฏิบัติ ตามกฎหมาย ว่าด้วยการคุ้มครอง ข้อมูลส่วนบุคคลและ การคุ้มครองทรัพย์สินทางปัญญา อย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้องร้องใดๆ “{result.OrgName ?? ""}” จะต้องเป็นผู้รับผิดชอบ ต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าว แต่เพียงฝ่ายเดียว โดยสิ้นเชิง</P>
     <P class='t-12 tab3'>บันทึกความเข้าใจนี้ทำขึ้นเป็นบันทึกความเข้าใจทางอิเล็กทรอนิกส์ คู่ตกลงได้อ่าน เข้าใจเงื่อนไข และยอมรับเงื่อนไข และได้ยืนยันว่าเป็นผู้มีอำนาจลงนามในบันทึกความเข้าใจ จึงได้ลงลายมืออิเล็กทรอนิกส์พร้อมทั้งประทับตรา (ถ้ามี) ในบันทึกความเข้าใจไว้ และต่างฝ่ายต่างยึดถือไว้ฝ่ายละหนึ่งฉบับในระบบของตน  </P>
 
 

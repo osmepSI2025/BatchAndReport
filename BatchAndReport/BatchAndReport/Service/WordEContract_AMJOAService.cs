@@ -160,7 +160,7 @@ public class WordEContract_AMJOAService
         <!-- Centered SME logo -->
         <td style='width:100%; text-align:center; vertical-align:top;'>
             <div style='display:inline-block; padding:20px; font-size:32pt;'>
-                <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+                <img src='data:image/jpeg;base64,{logoBase64}'  height='80' />
             </div>
         </td>
     </tr>
@@ -169,9 +169,9 @@ public class WordEContract_AMJOAService
     <div  class='t-14 text-center'><b>{dataResult.Contract_Title}</b></div >
   <div  class='t-14 text-center'><b>โครงการ {dataResult.Contract_Name}</b></div >
   <div  class='t-12 text-center'><b>ระหว่าง</b></div>
-   <div  class='t-14 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ( สสว. )</b></div >
+   <div  class='t-12 text-center'><b>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ( สสว. )</b></div >
  <div  class='t-12 text-center'><b>กับ</b></div>
-<div  class='t-14 text-center'><b>ชื่อหน่วยร่วมดำเนินการ {dataResult.Start_Unit} </b></div >
+<div  class='t-12 text-center'><b>{dataResult.Contract_Partner} </b></div >
 </br>
 <div class='t-12 editor-content'>
     {cleanedHtml}

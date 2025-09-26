@@ -39,12 +39,12 @@ namespace BatchAndReport.DAO
             return $"วันที่ {date.Day} {thaiMonth} {thaiYear}";
         }
 
-        private static string ToThaiNumber(int number)
+        public static string ToThaiNumber(int number)
         {
             return ToThaiNumber(number.ToString());
         }
 
-        private static string ToThaiNumber(string number)
+        public static string ToThaiNumber(string number)
         {
             char[] thaiDigits = { '๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙' };
             var sb = new StringBuilder();
@@ -109,6 +109,72 @@ namespace BatchAndReport.DAO
                     result.Append(numText[digit]);
 
                 result.Append(rankText[rank]);
+            }
+            return result.ToString();
+        }
+        public static string ConvertStringArabicToThaiNumerals(string input)
+        {
+            // สร้าง Dictionary เพื่อเก็บคู่การจับคู่ระหว่างเลขอารบิกและเลขไทย
+            var arabicToThai = new Dictionary<char, char>
+    {
+        {'0', '๐'},
+        {'1', '๑'},
+        {'2', '๒'},
+        {'3', '๓'},
+        {'4', '๔'},
+        {'5', '๕'},
+        {'6', '๖'},
+        {'7', '๗'},
+        {'8', '๘'},
+        {'9', '๙'}
+    };
+
+            // ใช้ StringBuilder เพื่อประสิทธิภาพในการจัดการสตริง
+            var sb = new StringBuilder();
+
+            foreach (char c in input)
+            {
+                // ตรวจสอบว่าอักขระปัจจุบันมีใน Dictionary หรือไม่
+                if (arabicToThai.ContainsKey(c))
+                {
+                    // ถ้ามี ให้เพิ่มเลขไทยลงใน StringBuilder
+                    sb.Append(arabicToThai[c]);
+                }
+                else
+                {
+                    // ถ้าไม่มี ให้เพิ่มอักขระเดิมลงไป
+                    sb.Append(c);
+                }
+            }
+
+            return sb.ToString();
+        }
+        public static string ConvertCurrencyToThaiNumerals(decimal amount)
+        {
+            // จัดรูปแบบตัวเลขให้มี comma ตามหลักสากลก่อน
+            // "N0" คือการจัดรูปแบบตัวเลขจำนวนเต็มที่ไม่มีทศนิยมและมี comma คั่น
+            string formattedAmount = amount.ToString("N0", CultureInfo.InvariantCulture);
+
+            // Dictionary สำหรับแปลงเลขอารบิกเป็นเลขไทย
+            var arabicToThai = new Dictionary<char, char>
+    {
+        {'0', '๐'}, {'1', '๑'}, {'2', '๒'}, {'3', '๓'}, {'4', '๔'},
+        {'5', '๕'}, {'6', '๖'}, {'7', '๗'}, {'8', '๘'}, {'9', '๙'}
+    };
+
+            var result = new StringBuilder();
+            foreach (char c in formattedAmount)
+            {
+                // ถ้าเป็นตัวเลข ให้แปลงเป็นเลขไทย
+                if (arabicToThai.ContainsKey(c))
+                {
+                    result.Append(arabicToThai[c]);
+                }
+                // ถ้าเป็น comma หรืออักขระอื่นๆ ให้คงเดิม
+                else
+                {
+                    result.Append(c);
+                }
             }
             return result.ToString();
         }

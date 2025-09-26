@@ -133,7 +133,7 @@ namespace BatchAndReport.Pages.Report
 
         #region  4.1.3.3. สัญญาจ้างลูกจ้าง EC
 
-        public async Task OnGetWordContact_EC_PDF(string ContractId = "2")
+        public async Task OnGetWordContact_EC_PDF(string ContractId = "3")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
             if (!Directory.Exists(folderPath))
@@ -6954,7 +6954,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.16 แบบฟอร์มบันทึกข้อตกลงเป็นหนังสือ MIW
 
-        public async Task OnGetWordContact_MIW_PDF(string ContractId = "3")
+        public async Task OnGetWordContact_MIW_PDF(string ContractId = "4")
         {
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MIW");
@@ -7783,23 +7783,7 @@ namespace BatchAndReport.Pages.Report
         }
         #endregion  4.1.6 เอกสารแนบท้ายบันทึกข้อตกลงความร่วมมือและสัญญาร่วมดำเนินการ AMJOA
 
-        // Helper: Generate a simple hash and salt for Word protection (not secure, demo only)
-        private static void GenerateWordPasswordHash(string password, out string hash, out string salt)
-        {
-            // This is a simple, non-secure example. For real security, use a proper OpenXML password hash implementation.
-            // Here, we use a fixed salt and a SHA1 hash for demonstration.
-            var saltBytes = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
-            using (var sha1 = System.Security.Cryptography.SHA1.Create())
-            {
-                var passwordBytes = System.Text.Encoding.Unicode.GetBytes(password);
-                var combined = new byte[saltBytes.Length + passwordBytes.Length];
-                Buffer.BlockCopy(saltBytes, 0, combined, 0, saltBytes.Length);
-                Buffer.BlockCopy(passwordBytes, 0, combined, saltBytes.Length, passwordBytes.Length);
-                var hashBytes = sha1.ComputeHash(combined);
-                hash = Convert.ToBase64String(hashBytes);
-                salt = Convert.ToBase64String(saltBytes);
-            }
-        }
+   
 
         #region Test Header logo
         public async Task<IActionResult> OnGetWordContact_TestLogo(string PDPAid = "1")

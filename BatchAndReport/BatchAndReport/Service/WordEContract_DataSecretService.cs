@@ -104,7 +104,7 @@ public class WordEContract_DataSecretService
         var HtmlAttorneyOsmep = new StringBuilder();
         if (result.AttorneyFlag == true)
         {
-            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + result.AttorneyLetterNumber + " ฉบับลงวันที่ " + strAttorneyLetterDate + "";
+            strAttorneyOsmep = "ผู้มีอำนาจกระทำการแทนปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ เลขคำสั่งสำนักงานที่ " + result.AttorneyLetterNumber + " ฉบับลง" + strAttorneyLetterDate + "";
 
         }
         else
@@ -115,7 +115,7 @@ public class WordEContract_DataSecretService
         var HtmlAttorney = new StringBuilder();
         if (result.CP_S_AttorneyFlag == true)
         {
-            strAttorney = "ผู้มีอำนาจ กระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลงวันที่ " + strAttorneyLetterDate_CP + "";
+            strAttorney = "ผู้มีอำนาจ กระทำการแทน ปรากฏตามเอกสารแต่งตั้ง และ/หรือ มอบอำนาจ ฉบับลง" + strAttorneyLetterDate_CP + "";
 
         }
         else
@@ -165,7 +165,7 @@ public class WordEContract_DataSecretService
         <!-- Left: SME logo -->
         <td style='width:60%; text-align:left; vertical-align:top;'>
         <div style='display:inline-block;  padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+             <img src='data:image/jpeg;base64,{logoBase64}'  height='80' />
             </div>
         </td>
         <!-- Right: Contract code box (replace with your actual contract code if needed) -->

@@ -811,7 +811,7 @@ public class WordWFService : IWordWFService
         htmlBuilder.Append(@"</style></head><body>");
 
         htmlBuilder.Append("<table class='header-table'>");
-        htmlBuilder.Append($"<tr><td class='text-left font-bold'><img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' /></td>");
+        htmlBuilder.Append($"<tr><td class='text-left font-bold'><img src='data:image/jpeg;base64,{logoBase64}'  height='80' /></td>");
         htmlBuilder.Append($"<td class='text-left font-bold' style='width: 30%;'>ครั้งที่แก้ไข: {latestEditCount}<br>วันที่แก้ไข: {revDateText}<br>หน้า: 1/5</td></tr>");
         htmlBuilder.Append($"<tr><td colspan='2' class='text-left' style='background-color: #DAF7FE;'>{processCode} {processName}</td></tr>");
         htmlBuilder.Append($"<tr><td colspan='2' class='text-left'>หน่วยงาน: {unitName}</td></tr>");

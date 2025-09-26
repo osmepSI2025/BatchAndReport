@@ -355,7 +355,7 @@ public class WordEContract_PersernalProcessService
                     var contractlogoBase64 = result.Organization_Logo.Substring(contentStart, contentEnd - contentStart);
 
                     contractLogoHtml = $@"<div style='display:inline-block; padding:20px; font-size:32pt;'>
-                 <img src='data:image/jpeg;base64,{contractlogoBase64}' width='240' height='80' />
+                 <img src='data:image/jpeg;base64,{contractlogoBase64}'  height='80' />
                 </div>";
                 }
                 catch
@@ -416,7 +416,7 @@ public class WordEContract_PersernalProcessService
         <!-- Left: SME logo -->
         <td style='width:60%; text-align:left; vertical-align:top;'>
         <div style='display:inline-block; padding:20px; font-size:32pt;'>
-             <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+             <img src='data:image/jpeg;base64,{logoBase64}'  height='80' />
            </div>
         </td>
         <!-- Right: Contract code box (replace with your actual contract code if needed) -->
@@ -590,7 +590,7 @@ public class WordEContract_PersernalProcessService
     //    <table style='width:100%; border-collapse:collapse; margin-top:40px;'>
     //        <tr>
     //            <td style='width:60%; text-align:left; vertical-align:top;'>
-    //                <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+    //                <img src='data:image/jpeg;base64,{logoBase64}'  height='80' />
     //            </td>
     //            <td style='width:40%; text-align:center; vertical-align:top;'>
     //                <div style='display:inline-block; border:2px solid #333; padding:20px; font-size:32pt;'>

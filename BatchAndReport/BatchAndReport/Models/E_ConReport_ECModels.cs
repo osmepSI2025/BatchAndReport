@@ -34,5 +34,6 @@ namespace BatchAndReport.Models
         public string? OSMEP_POSITION { get; set; }
         public string? Work_Location { get; set; }
         public string? Work_Detail { get; set; }
+        public List<E_ConReport_SignatoryModels> Signatories { get; set; } = new();
     }
 }

@@ -355,7 +355,7 @@ public class WordEContract_SupportSMEsService
 <body>
 
     <div class='text-center'>
-         <img src='data:image/jpeg;base64,{logoBase64}' width='240' height='80' />
+         <img src='data:image/jpeg;base64,{logoBase64}'  height='80' />
     </div>
 </br>
 </br>
