@@ -86,6 +86,13 @@ namespace BatchAndReport.Models
         public string? JobDetails { get; set; }
         [JsonPropertyName("nickName")]
         public string? NickName { get; set; }
+
+        // ?? ??????????? (?????????? API ?????)
+        [JsonPropertyName("mailingAdressTh")]
+        public string? MailingAdressTh { get; set; }
+
+        // (???????????? ????? helper)
+        public string? MailingAddrThOrAlt => MailingAddrTh ?? MailingAdressTh;
     }
 
     public class ApiEmployeeProfileResponse

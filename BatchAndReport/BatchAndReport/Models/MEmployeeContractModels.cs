@@ -28,6 +28,7 @@ namespace BatchAndReport.Models
         public string? Salary { get; set; }
         public string? IdCard { get; set; }
         public string? PassportNo { get; set; }
+        public string? Address { get; set; }
     }
 
     public class EmployeeContractResult

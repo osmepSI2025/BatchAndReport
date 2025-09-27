@@ -38,52 +38,206 @@ namespace BatchAndReport.Controllers
             _serviceWord = serviceWord;
         }
 
-        [HttpGet("GetEmpContract")]
-        public async Task<IActionResult> GetEmpContract([FromQuery] string employmentDate)
+        //[HttpGet("GetEmpContract")]
+        //public async Task<IActionResult> GetEmpContract([FromQuery] string employmentDate)
+        //{
+        //    try
+        //    {
+        //        var apiList = await _repositoryApi.GetAllAsync(new MapiInformationModels { ServiceNameCode = "employee-contract" });
+        //        var apiParam = apiList.Select(x => new MapiInformationModels
+        //        {
+        //            ServiceNameCode = x.ServiceNameCode,
+        //            ApiKey = x.ApiKey,
+        //            AuthorizationType = x.AuthorizationType,
+        //            ContentType = x.ContentType,
+        //            CreateDate = x.CreateDate,
+        //            Id = x.Id,
+        //            MethodType = x.MethodType,
+        //            ServiceNameTh = x.ServiceNameTh,
+        //            Urldevelopment = x.Urldevelopment,
+        //            Urlproduction = x.Urlproduction,
+        //            Username = x.Username,
+        //            Password = x.Password,
+        //            UpdateDate = x.UpdateDate
+        //        }).FirstOrDefault();
+
+        //        if (apiParam == null)
+        //            return BadRequest("API info not found.");
+
+        //        // Prepare filter model
+        //        var filterModel = new
+        //        {
+        //            employmentDate = employmentDate
+        //        };
+
+        //        var result = await _serviceApi.GetDataByParamApiAsync(apiParam, employmentDate);
+
+        //        var employees = JsonSerializer.Deserialize<ApiListEmployeeContractResponse>(result.ToString());
+
+        //        if (employees?.Results == null || !employees.Results.Any())
+        //            return BadRequest("No employee contract data found.");
+
+        //        string keyString = "5EU6l0SddrsT5HI6MhIxFkwT8JHRUyxz";
+        //        // Map to model
+        //        var contractModels = employees.Results
+        //            .Where(emp => emp != null) // Ensure no null references
+        //            .Select(emp => new MEmployeeContractModels
+        //            {
+        //                ContractFlag = emp!.ContractFlag?? false, // Use null-forgiving operator
+        //                EmployeeId = emp.EmployeeId,
+        //                EmployeeCode = emp.EmployeeCode,
+        //                NameTh = emp.NameTh,
+        //                NameEn = emp.NameEn,
+        //                FirstNameTh = emp.FirstNameTh,
+        //                FirstNameEn = emp.FirstNameEn,
+        //                LastNameTh = emp.LastNameTh,
+        //                LastNameEn = emp.LastNameEn,
+        //                Email = emp.Email,
+        //                Mobile = emp.Mobile,
+        //                EmploymentDate = emp.EmploymentDate,
+        //                TerminationDate = emp.TerminationDate,
+        //                EmployeeType = emp.EmployeeType,
+        //                EmployeeStatus = emp.EmployeeStatus,
+        //                SupervisorId = emp.SupervisorId,
+        //                CompanyId = emp.CompanyId,
+        //                BusinessUnitId = emp.BusinessUnitId,
+        //                PositionId = emp.PositionId,
+        //                //Salary = emp.Salary,
+        //                //IdCard = emp.IdCard,
+        //                // ▼ Salary: ถอดรหัสก่อน; ถ้าไม่ได้ลองพาร์สเป็นตัวเลขดิบ; สุดท้ายให้ 0
+        //                Salary = DecryptBase64String(emp.Salary, keyString)
+        //                 ?? emp.Salary,
+
+        //                // ▼ IdCard: ถอดรหัสก่อน; ถ้าไม่ได้เก็บค่าดิบไว้
+        //                IdCard = DecryptBase64String(emp.IdCard, keyString)
+        //                 ?? emp.IdCard,
+        //                PassportNo = emp.PassportNo
+        //            }).ToList();
+
+        //        await _eContractDao.InsertOrUpdateEmployeeContractsAsync(contractModels);
+
+        //        return Ok(new { message = "Sync and Save Complete", total = contractModels.Count });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new
+        //        {
+        //            message = "Internal Server Error",
+        //            error = ex.Message,
+        //            inner = ex.InnerException?.Message,
+        //            stack = ex.StackTrace
+        //        });
+        //    }
+        //}
+
+
+    [HttpGet("GetEmpContract")]
+    public async Task<IActionResult> GetEmpContract([FromQuery] string employmentDate)
+    {
+        try
         {
-            try
+            var jsonOpt = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            // (1) config: employee-contract
+            var apiListContract = await _repositoryApi.GetAllAsync(new MapiInformationModels { ServiceNameCode = "employee-contract" });
+            var apiParamContract = apiListContract.Select(x => new MapiInformationModels
             {
-                var apiList = await _repositoryApi.GetAllAsync(new MapiInformationModels { ServiceNameCode = "employee-contract" });
-                var apiParam = apiList.Select(x => new MapiInformationModels
+                ServiceNameCode = x.ServiceNameCode,
+                ApiKey = x.ApiKey,
+                AuthorizationType = x.AuthorizationType,
+                ContentType = x.ContentType,
+                CreateDate = x.CreateDate,
+                Id = x.Id,
+                MethodType = x.MethodType,
+                ServiceNameTh = x.ServiceNameTh,
+                Urldevelopment = x.Urldevelopment,
+                Urlproduction = x.Urlproduction,
+                Username = x.Username,
+                Password = x.Password,
+                UpdateDate = x.UpdateDate
+            }).FirstOrDefault();
+
+            if (apiParamContract == null)
+                return BadRequest("API (employee-contract) not found.");
+
+            // (2) call employee-contract
+            var contractRaw = await _serviceApi.GetDataByParamApiAsync(apiParamContract, employmentDate);
+            var contractResp = JsonSerializer.Deserialize<ApiListEmployeeContractResponse>(contractRaw?.ToString() ?? "", jsonOpt);
+            if (contractResp?.Results == null || !contractResp.Results.Any())
+                return BadRequest("No employee contract data found.");
+
+            // (3) employee ids ที่จะไปดึงที่อยู่
+            var employeeIds = contractResp.Results
+                .Where(e => e != null && !string.IsNullOrWhiteSpace(e.EmployeeId))
+                .Select(e => (e.EmployeeId ?? "").Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            // (4) config: employee-profile
+            var apiListProfile = await _repositoryApi.GetAllAsync(new MapiInformationModels { ServiceNameCode = "employee-profile" });
+            var apiParamProfile = apiListProfile.Select(x => new MapiInformationModels
+            {
+                ServiceNameCode = x.ServiceNameCode,
+                ApiKey = x.ApiKey,
+                AuthorizationType = x.AuthorizationType,
+                ContentType = x.ContentType,
+                CreateDate = x.CreateDate,
+                Id = x.Id,
+                MethodType = x.MethodType,
+                ServiceNameTh = x.ServiceNameTh,
+                Urldevelopment = x.Urldevelopment,
+                Urlproduction = x.Urlproduction,
+                Username = x.Username,
+                Password = x.Password,
+                UpdateDate = x.UpdateDate
+            }).FirstOrDefault();
+
+            // (4.x) ดึง MailingAddrTh แบบ path param: employee-profile/{empId}
+            var addressByEmpId = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            if (apiParamProfile != null && employeeIds.Count > 0)
+            {
+                foreach (var empIdRaw in employeeIds)
                 {
-                    ServiceNameCode = x.ServiceNameCode,
-                    ApiKey = x.ApiKey,
-                    AuthorizationType = x.AuthorizationType,
-                    ContentType = x.ContentType,
-                    CreateDate = x.CreateDate,
-                    Id = x.Id,
-                    MethodType = x.MethodType,
-                    ServiceNameTh = x.ServiceNameTh,
-                    Urldevelopment = x.Urldevelopment,
-                    Urlproduction = x.Urlproduction,
-                    Username = x.Username,
-                    Password = x.Password,
-                    UpdateDate = x.UpdateDate
-                }).FirstOrDefault();
+                    var empId = (empIdRaw ?? "").Trim();
+                    if (string.IsNullOrEmpty(empId)) continue;
 
-                if (apiParam == null)
-                    return BadRequest("API info not found.");
-
-                // Prepare filter model
-                var filterModel = new
-                {
-                    employmentDate = employmentDate
-                };
-
-                var result = await _serviceApi.GetDataByParamApiAsync(apiParam, employmentDate);
-
-                var employees = JsonSerializer.Deserialize<ApiListEmployeeContractResponse>(result.ToString());
-
-                if (employees?.Results == null || !employees.Results.Any())
-                    return BadRequest("No employee contract data found.");
-
-                string keyString = "5EU6l0SddrsT5HI6MhIxFkwT8JHRUyxz";
-                // Map to model
-                var contractModels = employees.Results
-                    .Where(emp => emp != null) // Ensure no null references
-                    .Select(emp => new MEmployeeContractModels
+                    try
                     {
-                        ContractFlag = emp!.ContractFlag?? false, // Use null-forgiving operator
+                        // 👇 ส่ง empId ตรง ๆ เพื่อให้กลายเป็น employee-profile/{empId}
+                        var singleRaw = await _serviceApi.GetDataByParamApiAsync(apiParamProfile, empId);
+
+                        var single = JsonSerializer.Deserialize<ApiEmployeeProfileResponse>(
+                            singleRaw?.ToString() ?? "",
+                            jsonOpt
+                        );
+
+                        // ❗ response ไม่มี employeeId ใน payload ให้ใช้ empId จาก path เป็นคีย์
+                        var addr = single?.Results?.MailingAddrTh?.Trim();  // ใช้ mailingAddrTh ตรง ๆ
+
+                        if (!string.IsNullOrWhiteSpace(addr))
+                            addressByEmpId[empId] = addr!;
+                    }
+                    catch
+                    {
+                        // ข้ามแล้วไปต่อรายถัดไป
+                    }
+                }
+            }
+
+            // (5) map -> MEmployeeContractModels (Address = mailingAddrTh)
+            string keyString = "5EU6l0SddrsT5HI6MhIxFkwT8JHRUyxz";
+
+            var contractModels = contractResp.Results
+                .Where(emp => emp != null)
+                .Select(emp =>
+                {
+                    var key = (emp!.EmployeeId ?? "").Trim();
+                    addressByEmpId.TryGetValue(key, out var addr);
+
+                    return new MEmployeeContractModels
+                    {
+                        ContractFlag = emp.ContractFlag ?? false,
                         EmployeeId = emp.EmployeeId,
                         EmployeeCode = emp.EmployeeCode,
                         NameTh = emp.NameTh,
@@ -102,35 +256,43 @@ namespace BatchAndReport.Controllers
                         CompanyId = emp.CompanyId,
                         BusinessUnitId = emp.BusinessUnitId,
                         PositionId = emp.PositionId,
-                        //Salary = emp.Salary,
-                        //IdCard = emp.IdCard,
-                        // ▼ Salary: ถอดรหัสก่อน; ถ้าไม่ได้ลองพาร์สเป็นตัวเลขดิบ; สุดท้ายให้ 0
-                        Salary = DecryptBase64String(emp.Salary, keyString)
-                         ?? emp.Salary,
 
-                        // ▼ IdCard: ถอดรหัสก่อน; ถ้าไม่ได้เก็บค่าดิบไว้
-                        IdCard = DecryptBase64String(emp.IdCard, keyString)
-                         ?? emp.IdCard,
-                        PassportNo = emp.PassportNo
-                    }).ToList();
+                        Salary = DecryptBase64String(emp.Salary, keyString) ?? emp.Salary,
+                        IdCard = DecryptBase64String(emp.IdCard, keyString) ?? emp.IdCard,
+                        PassportNo = emp.PassportNo,
 
-                await _eContractDao.InsertOrUpdateEmployeeContractsAsync(contractModels);
+                        Address = addr ?? ""   // กัน null
+                    };
+                })
+                .ToList();
 
-                return Ok(new { message = "Sync and Save Complete", total = contractModels.Count });
-            }
-            catch (Exception ex)
+            // (6) upsert
+            await _eContractDao.InsertOrUpdateEmployeeContractsAsync(contractModels);
+
+            return Ok(new
             {
-                return StatusCode(500, new
-                {
-                    message = "Internal Server Error",
-                    error = ex.Message,
-                    inner = ex.InnerException?.Message,
-                    stack = ex.StackTrace
-                });
-            }
+                message = "Sync and Save Complete",
+                total = contractModels.Count,
+                totalWithAddress = contractModels.Count(m => !string.IsNullOrWhiteSpace(m.Address))
+            });
         }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                message = "Internal Server Error",
+                error = ex.Message,
+                inner = ex.InnerException?.Message,
+                stack = ex.StackTrace
+            });
+        }
+    }
 
-        [HttpGet("GetJuristicPerson")]
+
+    static string NormalizeId(string s) => (s ?? string.Empty).Trim();
+
+
+    [HttpGet("GetJuristicPerson")]
         public async Task<IActionResult> GetJuristicPerson([FromQuery] string? organizationJuristicID)
         {
             try
