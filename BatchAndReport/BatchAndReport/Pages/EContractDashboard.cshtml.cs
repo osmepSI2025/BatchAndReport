@@ -23,6 +23,9 @@ public class EContractDashboardModel : PageModel
     public List<EContractChartDonutDto> ContractStatusChart { get; set; } = new();
     public List<LegalKpiDto> LegalKpiChart { get; set; } = new();
 
+    // ใช้สำหรับอ่านผลจาก SP_COUNT_REQUEST_BY_CONTRACT_CATEGORY
+    public List<ContractCategorySliceDto> ContractCategoryChart { get; set; } = new();
+
     public class EContractChartDonutDto
     {
         public string Label { get; set; }
@@ -38,12 +41,22 @@ public class EContractDashboardModel : PageModel
         public int Total { get; set; }
     }
 
+    public class ContractCategorySliceDto
+    {
+        public string Type { get; set; }   // WF_TYPE
+        public string Label { get; set; }  // Contract_Category
+        public int Value { get; set; }     // TotalRequestCount
+    }
+
     public async Task OnGetAsync()
     {
         ContractTypeChart = await GetChartAsync("SP_COUNT_REQUEST_BY_CONTRACT_TYPE", "Contract_Type");
         DocumentStatusChart = await GetChartAsync("SP_COUNT_REQUEST_BY_DOC_STATUS", "Status_Th");
         ContractStatusChart = await GetChartAsync("SP_COUNT_REQUEST_BY_LOOKUP_TYPE", "Contract_Status_Th");
         LegalKpiChart = await GetLegalKpiChartAsync();
+
+        // โหลดผลลัพธ์จาก SP_COUNT_REQUEST_BY_CONTRACT_CATEGORY
+        ContractCategoryChart = await GetContractCategoryChartAsync();
     }
 
     private async Task<List<EContractChartDonutDto>> GetChartAsync(string procedureName, string labelColumn)
@@ -64,9 +77,41 @@ public class EContractDashboardModel : PageModel
         {
             result.Add(new EContractChartDonutDto
             {
-                Label = reader[labelColumn].ToString(),
+                Label = reader[labelColumn]?.ToString(),
                 Value = Convert.ToInt32(reader["TotalRequestCount"]),
                 Color = ""
+            });
+        }
+
+        return result;
+    }
+
+    private async Task<List<ContractCategorySliceDto>> GetContractCategoryChartAsync()
+    {
+        var result = new List<ContractCategorySliceDto>();
+        var conn = _k2context_econtract.Database.GetDbConnection();
+
+        await using var connection = new SqlConnection(conn.ConnectionString);
+        await using var command = new SqlCommand("SP_COUNT_REQUEST_BY_CONTRACT_CATEGORY", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+
+        await connection.OpenAsync();
+        using var reader = await command.ExecuteReaderAsync();
+
+        // คาดหวังคอลัมน์: WF_TYPE, Contract_Category, TotalRequestCount
+        int ordType = reader.GetOrdinal("WF_TYPE");
+        int ordLabel = reader.GetOrdinal("Contract_Category");
+        int ordVal = reader.GetOrdinal("TotalRequestCount");
+
+        while (await reader.ReadAsync())
+        {
+            result.Add(new ContractCategorySliceDto
+            {
+                Type = reader.IsDBNull(ordType) ? "" : reader.GetString(ordType),
+                Label = reader.IsDBNull(ordLabel) ? "ไม่ระบุ" : reader.GetString(ordLabel),
+                Value = reader.IsDBNull(ordVal) ? 0 : Convert.ToInt32(reader.GetValue(ordVal))
             });
         }
 
@@ -91,7 +136,7 @@ public class EContractDashboardModel : PageModel
         {
             result.Add(new LegalKpiDto
             {
-                Owner = reader["OWNER"].ToString(),
+                Owner = reader["OWNER"]?.ToString(),
                 Pending = Convert.ToInt32(reader["รอตรวจสอบ"]),
                 Completed = Convert.ToInt32(reader["ตรวจสอบเสร็จสิ้น"]),
                 Total = Convert.ToInt32(reader["รวมทั้งสิ้น"])
@@ -100,6 +145,7 @@ public class EContractDashboardModel : PageModel
 
         return result;
     }
+
     // TXT Export
     public async Task<IActionResult> OnGetExportTxtAsync(string type)
     {
@@ -115,14 +161,13 @@ public class EContractDashboardModel : PageModel
         return File(bytes, "text/plain", "LegalKPI.txt");
     }
 
-
     // XLS Export (stub)
     public async Task<IActionResult> OnGetExportXlsAsync()
     {
         if (LegalKpiChart == null || LegalKpiChart.Count == 0)
             LegalKpiChart = await GetLegalKpiChartAsync();
 
-        ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Set license context
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
         using var package = new ExcelPackage();
         var worksheet = package.Workbook.Worksheets.Add("Legal KPI");
@@ -148,20 +193,9 @@ public class EContractDashboardModel : PageModel
         return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "LegalKPI.xlsx");
     }
 
-    // PDF Export (stub)
-    //public async Task<IActionResult> OnGetExportPdfAsync()
-    //{
-    //    // TODO: Implement PDF export logic
-    //    // For now, return a placeholder file
-    //    var bytes = Encoding.UTF8.GetBytes("PDF export not implemented yet.");
-    //    return File(bytes, "application/pdf", "LegalKPI.pdf");
-    //}
-
     // JPEG Export (stub)
     public async Task<IActionResult> OnGetExportJpegAsync()
     {
-        // TODO: Implement JPEG export logic
-        // For now, return a placeholder file
         var bytes = Encoding.UTF8.GetBytes("JPEG export not implemented yet.");
         return File(bytes, "image/jpeg", "LegalKPI.jpg");
     }
