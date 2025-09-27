@@ -171,6 +171,14 @@ public class WordEContract_MemorandumService
         }
         #endregion signlist
 
+
+        #region ScopeOfMemorandum
+        var xScopeOfMemorandum = await _eContractReportDAO.GetScopeOfMemorandumAsync(id, "MOU");
+
+        var xScopeOfMemorandum_OSMEP = xScopeOfMemorandum.Where(e => e.Owner == "OSMEP").ToList();
+        var xScopeOfMemorandum_CP = xScopeOfMemorandum.Where(e => e.Owner == "CP").ToList();
+        #endregion
+
         var html = $@"
     <html>
     <head>
@@ -206,14 +214,20 @@ public class WordEContract_MemorandumService
         $"<div class='t-12 tab2'>{CommonDAO.ConvertStringArabicToThaiNumerals(p.Detail)}</div>"))
     : "")}  
     <P class='t-12 tab2'><b>ข้อ ๑ ขอบเขตความร่วมมือของ “สสว.”</b></P>
-<P class='t-12 tab3'>๑.๑ ตกลงร่วมดำเนินการโครงการโดยสนับสนุนงบประมาณ จำนวน {CommonDAO.ConvertCurrencyToThaiNumerals(result.Contract_Value ?? 0) ?? "๐"} บาท  ( {strContract_Value} ) ซึ่งได้รวมภาษีมูลค่าเพิ่ม ตลอดจนค่าภาษีอากรอื่น ๆ แล้วให้กับ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgCommonName) ?? ""}” และการใช้จ่ายเงินให้เป็นไปตามแผน การจ่ายเงินตามเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้</P>        <P class='t-12 tab3'>๑.๓ กำกับ ติดตามและประเมินผลการดำเนินงานของโครงการ</P>
-        <P class='t-12 tab2'><b>ข้อ ๒ ขอบเขตความร่วมมือของ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgCommonName) ?? ""}”</b></P>
-        <P class='t-12 tab3'>๒.๑ ตกลงที่จะร่วมดำเนินการโครงการตามวัตถุประสงค์ของการโครงการ 
-    และขอบเขต การดำเนินการตามรายละเอียดโครงการ แผนการดำเนินการ และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ที่แนบท้ายบันทึกข้อตกลงฉบับนี้</P>
-        <P class='t-12 tab3'>๒.๒ ต้องดำเนินโครงการ ปฏิบัติตามแผนการดำเนินงาน แผนการใช้จ่ายเงิน (หรืออาจมีคู่มือ การดำเนินโครงการก็ได้) อย่างเคร่งครัดและให้แล้วเสร็จภายในระยะเวลาโครงการ</P>
-        <P class='t-12 tab3'>๒.๓ ต้องประสานการดำเนินโครงการ เพื่อให้โครงการบรรลุวัตถุประสงค์ เป้าหมายผลผลิต และผลลัพธ์</P>
-        <P class='t-12 tab3'>๒.๔ ต้องให้ความร่วมมือกับ สสว.ในการกำกับ ติดตามและประเมินผลการ ดำเนินงานของโครงการ</P>
-        <P class='t-12 tab2'><b>ข้อ ๓ อื่น ๆ</b></P>
+    {(xScopeOfMemorandum_OSMEP != null && xScopeOfMemorandum_OSMEP.Count > 0
+    ? string.Join("", xScopeOfMemorandum_OSMEP.Select((p, i) =>
+        $"<div class='t-12 tab2'>{CommonDAO.ConvertStringArabicToThaiNumerals(p.Detail)}</div>"))
+    : "")}  
+
+<P class='t-12 tab2'><b>ข้อ ๒ ขอบเขตความร่วมมือของ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgCommonName) ?? ""}”</b></P>
+        {(xScopeOfMemorandum_CP != null && xScopeOfMemorandum_CP.Count > 0
+    ? string.Join("", xScopeOfMemorandum_CP.Select((p, i) =>
+        $"<div class='t-12 tab2'>{CommonDAO.ConvertStringArabicToThaiNumerals(p.Detail)}</div>"))
+    : "")}  
+
+
+
+<P class='t-12 tab2'><b>ข้อ ๓ อื่น ๆ</b></P>
         <P class='t-12 tab3'>๓.๑ หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอแก้ไข เปลี่ยนแปลง ขยายระยะเวลาของโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษร และต้องได้รับความยินยอมเป็นลาย ลักษณ์อักษรจากอีกฝ่ายหนึ่ง และต้องทำบันทึกข้อตกลงแก้ไข เปลี่ยนแปลง ขยายระยะเวลา เพื่อลงนาม ยินยอมทั้งสองฝ่าย</P>
 
     <P class='t-12 tab3'>๓.๒ หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอบอกเลิกบันทึกข้อตกลงความร่วมมือก่อนครบ 

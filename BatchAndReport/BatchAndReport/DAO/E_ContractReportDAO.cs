@@ -1589,5 +1589,43 @@ namespace BatchAndReport.DAO
                 return new List<OrganizationLogosModels>(); // <-- Return empty list instead of null
             }
         }
+
+        public async Task<List<ScopeOfMemorandumModels>> GetScopeOfMemorandumAsync(string? conId = "0", string conType = "")
+        {
+            try
+            {
+
+                var result = new List<ScopeOfMemorandumModels>();
+                await using var connection = _connectionDAO.GetConnectionK2Econctract();
+                await using var command = new SqlCommand(@"
+        SELECT Contract_ID, Contract_Type, Owner,ID,Detail,Flag_Delete
+        FROM ScopeOfMemorandum
+        WHERE Contract_ID = @Contract_ID and Contract_Type =@Contract_Type  and flag_delete ='N'", connection);
+
+                command.Parameters.AddWithValue("@Contract_ID", conId ?? "0");
+                command.Parameters.AddWithValue("@Contract_Type", conType ?? "");
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new ScopeOfMemorandumModels
+                    {
+                     Contract_ID = reader["Contract_ID"] as int?,
+                        Contract_Type = reader["Contract_Type"] as string,
+                        Detail = reader["Detail"] as string,
+                        ID = reader["ID"] as int?,
+                         Flag_Delete = reader["Flag_Delete"] as string,
+                          Owner = reader["Owner"] as string
+                    });
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+        }
     }
 }

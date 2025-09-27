@@ -49,4 +49,16 @@
         public string? Detail { get; set; }
 
     }
+    public class ScopeOfMemorandumModels
+    {
+        public int? ID { get; set; }
+        public int? Contract_ID { get; set; }
+        
+        public string? Contract_Type { get; set; }
+        public string? Detail { get; set; }
+        public string? Owner { get; set; }
+        public string? Flag_Delete { get; set; }
+
+    }
+
 }

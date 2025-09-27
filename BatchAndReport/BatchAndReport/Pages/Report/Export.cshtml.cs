@@ -5222,7 +5222,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
  
-        public async Task OnGetWordContact_MOU_PDF(string ContractId = "15")
+        public async Task OnGetWordContact_MOU_PDF(string ContractId = "16")
         {
              var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
             if (!Directory.Exists(folderPath))
@@ -5678,6 +5678,7 @@ namespace BatchAndReport.Pages.Report
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
             //   return File(wordBytes, "application/pdf", "MOU_" + ContractId + ".pdf");
         }
         public async Task<IActionResult> OnGetWordContact_MOA_PDF_Preview(string ContractId = "8", string Name = "สมใจ ทดสอบ")
