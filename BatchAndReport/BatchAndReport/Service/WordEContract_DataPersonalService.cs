@@ -152,7 +152,7 @@ public class WordEContract_DataPersonalService
     <p class='tab2 t-12'>ข้อตกลงการแบ่งปันข้อมูลส่วนบุคคล (“ข้อตกลง”) ฉบับนี้ทำขึ้น เมื่อ {datestring} ณ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</p>
 <p class='tab2 t-12'>
     โดยที่ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สสว.” ฝ่ายหนึ่ง ได้ตกลงใน {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)} 
-สัญญาเลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Master_Contract_Number)} ฉบับลง{datestring} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สัญญาหลัก” กับ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “{CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)}” อีกฝ่ายหนึ่ง รวมเรียกว่า “คู่สัญญา”
+สัญญาเลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Master_Contract_Number)} ฉบับลง{datestring} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สัญญาหลัก” กับ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)} ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “{CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName)}” อีกฝ่ายหนึ่ง รวมเรียกว่า “คู่สัญญา”
 </p>
 <p class='tab2 t-12'>เพื่อให้บรรลุวัตถุประสงค์ภายใต้ความตกลงของสัญญาหลัก คู่สัญญามีความจำเป็นต้อง
 แบ่งปัน โอน แลกเปลี่ยน หรือเปิดเผย (รวมเรียกว่า “แบ่งปัน”) ข้อมูลส่วนบุคคลที่ตนเก็บรักษาแก่อีกฝ่าย
@@ -184,7 +184,7 @@ public class WordEContract_DataPersonalService
     <!-- Table: ข้อมูลส่วนบุคคลที่แบ่งปันโดยคู่สัญญา -->
    <table class='table t-12'>
         <tr>
-            <th>ข้อมูลส่วนบุคคลที่แบ่งปันโดย {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)}</th>
+            <th>ข้อมูลส่วนบุคคลที่แบ่งปันโดย {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName)}</th>
             <th>วัตถุประสงค์ในการแบ่งปันข้อมูลส่วนบุคคล</th>
         </tr>
       {string.Join("", rSd.Where(e => e.Owner == "CP").Select(item => $"<tr><td>{CommonDAO.ConvertStringArabicToThaiNumerals(item.Detail) ?? "-"}</td><td>{CommonDAO.ConvertStringArabicToThaiNumerals(item.Objective) ?? "-"}</td></tr>"))}
@@ -202,7 +202,7 @@ public class WordEContract_DataPersonalService
     </table>
    <table class='table t-12'>
         <tr>
-            <th>ฐานกฎหมายของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)}</th>
+            <th>ฐานกฎหมายของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName)}</th>
         </tr>
     {string.Join("", rLe.Where(e => e.Owner == "CP").Select(item => $"<tr><td>{CommonDAO.ConvertStringArabicToThaiNumerals(item.Detail) ?? "-"}</td></tr>"))}
     </table>

@@ -55,5 +55,6 @@
         public string? DS_FILE { get; set; }
         public string? Company_Seal { get; set; }
         public string? Signatory_Type { get; set; }
+        public string? Org_Name { get; set; }
     }
 }

@@ -111,7 +111,8 @@ namespace BatchAndReport.DAO
                     BU_UNIT = signatoryReader["BU_UNIT"] as string,
                     DS_FILE = signatoryReader["DS_FILE"] as string,
                     Company_Seal = signatoryReader["Company_Seal"] as string,
-                    Signatory_Type = signatoryReader["Signatory_Type"] as string
+                    Signatory_Type = signatoryReader["Signatory_Type"] as string,
+                    Org_Name = signatoryReader["Org_Name"] as string
                 });
             }
 
@@ -702,7 +703,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT Conf_ID, NDA_ID, Detail
         FROM NDA_ConfidentialType
-        WHERE NDA_ID = @NDA_ID and Flag_Delte='F' ", connection);
+        WHERE NDA_ID = @NDA_ID and Flag_Delete='F' ", connection);
 
                 command.Parameters.AddWithValue("@NDA_ID", id ?? "0");
                 await connection.OpenAsync();
@@ -736,7 +737,7 @@ namespace BatchAndReport.DAO
                 await using var command = new SqlCommand(@"
         SELECT Detail, RP_ID, NDA_ID
         FROM NDA_RequestPurpose
-        WHERE NDA_ID = @NDA_ID and Flag_Delte='F'", connection);
+        WHERE NDA_ID = @NDA_ID and Flag_Delete='F'", connection);
 
                 command.Parameters.AddWithValue("@NDA_ID", id ?? "0");
                 await connection.OpenAsync();
@@ -790,6 +791,7 @@ namespace BatchAndReport.DAO
                     DS_FILE = signatoryReader["DS_FILE"] as string,
                     Company_Seal = signatoryReader["Company_Seal"] as string,
                     Signatory_Type = signatoryReader["Signatory_Type"] as string
+                    , Org_Name = signatoryReader["Org_Name"] as string
                 });
             }
 
@@ -965,7 +967,7 @@ namespace BatchAndReport.DAO
             {signatureHtml}
             <div >{nameBlock}</div>
             <div >{signer?.Position}</div>
-        {OneCompany}
+         <div >{signer?.Org_Name}</div>
         </div>");
             }
 
@@ -973,13 +975,13 @@ namespace BatchAndReport.DAO
             var signatoryTableHtml = $@"
     <table class='signature-table' style='width:100%; table-layout:fixed;' cellpadding='0' cellspacing='0'>
         <tr>
-            <td style='width:33%; vertical-align:top;'>
+            <td style='width:40%; vertical-align:top;'>
                 {smeSignHtml}
             </td>
-            <td style='width:33%; vertical-align:top;'>
+            <td style='width:40%; vertical-align:top;'>
                 {customerSignHtml}
             </td>
-            <td style='width:34%; vertical-align:top; text-align:center;'>
+            <td style='width:20%; vertical-align:top; text-align:left;'>
                 {sealHtml}
             </td>
         </tr>
@@ -993,11 +995,7 @@ namespace BatchAndReport.DAO
         {
             var signatoryHtml = new StringBuilder();
             var companySealHtml = new StringBuilder();
-            string OneCompany = "";
-            if (fixCompany != "")
-            {
-                OneCompany = "<div> " + fixCompany + "</div>";
-            }
+          
             var dataSignatories = Signatories.Where(e => e?.Signatory_Type != null).ToList();
             // Group signatories
             var dataSignatoriesTypeOSMEP = dataSignatories
@@ -1006,7 +1004,11 @@ namespace BatchAndReport.DAO
             var dataSignatoriesTypeCP = dataSignatories
                 .Where(e => e?.Signatory_Type == "CP_W")
                 .ToList();
-
+            string OneCompany = "";
+            if (fixCompany != "")
+            {
+                OneCompany = "<div> " + fixCompany + "</div>";
+            }
             // Helper to render a signatory block
             string RenderSignatory(E_ConReport_SignatoryModels signer)
             {
@@ -1155,7 +1157,7 @@ namespace BatchAndReport.DAO
             <div >{nameBlock}</div>
             <div >พยาน</div>
             <div >{signer?.Position}</div>
-            {OneCompany}
+           
         </div>");
             }
 
@@ -1163,13 +1165,13 @@ namespace BatchAndReport.DAO
             var signatoryTableHtml = $@"
         <table class='signature-table'>
             <tr>
-                <td style='width:33%; vertical-align:top;'>
+                <td style='width:40%; vertical-align:top;'>
                     {smeSignHtml}
                 </td>
-                <td style='width:33%; vertical-align:top;'>
+                <td style='width:40%; vertical-align:top;'>
                     {customerSignHtml}
                 </td>
-                <td style='width:34%; vertical-align:top; text-align:center;'>
+                <td style='width:20%; vertical-align:top; text-align:left;'>
 
                 </td>
             </tr>
