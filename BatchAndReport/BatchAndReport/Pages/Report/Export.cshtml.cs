@@ -133,7 +133,7 @@ namespace BatchAndReport.Pages.Report
 
         #region  4.1.3.3. สัญญาจ้างลูกจ้าง EC
 
-        public async Task OnGetWordContact_EC_PDF(string ContractId = "3")
+        public async Task OnGetWordContact_EC_PDF(string ContractId = "8")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
             if (!Directory.Exists(folderPath))
@@ -3578,7 +3578,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.7.สัญญาการรักษาข้อมูลที่เป็นความลับ NDA
    
-        public async Task OnGetWordContact_NDA_PDF(string ContractId = "4")
+        public async Task OnGetWordContact_NDA_PDF(string ContractId = "5")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "NDA");
             if (!Directory.Exists(folderPath))
@@ -4805,7 +4805,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
  
-        public async Task OnGetWordContact_PDPA_PDF(string ContractId = "5")
+        public async Task OnGetWordContact_PDPA_PDF(string ContractId = "10")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
             if (!Directory.Exists(folderPath))
@@ -5222,7 +5222,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
  
-        public async Task OnGetWordContact_MOU_PDF(string ContractId = "23")
+        public async Task OnGetWordContact_MOU_PDF(string ContractId = "16")
         {
              var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
             if (!Directory.Exists(folderPath))
@@ -5678,6 +5678,7 @@ namespace BatchAndReport.Pages.Report
             var pdfBytes = await page.PdfDataAsync(pdfOptions);
 
             await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+            await System.IO.File.WriteAllBytesAsync(filePathView, pdfBytes);
             //   return File(wordBytes, "application/pdf", "MOU_" + ContractId + ".pdf");
         }
         public async Task<IActionResult> OnGetWordContact_MOA_PDF_Preview(string ContractId = "8", string Name = "สมใจ ทดสอบ")
@@ -6473,7 +6474,7 @@ namespace BatchAndReport.Pages.Report
             MOVEFILE_DELAY_UNTIL_REBOOT = 0x4,
             MOVEFILE_WRITE_THROUGH = 0x8
         }
-        public async Task OnGetWordContact_JOA_PDF(string ContractId = "8", string Name = "สมใจ ทดสอบ")
+        public async Task OnGetWordContact_JOA_PDF(string ContractId = "18", string Name = "สมใจ ทดสอบ")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
             if (!Directory.Exists(folderPath))

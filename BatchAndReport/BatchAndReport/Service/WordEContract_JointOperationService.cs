@@ -199,7 +199,7 @@ dataResult.Project_Name)} ซึ่งต่อไปในสัญญานี
     </P>
 {(purposeList != null && purposeList.Count > 0
     ? string.Join("", purposeList.Select((p, i) =>
-        $"<div class='t-12 tab2'>{p.Detail}</div>"))
+        $"<div class='t-12 tab2'>{CommonDAO.ConvertStringArabicToThaiNumerals(p.Detail)}</div>"))
     : "")}  
 
 <P class='t-12 tab2'><B>ข้อ ๑ ขอบเขตหน้าที่ของ “สสว.”</B></P>
