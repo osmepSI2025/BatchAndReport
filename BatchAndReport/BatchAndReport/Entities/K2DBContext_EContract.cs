@@ -17,9 +17,9 @@ namespace BatchAndReport.Entities
         public virtual DbSet<ContractFilePassword> ContractFilePasswords { get; set; }
         public virtual DbSet<ImportContract> ImportContracts { get; set; }
 
-//        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Server=192.168.9.156;Database=E-Contract;User Id=sa;Password=Osmep@2025;TrustServerCertificate=True;");
+        //        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+        //        => optionsBuilder.UseSqlServer("Server=192.168.9.156;Database=E-Contract;User Id=sa;Password=Osmep@2025;TrustServerCertificate=True;");
 
 //        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -464,6 +464,7 @@ namespace BatchAndReport.Entities
         public string? Salary { get; set; }
         public string? IdCard { get; set; }
         public string? PassportNo { get; set; }
+        public string? Address { get; set; }
     }
 
     public class EmployeeProfile
