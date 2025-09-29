@@ -23,6 +23,10 @@ namespace BatchAndReport.DAO
         {
             foreach (var emp in employees)
             {
+                if (emp.EmployeeId == "SME_45075")
+                {
+                    string cc = "cddd";
+                }
                 var existingEmp = await _k2context.Employees
                     .FirstOrDefaultAsync(e => e.EmployeeId == emp.EmployeeId);
 

@@ -78,6 +78,7 @@ builder.Services.AddScoped<WordEContract_ContactToDoThingService>();
 builder.Services.AddScoped<WordEContract_BorrowMoneyService>();
 builder.Services.AddScoped<WordEContract_HireEmployee>();
 builder.Services.AddScoped<WordEContract_Test_HeaderLOGOService>();
+builder.Services.AddScoped<DgaSignDAO>();
 builder.Services.AddSingleton<ScheduledJobService>();
 
 
@@ -125,6 +126,9 @@ builder.Services.AddScoped<Econtract_Report_CWADAO>();
 builder.Services.AddScoped<Econtract_Report_GADAO>();
 builder.Services.AddScoped<Econtract_Report_MIWDAO>();
 builder.Services.AddScoped<Econtract_Report_AMJOADAO>();
+
+// End service for Word EContract
+
 
 
 
