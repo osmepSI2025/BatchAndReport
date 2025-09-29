@@ -89,6 +89,10 @@ namespace BatchAndReport.Entities
                     .HasColumnName("Termination_Date")
                     .HasColumnType("date");
 
+                entity.Property(e => e.API_Receive_Date)
+                    .HasColumnName("API_Receive_Date")
+                    .HasColumnType("date");
+
                 entity.Property(e => e.EmployeeType)
                     .HasColumnName("Employee_Type")
                     .HasMaxLength(50);
@@ -455,6 +459,7 @@ namespace BatchAndReport.Entities
         public string? Mobile { get; set; }
         public DateTime? EmploymentDate { get; set; }
         public DateTime? TerminationDate { get; set; }
+        public DateTime? API_Receive_Date { get; set; }
         public string? EmployeeType { get; set; }
         public string? EmployeeStatus { get; set; }
         public string? SupervisorId { get; set; }

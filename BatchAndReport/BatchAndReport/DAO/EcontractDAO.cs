@@ -53,6 +53,7 @@ namespace BatchAndReport.DAO
                     existingEmp.IdCard = emp.IdCard;
                     existingEmp.PassportNo = emp.PassportNo;
                     existingEmp.Address = emp.Address;
+                    existingEmp.API_Receive_Date = emp.API_Receive_Date;
 
                     _context.EmployeeContracts.Update(existingEmp);
                 }
@@ -83,7 +84,8 @@ namespace BatchAndReport.DAO
                         Salary = emp.Salary,
                         IdCard = emp.IdCard,
                         PassportNo = emp.PassportNo,
-                        Address = emp.Address
+                        Address = emp.Address,
+                        API_Receive_Date = emp.API_Receive_Date
                     };
 
                     await _context.EmployeeContracts.AddAsync(newEmp);

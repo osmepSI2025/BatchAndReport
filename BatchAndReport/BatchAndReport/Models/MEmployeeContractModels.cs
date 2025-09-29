@@ -19,6 +19,7 @@ namespace BatchAndReport.Models
         public string? Mobile { get; set; }
         public DateTime? EmploymentDate { get; set; }
         public DateTime? TerminationDate { get; set; }
+        public DateTime? API_Receive_Date { get; set; }
         public string? EmployeeType { get; set; }
         public string? EmployeeStatus { get; set; }
         public string? SupervisorId { get; set; }
