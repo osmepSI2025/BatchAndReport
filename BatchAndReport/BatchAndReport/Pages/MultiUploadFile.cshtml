@@ -15,6 +15,11 @@
         max-width: 600px;
         margin: 50px auto;
         background: #fff;
+        transition: 0.15s border-color ease;
+    }
+    .upload-container.dragover {
+        border-color: #007bff;
+        background: #f8fbff;
     }
     .upload-container h2 {
         font-family: 'TH SarabunPSK', Arial, sans-serif;
@@ -40,15 +45,29 @@
         cursor: pointer;
         margin-top: 10px;
     }
-    .upload-button:hover {
-        background-color: #0056b3;
-    }
+    .upload-button:hover { background-color: #0056b3; }
     .status-success { color: green; }
     .status-error { color: red; }
+
+    /* รายการไฟล์ */
+    .file-list { text-align: left; margin-top: 12px; }
+    .file-list .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+    .file-list ul { list-style:none; padding:0; margin:0; }
+    .file-list li {
+        display:flex; justify-content:space-between; align-items:center;
+        border:1px solid #e5e7eb; border-radius:6px; padding:6px 10px; margin-bottom:6px;
+        font-size:18px;
+    }
+    .file-list .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:380px; }
+    .file-list .meta { opacity:.8; margin-left:8px; }
+    .file-list .badge { background:#eef2ff; border:1px solid #c7d2fe; padding:0 6px; border-radius:4px; font-size:16px; margin-left:8px; }
+    .file-list .remove-btn { border:none; background:transparent; color:#ef4444; cursor:pointer; font-size:18px; }
+    .file-list .invalid { border-color:#fecaca; background:#fff1f2; }
+    .hint { font-size:18px; color:#6b7280; margin-top:6px;}
 </style>
 
-<div class="upload-container">
-    <h2>อัพโหลดไฟล์สัญญา(PDF)</h2>
+<div id="dropZone" class="upload-container">
+    <h2>อัพโหลดไฟล์สัญญา (PDF)</h2>
     @using (Html.BeginForm("Upload", "File", FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
         @Html.AntiForgeryToken()
@@ -56,15 +75,23 @@
 
         <div class="form-group">
             @Html.LabelFor(model => model.PostedFiles)
-            <input type="file" name="PostedFiles" multiple="multiple" />
+            <input id="fileInput" type="file" name="PostedFiles" multiple="multiple" accept="application/pdf,.pdf" />
             @Html.ValidationMessageFor(model => model.PostedFiles)
+            <div class="hint">ลาก-วางไฟล์ PDF ลงในกรอบ หรือกดเลือกไฟล์ (อัปโหลดได้หลายไฟล์)</div>
         </div>
-        
+
+        <!-- รายการแสดงไฟล์ก่อนอัพโหลด -->
+        <div id="selectedFiles" class="file-list" aria-live="polite">
+            <div class="header"><strong>ไฟล์ที่เลือก (0)</strong><span>รวม 0 B</span></div>
+            <ul></ul>
+        </div>
+
         @Html.HiddenFor(model => model.ProcessInstanceID)
 
         <button type="submit" class="upload-button">อัพโหลดไฟล์</button>
 
-        @* if (!string.IsNullOrEmpty(Model.StatusMessage))
+        @* แสดงสถานะภายหลังอัพโหลด ถ้าต้องการ
+        @if (!string.IsNullOrEmpty(Model.StatusMessage))
         {
             <div class="@(Model.IsSuccess ? "status-success" : "status-error")">
                 <p>@Model.StatusMessage</p>
@@ -72,3 +99,121 @@
         } *@
     }
 </div>
+
+@section Scripts {
+<script>
+(function(){
+    const input = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const listRoot = document.getElementById('selectedFiles');
+    const list = listRoot.querySelector('ul');
+    const headerTitle = listRoot.querySelector('.header strong');
+    const headerTotal = listRoot.querySelector('.header span');
+
+    // แปลง byte → ข้อความ (KB/MB)
+    function sizeText(bytes) {
+        if (bytes === 0) return '0 B';
+        const units = ['B','KB','MB','GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        const val = (bytes / Math.pow(1024, i));
+        return (i === 0 ? val : val.toFixed(1)) + ' ' + units[i];
+    }
+
+    // วาดรายการไฟล์
+    function render(files) {
+        const arr = Array.from(files || []);
+        const totalSize = arr.reduce((s,f) => s + (f.size||0), 0);
+        headerTitle.textContent = `ไฟล์ที่เลือก (${arr.length})`;
+        headerTotal.textContent = `รวม ${sizeText(totalSize)}`;
+
+        list.innerHTML = '';
+        if (arr.length === 0) return;
+
+        arr.forEach((f, idx) => {
+            const li = document.createElement('li');
+
+            // ตรวจว่าเป็น PDF หรือไม่
+            const isPdf = (f.type === 'application/pdf') || /\.pdf$/i.test(f.name || '');
+            if (!isPdf) li.classList.add('invalid');
+
+            const left = document.createElement('div');
+            left.style.display = 'flex';
+            left.style.alignItems = 'center';
+            left.style.gap = '6px';
+
+            const name = document.createElement('span');
+            name.className = 'name';
+            name.textContent = f.name || '(ไม่ทราบชื่อไฟล์)';
+
+            const meta = document.createElement('span');
+            meta.className = 'meta';
+            meta.textContent = sizeText(f.size || 0);
+
+            const badge = document.createElement('span');
+            badge.className = 'badge';
+            badge.textContent = isPdf ? 'PDF' : 'ชนิดไม่รองรับ';
+
+            left.appendChild(name);
+            left.appendChild(meta);
+            left.appendChild(badge);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'remove-btn';
+            removeBtn.title = 'ลบไฟล์นี้ออกจากการอัปโหลด';
+            removeBtn.innerHTML = '✕';
+            removeBtn.addEventListener('click', () => removeAt(idx));
+
+            li.appendChild(left);
+            li.appendChild(removeBtn);
+            list.appendChild(li);
+        });
+    }
+
+    // ลบไฟล์ตำแหน่ง idx ออกจาก FileList ของ input
+    function removeAt(idx) {
+        const dt = new DataTransfer();
+        const arr = Array.from(input.files || []);
+        arr.forEach((f, i) => { if (i !== idx) dt.items.add(f); });
+        input.files = dt.files;
+        render(input.files);
+    }
+
+    // รวมไฟล์ใหม่ (สำหรับลาก-วาง/เลือกเพิ่ม)
+    function appendFiles(newFiles) {
+        const dt = new DataTransfer();
+        Array.from(input.files || []).forEach(f => dt.items.add(f));
+        Array.from(newFiles || []).forEach(f => dt.items.add(f));
+        input.files = dt.files;
+        render(input.files);
+    }
+
+    // เหตุการณ์เลือกไฟล์
+    input.addEventListener('change', () => {
+        render(input.files);
+    });
+
+    // รองรับลาก-วาง
+    ['dragenter','dragover'].forEach(ev => {
+        dropZone.addEventListener(ev, e => {
+            e.preventDefault(); e.stopPropagation();
+            dropZone.classList.add('dragover');
+        });
+    });
+    ['dragleave','drop'].forEach(ev => {
+        dropZone.addEventListener(ev, e => {
+            e.preventDefault(); e.stopPropagation();
+            if (ev === 'dragleave') dropZone.classList.remove('dragover');
+        });
+    });
+    dropZone.addEventListener('drop', e => {
+        dropZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files && files.length) appendFiles(files);
+    });
+
+    // วาดครั้งแรก (ว่าง)
+    render(input.files);
+})();
+</script>
+}

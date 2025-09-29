@@ -2,36 +2,26 @@
 @model EContractDashboardModel
 @{
     ViewData["Title"] = "E-Contract Dashboard";
-    Layout = "_Layout1"; // ensure this is set to your layout
+    Layout = "_Layout1";
+
+    // ปีพุทธศักราชปัจจุบัน (สำหรับ dropdown)
+    var beNow = DateTime.Now.Year + 543;
+
+    // รายชื่อเดือนภาษาไทย
+    var monthList = new[]{
+        "มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน",
+        "กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"
+    };
 }
 <style>
     @@media print {
-        .container {
-            width: 210mm !important; /* A4 width */
-            min-height: 297mm !important; /* A4 height */
-            margin: 0 auto !important;
-            background: #fff !important;
-            box-shadow: none !important;
-        }
+        .container { width: 210mm !important; min-height: 297mm !important; margin: 0 auto !important; background: #fff !important; box-shadow: none !important; }
     }
-
-    .a4-export {
-        width: 210mm !important;
-        min-height: 297mm !important;
-        margin: 0 auto !important;
-        background: #fff !important;
-        box-shadow: none !important;
-    }
-
-    .export-scale {
-        transform: scale(0.7); /* ปรับขนาดตามต้องการ */
-        transform-origin: top left;
-        width: 1428px; /* 1122 / 0.7 */
-        height: 1133px; /* 793 / 0.7 */
-    }
+    .a4-export { width: 210mm !important; min-height: 297mm !important; margin: 0 auto !important; background: #fff !important; box-shadow: none !important; }
+    .export-scale { transform: scale(0.7); transform-origin: top left; width: 1428px; height: 1133px; }
 </style>
 
-<h2 class="fw-bold mb-4">E-Contract Dashboard</h2>
+<h2 class="fw-bold mb-3">E-Contract Dashboard</h2>
 
 <div class="container">
     <!-- Row 1 -->
@@ -103,8 +93,8 @@
     <div class="col-md-12 text-end">
         <h5 class="card-title">Export</h5>
         <button class="btn btn-outline-primary btn-sm me-2" onclick="exportDashboardPdf()">PDF</button>
-        <a asp-page="/EContractDashboard" asp-page-handler="ExportXls" class="btn btn-outline-success btn-sm me-2" target="_blank">XLS</a>
-        <a asp-page="/EContractDashboard" asp-page-handler="ExportTxt" class="btn btn-outline-secondary btn-sm me-2" target="_blank">TXT</a>
+        <a asp-page="/EContractDashboard" asp-page-handler="ExportXls" asp-route-year="@Model.Year" asp-route-monthName="@Model.MonthName" class="btn btn-outline-success btn-sm me-2" target="_blank">XLS</a>
+        <a asp-page="/EContractDashboard" asp-page-handler="ExportTxt" asp-route-year="@Model.Year" asp-route-monthName="@Model.MonthName" class="btn btn-outline-secondary btn-sm me-2" target="_blank">TXT</a>
         <button class="btn btn-outline-warning btn-sm" onclick="exportDashboardJpeg()">JPEG</button>
     </div>
 </div>
@@ -154,69 +144,63 @@
             return { bg, border };
         }
 
-        // ===== 3) Chart Helper =====
+        // ===== 3) Chart Helper (show empty white donut when no data) =====
         function renderDonutChart(chartId, labels, data) {
-            if (!labels || !data || labels.length === 0 || data.length === 0) return;
-            const { bg, border } = colorsForLabels(labels);
+            const noData = !Array.isArray(data) || data.length === 0 || data.every(v => (v ?? 0) === 0);
+
+            let useLabels, useData, bg, border, showLegend, enableTooltip;
+            if (noData) {
+                useLabels = [''];
+                useData   = [1];
+                bg        = ['#FFFFFF'];
+                border    = ['#E5E7EB'];
+                showLegend    = false;
+                enableTooltip = false;
+            } else {
+                useLabels = labels || [];
+                useData   = data   || [];
+                const c = colorsForLabels(useLabels);
+                bg        = c.bg;
+                border    = c.border;
+                showLegend    = true;
+                enableTooltip = true;
+            }
+
             return new Chart(document.getElementById(chartId), {
                 type: 'doughnut',
-                data: {
-                    labels,
-                    datasets: [{
-                        data,
-                        backgroundColor: bg,
-                        borderColor: border,
-                        borderWidth: 1.5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    cutout: '60%',
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => `${ctx.label}: ${ctx.parsed}`
-                            }
-                        }
-                    }
-                }
+                data: { labels: useLabels, datasets: [{ data: useData, backgroundColor: bg, borderColor: border, borderWidth: 1.5 }] },
+                options: { responsive: true, cutout: '60%', plugins: { legend: { position: 'bottom', display: showLegend }, tooltip: { enabled: enableTooltip } } }
             });
         }
 
-        // ===== 4) Render Donuts (เดิม)
+        // ===== 4) Render Donuts =====
         renderDonutChart("contractTypeChart",   contractTypeLabels,   contractTypeValues);
         renderDonutChart("documentStatusChart", documentStatusLabels, documentStatusValues);
         renderDonutChart("contractStatusChart", contractStatusLabels, contractStatusValues);
 
         // ===== 5) Contract_Category รวมทุกประเภทสัญญา =====
-        // รวมยอดตาม label อย่างเดียว
         const aggMap = new Map();
         for (const r of contractCategoryRows) {
             const key = r.label ?? 'ไม่ระบุ';
             aggMap.set(key, (aggMap.get(key) ?? 0) + (r.value ?? 0));
         }
-        // ถ้าต้องการ sort มาก→น้อย และให้ "ไม่ระบุ" ไปท้ายเสมอ:
         const entries = Array.from(aggMap.entries());
         entries.sort((a, b) => b[1] - a[1]);
         const idxUnknown = entries.findIndex(e => e[0] === 'ไม่ระบุ');
         if (idxUnknown >= 0) { const u = entries.splice(idxUnknown, 1)[0]; entries.push(u); }
-
         const categoryLabels = entries.map(e => e[0]);
         const categoryValues = entries.map(e => e[1]);
-
         renderDonutChart("contractCategoryChart", categoryLabels, categoryValues);
     </script>
 
     <script>
-        // ===== Export JPEG =====
+        // ===== Export =====
         function exportDashboardJpeg(callback) {
             var element = document.querySelector('.container');
             html2canvas(element, { backgroundColor: '#fff', scale: 2 }).then(function (canvas) {
                 var imgData = canvas.toDataURL('image/jpeg', 0.98);
-                if (callback) {
-                    callback(imgData);
-                } else {
+                if (callback) { callback(imgData); }
+                else {
                     var link = document.createElement('a');
                     link.download = 'EContractDashboard.jpg';
                     link.href = imgData;
@@ -224,22 +208,17 @@
                 }
             });
         }
-
-        // ===== Export PDF =====
         function exportDashboardPdf() {
             var element = document.querySelector('.container');
             html2canvas(element, { backgroundColor: '#fff', scale: 2 }).then(function (canvas) {
                 var imgData = canvas.toDataURL('image/jpeg', 0.98);
-
                 var imgWidth = canvas.width, imgHeight = canvas.height;
                 var pdf = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 var pageWidth = pdf.internal.pageSize.getWidth();
                 var pageHeight = pdf.internal.pageSize.getHeight();
-
                 var ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
                 var printWidth = imgWidth * ratio, printHeight = imgHeight * ratio;
                 var marginX = (pageWidth - printWidth) / 2, marginY = (pageHeight - printHeight) / 2;
-
                 pdf.addImage(imgData, 'JPEG', marginX, marginY, printWidth, printHeight);
                 pdf.save('EContractDashboard.pdf');
             });
