@@ -109,7 +109,7 @@ namespace BatchAndReport.DAO
 
                 return model;
             }
-            catch
+            catch(Exception ex)
             {
                 // เก็บ log ตามต้องการ
                 return null;

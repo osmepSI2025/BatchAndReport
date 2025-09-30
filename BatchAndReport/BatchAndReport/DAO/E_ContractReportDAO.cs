@@ -873,6 +873,7 @@ namespace BatchAndReport.DAO
             {signatureHtml}
             <div >{nameBlock}</div>
             <div >{signer?.Position}</div>
+             <div >{signer?.BU_UNIT}</div>
    <div >สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
         </div>";
             }
@@ -1062,6 +1063,7 @@ namespace BatchAndReport.DAO
             <div >{nameBlock}</div>
             <div >พยาน</div>
             <div >{signer?.Position}</div>
+ <div >{signer?.BU_UNIT}</div>
  <div >สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
         </div>";
             }
@@ -1248,6 +1250,7 @@ namespace BatchAndReport.DAO
             {signatureHtml}
             <div >{nameBlock}</div>
             <div >{signer?.Position}</div>
+ <div >{signer?.BU_UNIT}</div>
    <div >สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
         </div>";
             }
@@ -1431,6 +1434,7 @@ namespace BatchAndReport.DAO
             <div >{nameBlock}</div>
             <div >พยาน</div>
             <div >{signer?.Position}</div>
+ <div >{signer?.BU_UNIT}</div>
  <div >สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</div>
         </div>";
             }
