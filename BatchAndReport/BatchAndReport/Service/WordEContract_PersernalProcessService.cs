@@ -152,11 +152,11 @@ public class WordEContract_PersernalProcessService
         โดยที่ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “สสว.” ฝ่ายหนึ่ง 
 ได้ตกลงใน {CommonDAO.ConvertStringArabicToThaiNumerals(result.Project_Name) ?? ""} 
 สัญญาเลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Master_Contract_Number) ?? ""} 
-ฉบับลง {signDate} ซึ่งต่อไปในข้อตกลงฉบับนี้ เรียกว่า “{result.Contract_Ref_Name}” กับ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName) ?? ""} 
+ฉบับลง {signDate} ซึ่งต่อไปในข้อตกลงฉบับนี้ เรียกว่า “{CommonDAO.ConvertStringArabicToThaiNumerals(result.Ref_Common_Name)}” กับ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName) ?? ""} 
 ซึ่งต่อไปในข้อตกลงฉบับนี้เรียกว่า “{CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""}” อีกฝ่ายหนึ่ง
     </P>
     <p class='t-12 tab2'>
-        ตามที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Ref_Name)} ดังกล่าวกำหนดให้ สสว. 
+        ตามที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Ref_Common_Name)} ดังกล่าวกำหนดให้ สสว. 
 มีหน้าที่และความรับผิดชอบในส่วนของการ {CommonDAO.ConvertStringArabicToThaiNumerals(result.OSMEP_ScopeRightsDuties) ?? ""} 
 ซึ่งในการดำเนินการ ดังกล่าวประกอบด้วย การมอบหมายหรือแต่งตั้งให้ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} เป็นผู้ดำเนินการ กระบวนการเก็บรวบรวม ใช้ หรือเปิดเผย (“ประมวลผล”) ข้อมูลส่วนบุคคลแทนหรือในนามของ สสว.
     </P>
@@ -173,9 +173,9 @@ public class WordEContract_PersernalProcessService
     ? string.Join("", conAgreement.Select(a => $"<p class='t-12 tab3'>{CommonDAO.ConvertStringArabicToThaiNumerals(a.PD_Detail)}</P>"))
     : "<p class='t-12 tab2'>- ไม่มีข้อมูลส่วนบุคคล -</P>")}
 <p class='t-12 tab2'>
-    ด้วยเหตุนี้ ทั้งสองฝ่ายจึงตกลงจัดทำข้อตกลงฉบับนี้ และให้ถือข้อตกลงฉบับนี้เป็น ส่วนหนึ่งของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Ref_Name) ?? ""} 
+    ด้วยเหตุนี้ ทั้งสองฝ่ายจึงตกลงจัดทำข้อตกลงฉบับนี้ และให้ถือข้อตกลงฉบับนี้เป็น ส่วนหนึ่งของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Ref_Common_Name) ?? ""} 
 เพื่อเป็นหลักฐานการควบคุมดูแลการประมวลผล ข้อมูลส่วนบุคคลที่ สสว. มอบหมายหรือแต่งตั้งให้ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} 
-ดำเนินการ อันเนื่องมาจาก การดำเนินการ ตามหน้าที่ และความรับผิดชอบตาม {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Ref_Name) ?? ""} ฉบับลง {signDate} และเพื่อดำเนินการ ให้เป็นไปตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. ๒๕๖๒ 
+ดำเนินการ อันเนื่องมาจาก การดำเนินการ ตามหน้าที่ และความรับผิดชอบตาม {CommonDAO.ConvertStringArabicToThaiNumerals(result.Ref_Common_Name) ?? ""} ฉบับลง {signDate} และเพื่อดำเนินการ ให้เป็นไปตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. ๒๕๖๒ 
 และกฎหมาย อื่นๆ ที่ออกตามความในพระราชบัญญัติ คุ้มครอง ข้อมูลส่วนบุคคล พ.ศ. ๒๕๖๒ ซึ่งต่อไปในข้อตกลงฉบับนี้ รวมเรียกว่า “กฎหมายคุ้มครองข้อมูลส่วนบุคคล” ทั้งที่มีผลใช้บังคับอยู่ ณ วันทำข้อตกลงฉบับนี้ และที่จะมีการเพิ่มเติมหรือแก้ไข เปลี่ยนแปลงในภายหลัง โดยมีรายละเอียดดังนี้
 </P>
 <p class='t-12 tab2'>
@@ -185,7 +185,7 @@ public class WordEContract_PersernalProcessService
 <p class='t-12 tab2'>
     โดยในการดำเนินการตามข้อตกลงนี้ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} จะประมวลผลข้อมูลส่วนบุคคล
 เมื่อได้รับคำสั่งที่เป็น ลายลักษณ์อักษรจาก สสว. แล้วเท่านั้น ทั้งนี้ เพื่อให้ปราศจากข้อสงสัย การดำเนินการประมวลผลข้อมูลส่วนบุคคลโดย {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} 
-ตามหน้าที่และ ความรับผิดชอบตาม {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Ref_Name) ?? ""} ถือเป็นการได้รับคำสั่งที่เป็นลายลักษณ์อักษรจาก สสว. แล้ว
+ตามหน้าที่และ ความรับผิดชอบตาม {CommonDAO.ConvertStringArabicToThaiNumerals(result.Ref_Common_Name) ?? ""} ถือเป็นการได้รับคำสั่งที่เป็นลายลักษณ์อักษรจาก สสว. แล้ว
 </P>
 <p class='t-12 tab2'>
     ๒. {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} จะกำหนดให้การเข้าถึงข้อมูลส่วนบุคคลภายใต้ข้อตกลงฉบับนี้ถูกจำกัด 
@@ -219,7 +219,8 @@ public class WordEContract_PersernalProcessService
 </P>
 <p class='t-12 tab2'>
     ๗. เว้นแต่กฎหมายที่เกี่ยวข้องจะบัญญัติไว้เป็นประการอื่น {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} จะทำการลบหรือ 
-ทำลายข้อมูลส่วนบุคคล ที่ทำการประมวลผลภายใต้ข้อตกลงฉบับนี้ภายใน {CommonDAO.ConvertStringArabicToThaiNumerals(result.RetentionPeriodDays.ToString()) ?? ""} วัน นับแต่วันที่ดำเนินการประมวลผลเสร็จสิ้น หรือวันที่ สสว. และ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} ได้ตกลงเป็นลายลักษณ์อักษรให้ยกเลิก {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Ref_Name) ?? ""} แล้วแต่กรณีใดจะเกิดขึ้นก่อน
+ทำลายข้อมูลส่วนบุคคล ที่ทำการประมวลผลภายใต้ข้อตกลงฉบับนี้ภายใน {CommonDAO.ConvertStringArabicToThaiNumerals(result.RetentionPeriodDays.ToString()) ?? ""} วัน นับแต่วันที่ดำเนินการประมวลผลเสร็จสิ้น หรือวันที่ สสว. 
+และ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} ได้ตกลงเป็นลายลักษณ์อักษรให้ยกเลิก {CommonDAO.ConvertStringArabicToThaiNumerals(result.Ref_Common_Name) ?? ""} แล้วแต่กรณีใดจะเกิดขึ้นก่อน
 </P>
 <p class='t-12 tab2'>
     นอกจากนี้ ในกรณีปรากฏว่า {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} หมดความจำเป็นจะต้องเก็บรักษาข้อมูล ส่วนบุคคลตาม ข้อตกลงฉบับนี้ ก่อนสิ้นระยะเวลา ตามวรรคหนึ่ง {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} จะทำการลบหรือทำลาย ข้อมูลส่วนบุคคลตาม ข้อตกลงฉบับนี้ทันที
@@ -241,7 +242,8 @@ public class WordEContract_PersernalProcessService
 
 <p class='t-12 tab2'>
     ๑๐. หน้าที่และความรับผิดของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} ในการปฏิบัติตามข้อตกลงจะสิ้นสุดลงนับแต่วันที่ปฏิบัติงาน 
-ที่ตกลงเสร็จสิ้น หรือ {CommonDAO.ToThaiDateStringCovert(result.End_Date.HasValue ? result.End_Date.Value : DateTime.Now)} {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} และ สสว. ได้ตกลงเป็นลายลักษณ์อักษรให้ยกเลิก {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Ref_Name) ?? ""} แล้วแต่กรณีใดจะเกิดขึ้นก่อน อย่างไรก็ดี การสิ้นผลลงของ ข้อตกลงนี้ไม่กระทบต่อหน้าที่ของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} 
+ที่ตกลงเสร็จสิ้น หรือ {CommonDAO.ToThaiDateStringCovert(result.End_Date.HasValue ? result.End_Date.Value : DateTime.Now)} {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} 
+และ สสว. ได้ตกลงเป็นลายลักษณ์อักษรให้ยกเลิก {CommonDAO.ConvertStringArabicToThaiNumerals(result.Ref_Common_Name) ?? ""} แล้วแต่กรณีใดจะเกิดขึ้นก่อน อย่างไรก็ดี การสิ้นผลลงของ ข้อตกลงนี้ไม่กระทบต่อหน้าที่ของ {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyCommonName) ?? ""} 
 ในการลบหรือทำลายข้อมูลส่วนบุคคลตามที่ได้กำหนดในข้อ ๗ ของข้อตกลงฉบับนี้
 </P>
 <p class='t-12 tab2'>

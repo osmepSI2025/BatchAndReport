@@ -93,3 +93,9 @@
        font-family: 'TH Sarabun PSK', Arial, sans-serif !important;
         color: #000 !important;
     }
+.full-width-text {
+    /* ทำให้ข้อความยืดเต็มบรรทัด */
+    text-align: justify;
+    /* ทำให้บรรทัดสุดท้ายยืดเต็มบรรทัดด้วย */
+    text-align-last: justify;
+}

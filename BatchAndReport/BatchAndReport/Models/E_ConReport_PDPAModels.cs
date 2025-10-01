@@ -36,7 +36,10 @@
         public string Request_ID { get; set; } // nvarchar(50)
         public string Contract_Status { get; set; } // nvarchar(10)
         public string Organization_Logo { get; set; }
-        
+
+        public string Ref_Common_Name { get; set; }
+
+
     }
 
 

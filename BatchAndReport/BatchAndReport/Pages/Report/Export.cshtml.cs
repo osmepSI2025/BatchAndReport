@@ -133,7 +133,7 @@ namespace BatchAndReport.Pages.Report
 
         #region  4.1.3.3. สัญญาจ้างลูกจ้าง EC
 
-        public async Task OnGetWordContact_EC_PDF(string ContractId = "8")
+        public async Task OnGetWordContact_EC_PDF(string ContractId = "41")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "EC");
             if (!Directory.Exists(folderPath))
@@ -4805,7 +4805,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.4.บันทึกข้อตกลงการประมวลผลข้อมูลส่วนบุคคล PDPA
  
-        public async Task OnGetWordContact_PDPA_PDF(string ContractId = "10")
+        public async Task OnGetWordContact_PDPA_PDF(string ContractId = "12")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "PDPA");
             if (!Directory.Exists(folderPath))
