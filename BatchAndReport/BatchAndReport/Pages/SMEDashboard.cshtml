@@ -92,14 +92,14 @@
                 labels: dashboardData.BudgetChart.map(x => x.Year),
                 datasets: [
                     {
-                        label: 'งบประมาณที่ขอ',
+                        label: 'งบประมาณที่ขอ(ลบ.)',
                         data: dashboardData.BudgetChart.map(x => x.RequestBudget),
                         backgroundColor: '#93C5FD', // ฟ้าอ่อน
                         borderColor: '#1D4ED8',
                         borderWidth: 1.5
                     },
                     {
-                        label: 'งบประมาณที่ผ่านการพิจารณา',
+                        label: 'งบประมาณที่ผ่านการพิจารณา(ลบ.)',
                         data: dashboardData.BudgetChart.map(x => x.ApproveBudget),
                         backgroundColor: '#1D4ED8', // ฟ้าเข้ม
                         borderColor: '#1E3A8A',

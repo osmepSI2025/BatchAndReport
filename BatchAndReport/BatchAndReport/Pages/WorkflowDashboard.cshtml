@@ -33,11 +33,55 @@
         color: #003F88;
         font-weight: 600;
         text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 2;
     }
 
     .table td, .table th {
         text-align: center;
         vertical-align: middle;
+    }
+
+    /* filter form */
+    .filter-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E0E6ED;
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .table-scroll {
+        max-height: 420px;
+        overflow-y: auto;
+        overflow-x: auto;
+        border-radius: .5rem;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table.table-fixed-min {
+            min-width: 980px;
+        }
+
+    .table-scroll::-webkit-scrollbar {
+        height: 8px;
+        width: 8px
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb {
+        background: #c7d2fe;
+        border-radius: 8px
+    }
+
+    .empty-state {
+        color: #64748B;
+        text-align: center;
+        padding: 1rem 0;
+        font-style: italic;
     }
 </style>
 
@@ -47,12 +91,20 @@
             <div class="dashboard-card">
                 <h5><i class="fas fa-chart-pie"></i> กระบวนการทำงานตามแผนงาน</h5>
                 <canvas id="donutProcessChart" height="250"></canvas>
+                @if (Model.DonutProcessChart == null || Model.DonutProcessChart.Count == 0)
+                {
+                    <div class="empty-state">ไม่มีข้อมูล</div>
+                }
             </div>
         </div>
         <div class="col-md-6">
             <div class="dashboard-card">
                 <h5><i class="fas fa-chart-pie"></i> ประเภทการปรับปรุงกระบวนการทำงาน</h5>
                 <canvas id="donutImproveChart" height="250"></canvas>
+                @if (Model.DonutImproveChart == null || Model.DonutImproveChart.Count == 0)
+                {
+                    <div class="empty-state">ไม่มีข้อมูล</div>
+                }
             </div>
         </div>
     </div>
@@ -62,39 +114,54 @@
             <div class="dashboard-card">
                 <h5><i class="fas fa-chart-bar"></i> Top 10 การเปลี่ยนแปลงระยะเวลาในการดำเนินงาน</h5>
                 <canvas id="barChart" height="250"></canvas>
+                @if (Model.BarChartData == null || Model.BarChartData.Count == 0)
+                {
+                    <div class="empty-state">ไม่มีข้อมูล</div>
+                }
             </div>
         </div>
 
         <div class="col-md-6">
             <div class="dashboard-card">
                 <h5><i class="fas fa-table"></i> รายการระยะเวลาการทำงานของแต่ละกระบวนการ</h5>
-                <table class="table table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>ลำดับ</th>
-                            <th>รหัส</th>
-                            <th>ชื่อกระบวนการทำงาน</th>
-                            <th>ปีก่อนหน้า (วัน)</th>
-                            <th>ปีปัจจุบัน (วัน)</th>
-                            <th>ส่วนต่าง (วัน)</th>
-                            <th>ส่วนต่าง (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var row in Model.WorkflowGrid)
-                        {
+                <div class="table-scroll table-responsive">
+                    <table class="table table-bordered table-hover table-sm table-fixed-min">
+                        <thead>
                             <tr>
-                                <td>@row.No</td>
-                                <td>@row.Code</td>
-                                <td>@row.WorkflowName</td>
-                                <td>@row.PreviousYearDays</td>
-                                <td>@row.CurrentYearDays</td>
-                                <td>@row.DayDifference</td>
-                                <td>@row.PercentDifference</td>
+                                <th>ลำดับ</th>
+                                <th>รหัส</th>
+                                <th style="min-width: 280px; text-align: left;">ชื่อกระบวนการทำงาน</th>
+                                <th>ปีก่อนหน้า (วัน)</th>
+                                <th>ปีปัจจุบัน (วัน)</th>
+                                <th>ส่วนต่าง (วัน)</th>
+                                <th>ส่วนต่าง (%)</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @if (Model.WorkflowGrid == null || Model.WorkflowGrid.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="7" class="empty-state">ไม่มีข้อมูล</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var row in Model.WorkflowGrid)
+                                {
+                                    <tr>
+                                        <td>@row.No</td>
+                                        <td>@row.Code</td>
+                                        <td style="text-align:left">@row.WorkflowName</td>
+                                        <td>@row.PreviousYearDays</td>
+                                        <td>@row.CurrentYearDays</td>
+                                        <td>@row.DayDifference</td>
+                                        <td>@row.PercentDifference</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -103,135 +170,87 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
-        // ===== 1) Load data =====
-        const donutProcessData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DonutProcessChart));
-        const donutImproveData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DonutImproveChart));
-        const barChartData     = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BarChartData));
+        // ===== 1) Load data safely =====
+        const donutProcessData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DonutProcessChart ?? new List<WorkflowDashboardModel.WorkflowChartDonutDto>()));
+        const donutImproveData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DonutImproveChart ?? new List<WorkflowDashboardModel.WorkflowChartDonutDto>()));
+        const barChartData     = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BarChartData ?? new List<WorkflowDashboardModel.WorkflowChartBarDto>()));
 
-        // ===== 2) Color system: distinct & stable per label =====
-        // ชุดสีโทนต่างกันชัดเจน (มากพอสำหรับหลายประเภท)
+        // ===== 2) Color system =====
         const DISTINCT_PALETTE = [
             '#2563EB','#F59E0B','#10B981','#EF4444','#8B5CF6','#14B8A6',
             '#DC2626','#F97316','#22C55E','#6366F1','#06B6D4','#A855F7',
             '#0EA5E9','#84CC16','#D946EF','#EA580C','#059669','#B91C1C',
             '#7C3AED','#0D9488','#9333EA','#16A34A','#1D4ED8','#D97706'
         ];
+        function darken(hex, d=28){const c=hex.replace('#','');const r=Math.max(0,parseInt(c.slice(0,2),16)-d);const g=Math.max(0,parseInt(c.slice(2,4),16)-d);const b=Math.max(0,parseInt(c.slice(4,6),16)-d);const h=v=>v.toString(16).padStart(2,'0');return `#${h(r)}${h(g)}${h(b)}`;}
+        function labelToIndex(label){let h=0;label=String(label??'');for(let i=0;i<label.length;i++){h=(h*31+label.charCodeAt(i))>>>0;}return h%DISTINCT_PALETTE.length;}
+        function colorsForLabels(labels){const bg=labels.map(l=>DISTINCT_PALETTE[labelToIndex(l)]);const border=bg.map(c=>darken(c,32));return{bg,border};}
 
-        // แปลง hex -> โทนเข้มขึ้นเล็กน้อยสำหรับเส้นขอบ
-        function darken(hex, d = 28) {
-            const c = hex.replace('#', '');
-            const r = Math.max(0, parseInt(c.slice(0,2),16) - d);
-            const g = Math.max(0, parseInt(c.slice(2,4),16) - d);
-            const b = Math.max(0, parseInt(c.slice(4,6),16) - d);
-            const h = v => v.toString(16).padStart(2,'0');
-            return `#${h(r)}${h(g)}${h(b)}`;
-        }
-
-        // สร้าง index แบบคงที่จากชื่อ (hash) เพื่อ map ไปยังสี
-        function labelToIndex(label) {
-            let h = 0;
-            for (let i = 0; i < String(label).length; i++) {
-                h = (h * 31 + String(label).charCodeAt(i)) >>> 0;
-            }
-            return h % DISTINCT_PALETTE.length;
-        }
-
-        // ได้ชุดสีและเส้นขอบที่ "คงที่ตามชื่อ" และ “ต่างโทนกันแน่ๆ”
-        function colorsForLabels(labels) {
-            const bg = labels.map(l => DISTINCT_PALETTE[labelToIndex(l)]);
-            const border = bg.map(c => darken(c, 32));
-            return { bg, border };
-        }
-
-        // ===== 3) Charts =====
-
-        // 3.1 Donut: กระบวนการทำงานตามแผนงาน (สีแยกตามประเภท)
-        (function(){
-            const labels = donutProcessData.map(x => x.Label);
-            const values = donutProcessData.map(x => x.Value);
+        function createDonut(canvasId, data){
+            if(!data || data.length===0) return;
+            const labels = data.map(x => x.Label);
+            const values = data.map(x => x.Value ?? 0);
             const { bg, border } = colorsForLabels(labels);
-
-            new Chart(document.getElementById('donutProcessChart'), {
+            new Chart(document.getElementById(canvasId), {
                 type: 'doughnut',
                 data: { labels, datasets: [{ data: values, backgroundColor: bg, borderColor: border, borderWidth: 1.5 }] },
-                options: {
-                    responsive: true,
-                    cutout: '60%',
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.parsed} รายการ` } }
-                    }
-                }
+                options: { responsive: true, cutout: '60%', plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: (ctx)=> `${ctx.label}: ${ctx.parsed} รายการ` } } } }
             });
-        })();
+        }
 
-        // 3.2 Donut: ประเภทการปรับปรุงกระบวนการทำงาน (สีแยกตามประเภท)
+        createDonut('donutProcessChart', donutProcessData);
+        createDonut('donutImproveChart', donutImproveData);
+
+        // Bar Chart
         (function(){
-            const labels = donutImproveData.map(x => x.Label);
-            const values = donutImproveData.map(x => x.Value);
-            const { bg, border } = colorsForLabels(labels);
-
-            new Chart(document.getElementById('donutImproveChart'), {
-                type: 'doughnut',
-                data: { labels, datasets: [{ data: values, backgroundColor: bg, borderColor: border, borderWidth: 1.5 }] },
+            if(!barChartData || barChartData.length===0) return;
+            new Chart(document.getElementById('barChart'), {
+                type: 'bar',
+                data: {
+                    labels: barChartData.map(x => x.Description),
+                    datasets: [
+                        {
+                            label: 'ปีก่อนหน้า',
+                            data: barChartData.map(x => x.PreviousYear ?? 0),
+                            backgroundColor: '#9CA3AF',
+                            borderColor: darken('#9CA3AF', 35),
+                            borderWidth: 1.5
+                        },
+                        {
+                            label: 'ปีปัจจุบัน',
+                            data: barChartData.map(x => x.CurrentYear ?? 0),
+                            backgroundColor: '#2563EB',
+                            borderColor: darken('#2563EB', 35),
+                            borderWidth: 1.5
+                        }
+                    ]
+                },
                 options: {
                     responsive: true,
-                    cutout: '60%',
                     plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.parsed} รายการ` } }
-                    }
-                }
-            });
-        })();
-
-        // 3.3 Bar: Top 10 การเปลี่ยนแปลงระยะเวลา
-        // คงคอนเซ็ปต์เปรียบเทียบ 2 ปีด้วยสีคู่ตัดกันชัด (ไม่ใช้ไล่เฉด)
-        new Chart(document.getElementById('barChart'), {
-            type: 'bar',
-            data: {
-                labels: barChartData.map(x => x.Description),
-                datasets: [
-                    {
-                        label: 'ปีก่อนหน้า',
-                        data: barChartData.map(x => x.PreviousYear),
-                        backgroundColor: '#9CA3AF', // เทากลาง
-                        borderColor: darken('#9CA3AF', 35),
-                        borderWidth: 1.5
-                    },
-                    {
-                        label: 'ปีปัจจุบัน',
-                        data: barChartData.map(x => x.CurrentYear),
-                        backgroundColor: '#2563EB', // น้ำเงินเข้ม
-                        borderColor: darken('#2563EB', 35),
-                        borderWidth: 1.5
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                            afterBody: function (items) {
-                                const i = items[0].dataIndex, it = barChartData[i];
-                                return [
-                                    `รหัส: ${it.Code}`,
-                                    `ชื่อกระบวนการ: ${it.Description}`,
-                                    `ปีก่อนหน้า: ${it.PreviousYear} วัน`,
-                                    `ปีปัจจุบัน: ${it.CurrentYear} วัน`,
-                                    `ส่วนต่าง: ${it.CurrentYear - it.PreviousYear} วัน`,
-                                    `ส่วนต่าง (%): ${it.PercentChange}%`
-                                ];
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                afterBody: function (items) {
+                                    const i = items[0].dataIndex, it = barChartData[i];
+                                    const prev = it.PreviousYear ?? 0;
+                                    const curr = it.CurrentYear ?? 0;
+                                    const pct  = prev === 0 ? "-" : `${it.PercentChange}%`;
+                                    return [
+                                        `รหัส: ${it.Code ?? ""}`,
+                                        `ชื่อกระบวนการ: ${it.Description ?? ""}`,
+                                        `ปีก่อนหน้า: ${prev} วัน`,
+                                        `ปีปัจจุบัน: ${curr} วัน`,
+                                        `ส่วนต่าง: ${curr - prev} วัน`,
+                                        `ส่วนต่าง (%): ${pct}`
+                                    ];
+                                }
                             }
                         }
-                    }
-                },
-                scales: {
-                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                    },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
                 }
-            }
-        });
+            });
+        })();
     </script>
 }

@@ -17,16 +17,27 @@ public class SMEDashboardModel : PageModel
         _k2context_sme = context;
     }
 
-    public List<BudgetData> BudgetChart { get; set; } = new();
+    public List<BudgetRow> BudgetChart { get; set; } = new();
     public List<SupportIssue> SupportChart { get; set; } = new();
     public List<ProjectType> TypeChart { get; set; } = new();
     public List<RegionData> RegionChart { get; set; } = new();
 
-    public class BudgetData
+    public class BudgetRow
     {
-        public string Year { get; set; } = "";
-        public int RequestBudget { get; set; }
-        public int ApproveBudget { get; set; }
+        public string Year { get; set; } = "TOTAL";  // ปรับเป็นปีจริงได้ถ้ามี
+        public decimal RequestBudget { get; set; }   // budget_req (ล.บ.)
+        public decimal ApproveBudget { get; set; }   // budget_req_pass (ล.บ.)
+    }
+    private static object DbNullIf<T>(T? v) where T : struct
+    => v.HasValue ? (object)v.Value : DBNull.Value;
+
+    private static object DbNullIf(string? v)
+        => string.IsNullOrWhiteSpace(v) ? DBNull.Value : v!;
+
+    private static decimal SafeDecimal(SqlDataReader reader, string col)
+    {
+        if (reader[col] == DBNull.Value) return 0m;
+        try { return Convert.ToDecimal(reader[col]); } catch { return 0m; }
     }
 
     public class SupportIssue { public string Issue { get; set; } = ""; public int Count { get; set; } }
@@ -41,52 +52,40 @@ public class SMEDashboardModel : PageModel
         RegionChart = await GetRegionChartAsync();
     }
 
-    private async Task<List<BudgetData>> GetBudgetChartAsync()
+    private async Task<List<BudgetRow>> GetBudgetChartAsync(
+    int? fiscalYearId = null,
+    string? departmentCode = null,
+    int? operationAreaId = null,
+    string? budgetSourceCode = null)
     {
-        var result = new List<BudgetData>();
+        var rows = new List<BudgetRow>();
 
         var conn = _k2context_sme.Database.GetDbConnection();
         await using var connection = new SqlConnection(conn.ConnectionString);
-        await using var command = new SqlCommand("SP_SME_GET_BUDGET_CHART", connection)
+        await using var command = new SqlCommand("SP_SME_GET_DASHBOARD_DETAIL", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
 
+        command.Parameters.AddWithValue("@FISCAL_YEAR_ID", DbNullIf(fiscalYearId));
+        command.Parameters.AddWithValue("@DEPARTMENT_CODE", DbNullIf(departmentCode));
+        command.Parameters.AddWithValue("@OPERATION_AREA_ID", DbNullIf(operationAreaId));
+        command.Parameters.AddWithValue("@BUDGET_SOURCE_CODE", DbNullIf(budgetSourceCode));
+
         await connection.OpenAsync();
-
         using var reader = await command.ExecuteReaderAsync();
-        var yearColumns = new List<string>();
 
-        for (int i = 0; i < reader.FieldCount; i++)
+        if (await reader.ReadAsync())
         {
-            var colName = reader.GetName(i);
-            if (colName != "column type")
-                yearColumns.Add(colName);
-        }
-
-        var tempDict = new Dictionary<string, BudgetData>();
-
-        while (await reader.ReadAsync())
-        {
-            var budgetType = reader["column type"].ToString();
-
-            foreach (var year in yearColumns)
+            rows.Add(new BudgetRow
             {
-                if (!int.TryParse(reader[year]?.ToString(), out int value))
-                    continue;
-
-                if (!tempDict.ContainsKey(year))
-                    tempDict[year] = new BudgetData { Year = year };
-
-                if (budgetType == "pass_budget")
-                    tempDict[year].ApproveBudget = value;
-                else
-                    tempDict[year].RequestBudget = value;
-            }
+                Year = "TOTAL",
+                RequestBudget = SafeDecimal(reader, "budget_req"),
+                ApproveBudget = SafeDecimal(reader, "budget_req_pass")
+            });
         }
 
-        result = tempDict.Values.ToList();
-        return result;
+        return rows;
     }
 
     private async Task<List<SupportIssue>> GetSupportChartAsync()
