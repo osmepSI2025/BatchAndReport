@@ -78,7 +78,7 @@ namespace BatchAndReport.Models
         public DateTime? CitizenCardRegisDate { get; set; }
         public DateTime? CitizenCardExpireDate { get; set; }
         public int? CopierSendBackDays { get; set; }
-        public int? Request_ID { get; set; }
+        public string? Request_ID { get; set; }
         public string? Contract_Status { get; set; }
     }
 }

@@ -106,7 +106,7 @@ namespace BatchAndReport.DAO
                     CitizenId = reader["CitizenId"] as string,
                     CitizenCardRegisDate = reader["CitizenCardRegisDate"] == DBNull.Value ? null : Convert.ToDateTime(reader["CitizenCardRegisDate"]),
                     CitizenCardExpireDate = reader["CitizenCardExpireDate"] == DBNull.Value ? null : Convert.ToDateTime(reader["CitizenCardExpireDate"]),
-                    Request_ID = reader["Request_ID"] == DBNull.Value ? null : Convert.ToInt32(reader["Request_ID"]),
+                    Request_ID = reader["Request_ID"] as string,
                     Contract_Status = reader["Contract_Status"] as string
                 };
 

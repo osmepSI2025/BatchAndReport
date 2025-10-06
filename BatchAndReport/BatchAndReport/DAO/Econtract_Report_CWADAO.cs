@@ -97,7 +97,7 @@ namespace BatchAndReport.DAO
                     CitizenCardRegisDate = reader["CitizenCardRegisDate"] == DBNull.Value ? null : reader.GetDateTime(reader.GetOrdinal("CitizenCardRegisDate")),
                     CitizenCardExpireDate = reader["CitizenCardExpireDate"] == DBNull.Value ? null : reader.GetDateTime(reader.GetOrdinal("CitizenCardExpireDate")),
                     DaysToRepairIn = reader["DaysToRepairIn"] == DBNull.Value ? null : Convert.ToInt32(reader["DaysToRepairIn"]),
-                    Request_ID = reader["Request_ID"] == DBNull.Value ? null : Convert.ToInt32(reader["Request_ID"]),
+                    Request_ID = reader["Request_ID"] as string,
                     Contract_Status = reader["Contract_Status"] as string,
                     Install_PayAMT = reader["Install_PayAMT"] == DBNull.Value ? null : Convert.ToDecimal(reader["Install_PayAMT"]),
                     Install_PayVat = reader["Install_PayVat"] == DBNull.Value ? null : Convert.ToDecimal(reader["Install_PayVat"]),

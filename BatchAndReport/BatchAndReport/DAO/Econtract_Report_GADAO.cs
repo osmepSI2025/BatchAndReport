@@ -76,7 +76,7 @@ namespace BatchAndReport.DAO
                     UpdateBy = reader["UpdateBy"] as string,
                     Flag_Delete = reader["Flag_Delete"] as string,
 
-                    Request_ID = reader["Request_ID"] == DBNull.Value ? null : Convert.ToInt32(reader["Request_ID"]),
+                    Request_ID = reader["Request_ID"] as string,
                     Contract_Status = reader["Contract_Status"] as string
                 };
 

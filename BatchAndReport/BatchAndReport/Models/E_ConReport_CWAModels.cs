@@ -57,7 +57,7 @@ public class E_ConReport_CWAModels
     public DateTime? CitizenCardRegisDate { get; set; }
     public DateTime? CitizenCardExpireDate { get; set; }
     public int? DaysToRepairIn { get; set; }
-    public int? Request_ID { get; set; }
+    public string? Request_ID { get; set; }
     public string? Contract_Status { get; set; }
     public decimal? Install_PayAMT { get; set; }
     public decimal? Install_PayVat { get; set; }

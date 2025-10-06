@@ -116,7 +116,7 @@ namespace BatchAndReport.DAO
                     CitizenCardRegisDate = reader["CitizenCardRegisDate"] == DBNull.Value ? null : reader.GetDateTime(reader.GetOrdinal("CitizenCardRegisDate")),
                     CitizenCardExpireDate = reader["CitizenCardExpireDate"] == DBNull.Value ? null : reader.GetDateTime(reader.GetOrdinal("CitizenCardExpireDate")),
                     CopierSendBackDays = reader["CopierSendBackDays"] == DBNull.Value ? null : Convert.ToInt32(reader["CopierSendBackDays"]),
-                    Request_ID = reader["Request_ID"] == DBNull.Value ? null : Convert.ToInt32(reader["Request_ID"]),
+                    Request_ID = reader["Request_ID"] as string,
                     Contract_Status = reader["Contract_Status"] as string
                 };
 

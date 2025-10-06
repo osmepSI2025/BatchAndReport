@@ -119,7 +119,7 @@ namespace BatchAndReport.DAO
                     AttorneyFlag = reader["AttorneyFlag"] == DBNull.Value ? null : (bool?)reader["AttorneyFlag"],
                     AttorneyLetterNumber = reader["AttorneyLetterNumber"] as string,
                     CitizenId = reader["CitizenId"] as string,
-                    Request_ID = reader["Request_ID"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["Request_ID"]),
+                    Request_ID = reader["Request_ID"] as string,
                     Contract_Status = reader["Contract_Status"] as string,
                     GuaranteeTypeOther = reader["GuaranteeTypeOther"] as string
                 };
@@ -361,7 +361,7 @@ namespace BatchAndReport.DAO
                     CitizenId = reader["CitizenId"] as string,
                     CitizenCardRegisDate = reader["CitizenCardRegisDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CitizenCardRegisDate"]),
                     CitizenCardExpireDate = reader["CitizenCardExpireDate"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["CitizenCardExpireDate"]),
-                    Request_ID = reader["Request_ID"] == DBNull.Value ? null : (int?)Convert.ToInt32(reader["Request_ID"]),
+                    Request_ID = reader["Request_ID"] as string,
                     Contract_Status = reader["Contract_Status"] as string,
                     GuaranteeTypeOther = reader["GuaranteeTypeOther"] as string
                 };
