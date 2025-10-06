@@ -6042,12 +6042,8 @@ namespace BatchAndReport.Pages.Report
 
 
         #region 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
-        public async Task<IActionResult> OnGetWordContact_GA(string ContractId = "1")
-        {
-            var wordBytes = await _SupportSMEsService.OnGetWordContact_SupportSMEsService(ContractId);
-            return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "บันทึกข้อตกลงความร่วมมือในการสนับสนุน SMEs.docx");
-        }
-        public async Task OnGetWordContact_GA_PDF(string ContractId = "1")
+ 
+        public async Task OnGetWordContact_GA_PDF(string ContractId = "3")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
             if (!Directory.Exists(folderPath))
