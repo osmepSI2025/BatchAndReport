@@ -6043,7 +6043,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.2.สัญญารับเงินอุดหนุน GA
  
-        public async Task OnGetWordContact_GA_PDF(string ContractId = "3")
+        public async Task OnGetWordContact_GA_PDF(string ContractId = "4")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "GA");
             if (!Directory.Exists(folderPath))

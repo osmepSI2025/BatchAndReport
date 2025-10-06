@@ -128,7 +128,7 @@ public class WordEContract_SupportSMEsService
 ซึ่งต่อไปในสัญญานี้เรียกว่า “ผู้ให้เงินอุดหนุน” ฝ่ายหนึ่ง กับ</P>
     <p class='t-12 tab2'><B>ผู้ประกอบการวิสาหกิจขนาดกลางและขนาดย่อม</B> ราย {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)} ซึ่งจดทะเบียนเป็น {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegType)} 
 เลขประจำตัวผู้เสียภาษี {CommonDAO.ConvertStringArabicToThaiNumerals(result.TaxID)} 
-        ณ {signDate} {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} มีสำนักงานใหญ่
+        ณ {signDate}  มีสำนักงานใหญ่
         ตั้งอยู่เลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationAddressNo)}
         ตำบล/แขวง {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} อำเภอ/เขต {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} จังหวัด {result.HQLocationProvince}  {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationZipCode)}
         ไปรษณีย์อิเล็กทรอนิกส์(E-mail) {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegEmail)} โดย {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegPersonalName)} บัตรประจำตัวประชาชนเลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegIdenID)}
@@ -146,7 +146,7 @@ public class WordEContract_SupportSMEsService
         ผ่านผู้ให้บริการ ทางธุรกิจ ปี ๒๕๖๗ ภายใต้โครงการส่งเสริมผู้ประกอบการผ่านระบบ BDS ระยะเวลาดำเนินการ ๒ ปี 
 (ปี ๒๕๖๗-๒๕๖๘) ตามข้อเสนอการพัฒนาซึ่งได้รับอนุมัติจากผู้ให้เงินอุดหนุน ตามระเบียบคณะกรรมการ
 บริหารสำนักงานส่งเสริม วิสาหกิจขนาดกลางและขนาดย่อม ว่าด้วยหลักเกณฑ์ เงื่อนไข และวิธีการให้ความ
-ช่วยเหลือ อุดหนุน วิสาหกิจ- ๒ - ขนาดกลางและขนาดย่อม จากเงินกองทุนส่งเสริมวิสาหกิจขนาดกลางและ
+ช่วยเหลือ อุดหนุน วิสาหกิจ ขนาดกลางและขนาดย่อม จากเงินกองทุนส่งเสริมวิสาหกิจขนาดกลางและ
 ขนาดย่อม พ.ศ. ๒๕๖๔ ประกาศ สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม เรื่อง เชิญชวน
 หน่วยงานที่ประสงค์ขึ้นทะเบียนผู้ให้บริการ ทางธุรกิจ เพื่อสนับสนุนและยกระดับศักยภาพผู้ประกอบการ
 วิสาหกิจขนาดกลางและขนาดย่อม และเชิญชวน วิสาหกิจขนาดกลางและขนาดย่อม ยื่นความประสงค์ขอรับ
