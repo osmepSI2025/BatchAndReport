@@ -234,7 +234,8 @@ public class WordEContract_SupportSMEsService
         string stringGrantStartDate = CommonDAO.ToThaiDateStringCovert(result.GrantStartDate ?? DateTime.Now);
         string stringGrantEndDate = CommonDAO.ToThaiDateStringCovert(result.GrantEndDate ?? DateTime.Now);
 
-
+        var findYear = CommonDAO.ToThaiDateString(result.ContractSignDate ?? DateTime.Now);
+        string yearThai = findYear[2]; // ดึงปีไทย 4 หลักล่าสุด
 
         #region signlist 
 
@@ -292,14 +293,16 @@ public class WordEContract_SupportSMEsService
 </br>
     <div class='t-14 text-center'><B>สัญญารับเงินอุดหนุน</B></div>
     <div class='t-14 text-center'><B>เพื่อสนับสนุนและยกระดับศักยภาพผู้ประกอบการวิสาหกิจขนาดกลางและขนาดย่อม</B></div>
-    <div class='t-14 text-center'><B>ผ่านระบบผู้ให้บริการทางธุรกิจ ปี {CommonDAO.ConvertStringArabicToThaiNumerals(DateTime.Now.Year.ToString())}</B></div>
+    <div class='t-14 text-center'><B>ผ่านระบบผู้ให้บริการทางธุรกิจ ปี {yearThai}</B></div>
 </br>
     <div class=' t-12 text-right'>ทะเบียนผู้รับเงินอุดหนุนเลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.TaxID)}</div>
     <div class=' t-12 text-right'>เลขที่สัญญา {CommonDAO.ConvertStringArabicToThaiNumerals(result.Contract_Number)}</div>
 </br>
     <p class='t-12 tab2'>สัญญาฉบับนี้ทำขึ้น ณ {CommonDAO.ConvertStringArabicToThaiNumerals(result.SignAddress)} เมื่อ {signDate} ระหว่าง</P>
-    <p class='t-12 tab2'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B> โดย {CommonDAO.ConvertStringArabicToThaiNumerals(result.SignatoryName)} ผู้มีอำนาจกระทำการแทนสำนักงานฯ ซึ่งต่อไปในสัญญานี้เรียกว่า “ผู้ให้เงินอุดหนุน” ฝ่ายหนึ่ง กับ</P>
-    <p class='t-12 tab2'><B>ผู้ประกอบการวิสาหกิจขนาดกลางและขนาดย่อม</B> ราย {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegType)} ซึ่งจดทะเบียนเป็น {result.RegType} เลขประจำตัวผู้เสียภาษี {CommonDAO.ConvertStringArabicToThaiNumerals(result.TaxID)} 
+    <p class='t-12 tab2'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B> โดย {CommonDAO.ConvertStringArabicToThaiNumerals(result.SignatoryName)} ผู้มีอำนาจกระทำการแทนสำนักงานฯ 
+ซึ่งต่อไปในสัญญานี้เรียกว่า “ผู้ให้เงินอุดหนุน” ฝ่ายหนึ่ง กับ</P>
+    <p class='t-12 tab2'><B>ผู้ประกอบการวิสาหกิจขนาดกลางและขนาดย่อม</B> ราย {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)} ซึ่งจดทะเบียนเป็น {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegType)} 
+เลขประจำตัวผู้เสียภาษี {CommonDAO.ConvertStringArabicToThaiNumerals(result.TaxID)} 
         ณ {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationAddressNo)} {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} มีสำนักงานใหญ่
         ตั้งอยู่เลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationAddressNo)}
         ตำบล/แขวง {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} อำเภอ/เขต {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} จังหวัด {result.HQLocationProvince} 
