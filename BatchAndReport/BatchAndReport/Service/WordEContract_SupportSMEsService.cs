@@ -128,9 +128,9 @@ public class WordEContract_SupportSMEsService
 ซึ่งต่อไปในสัญญานี้เรียกว่า “ผู้ให้เงินอุดหนุน” ฝ่ายหนึ่ง กับ</P>
     <p class='t-12 tab2'><B>ผู้ประกอบการวิสาหกิจขนาดกลางและขนาดย่อม</B> ราย {CommonDAO.ConvertStringArabicToThaiNumerals(result.ContractPartyName)} ซึ่งจดทะเบียนเป็น {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegType)} 
 เลขประจำตัวผู้เสียภาษี {CommonDAO.ConvertStringArabicToThaiNumerals(result.TaxID)} 
-        ณ {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationAddressNo)} {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} มีสำนักงานใหญ่
+        ณ {signDate} {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} มีสำนักงานใหญ่
         ตั้งอยู่เลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationAddressNo)}
-        ตำบล/แขวง {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} อำเภอ/เขต {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} จังหวัด {result.HQLocationProvince}  {result.HQLocationZipCode}
+        ตำบล/แขวง {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} อำเภอ/เขต {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationDistrict)} จังหวัด {result.HQLocationProvince}  {CommonDAO.ConvertStringArabicToThaiNumerals(result.HQLocationZipCode)}
         ไปรษณีย์อิเล็กทรอนิกส์(E-mail) {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegEmail)} โดย {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegPersonalName)} บัตรประจำตัวประชาชนเลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegIdenID)}
         ผู้มีอำนาจลงนามผูกพัน {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegType)} ปรากฏตามสำเนา
         หนังสือรับรอง {CommonDAO.ConvertStringArabicToThaiNumerals(result.RegType)} ของสำนักงานทะเบียน 
