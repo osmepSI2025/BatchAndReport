@@ -369,52 +369,9 @@ public class WordWFService : IWordWFService
         StyleHeader(ws.Cells["B2"], bold: true);
         StyleHeader(ws.Cells["C2"], bold: true);
 
-        // ===== Green Bar =====
-        ws.Cells["A3:C3"].Merge = true;
-        ws.Cells["A3"].Value = "งานนโยบายและยุทธศาสตร์";
-        ws.Cells["A3"].Style.Fill.PatternType = ExcelFillStyle.Solid;
-        ws.Cells["A3"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(198, 224, 180));
-        ws.Cells["A3"].Style.Font.Bold = true;
-
-        // ===== Fill Data =====
-        int startRow = 4;
-        int index = 1;
-        int aRow = 1;
-
-        var groupedDetails = detail
-        .GroupBy(item => $"{item.BusinessUnitId}\n\nวัตถุประสงค์: {item.Objective}");
-
-        foreach (var group in groupedDetails)
-        {
-            int groupStartRow = startRow;
-            int groupSize = group.Count();
-
-            // Merge cells in column A for this group
-            string mergedValue = group.Key;
-            string mergeRange = $"A{groupStartRow}:A{groupStartRow + groupSize - 1}";
-            ws.Cells[mergeRange].Merge = true;
-            ws.Cells[mergeRange].Value = aRow + ". " + mergedValue;
-            ws.Cells[mergeRange].Style.WrapText = true;
-            ws.Cells[mergeRange].Style.VerticalAlignment = ExcelVerticalAlignment.Top;
-            for (int i = groupStartRow; i < groupStartRow + groupSize; i++)
-            {
-                ws.Row(i).Height = 30; // Adjust height as needed
-            }
-
-
-
-            // Fill in columns B and C for each item in the group
-            foreach (var item in group)
-            {
-                ws.Cells[$"B{startRow}"].Value = index++;
-                ws.Cells[$"C{startRow}"].Value = item.ProcessCode + " " + item.ProcessName;
-                startRow++;
-            }
-            aRow++;
-        }
-
-
-        // ===== Style B3:C3 =====
+        // ===== Keep the blue header for B3:C3 (same as before) =====
+        ws.Cells["B3"].Value = "ลำดับ";
+        ws.Cells["C3"].Value = "กระบวนการ";
         using (var range = ws.Cells["B3:C3"])
         {
             range.Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -424,8 +381,74 @@ public class WordWFService : IWordWFService
             range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
         }
 
+        // ===== Start writing dynamic groups =====
+        int startRow = 4;           // row ที่จะเริ่มใส่ข้อมูลจริง
+        int index = 1;              // ลำดับรายการ (B column)
+                                    // aRow: หมายเลขกลุ่ม BusinessUnit ภายในแต่ละ PlanCategory
+                                    // เราจะรีเซ็ต aRow ให้เริ่มจาก 1 สำหรับแต่ละ PlanCategory
+        var planGroups = detail.GroupBy(d => d.PlanCategoryName ?? "อื่น ๆ");
+
+        foreach (var planGroup in planGroups)
+        {
+            // 1) แถวหัวข้อของ PlanCategoryName (green bar) - merge A..C สำหรับแถวปัจจุบัน
+            string planHeader = planGroup.Key?.Trim() ?? "";
+            ws.Cells[$"A{startRow}:C{startRow}"].Merge = true;
+            ws.Cells[$"A{startRow}"].Value = planHeader;
+            ws.Cells[$"A{startRow}"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            ws.Cells[$"A{startRow}"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(198, 224, 180));
+            ws.Cells[$"A{startRow}"].Style.Font.Bold = true;
+            ws.Cells[$"A{startRow}"].Style.WrapText = true;
+            ws.Row(startRow).Height = 26;
+            // เพิ่มแถวเริ่มต้นสำหรับกลุ่มย่อย
+            startRow++;
+
+            // 2) ภายใน PlanCategory ให้ group ตาม BusinessUnitId + Objective (ตามต้นฉบับ)
+            var groupedDetails = planGroup
+                .GroupBy(item => new
+                {
+                    BusinessUnitId = item.BusinessUnitId ?? "",
+                    Objective = item.Objective ?? ""
+                });
+
+            int aRow = 1; // หมายเลขกลุ่มภายในแต่ละ PlanCategory
+
+            foreach (var group in groupedDetails)
+            {
+                int groupStartRow = startRow;
+                int groupSize = group.Count();
+
+                // Merge cells in column A for this group (BusinessUnit + Objective)
+                string mergedValue = $"{group.Key.BusinessUnitId}\n\nวัตถุประสงค์: {group.Key.Objective}";
+                string mergeRange = $"A{groupStartRow}:A{groupStartRow + groupSize - 1}";
+                ws.Cells[mergeRange].Merge = true;
+                ws.Cells[mergeRange].Value = aRow + ". " + mergedValue;
+                ws.Cells[mergeRange].Style.WrapText = true;
+                ws.Cells[mergeRange].Style.VerticalAlignment = ExcelVerticalAlignment.Top;
+
+                // ปรับความสูงแถวภายในกลุ่มเพื่อให้ wrap text แสดงได้
+                for (int i = groupStartRow; i < groupStartRow + groupSize; i++)
+                {
+                    ws.Row(i).Height = 30; // ปรับตามความเหมาะสม
+                }
+
+                // Fill in columns B and C for each item in the group
+                foreach (var item in group)
+                {
+                    ws.Cells[$"B{startRow}"].Value = index++;
+                    ws.Cells[$"C{startRow}"].Value = $"{item.ProcessCode} {item.ProcessName}";
+                    startRow++;
+                }
+
+                aRow++;
+            }
+
+            // หลังจากจบกลุ่มย่อยใน PlanCategory เดียว อาจอยากเว้นบรรทัดหนึ่งระหว่างกลุ่ม (option)
+            // ws.Row(startRow).Height = 6; // ถ้าต้องการบรรทัดว่าง ให้ startRow++ และเซ็ต height เล็ก ๆ
+            // startRow++;
+        }
+
         // ===== Border =====
-        var usedRange = ws.Cells[$"A1:C{startRow - 1}"];
+        var usedRange = ws.Cells[$"A1:C{Math.Max(4, startRow - 1)}"];
         usedRange.Style.Border.Top.Style = ExcelBorderStyle.Thin;
         usedRange.Style.Border.Left.Style = ExcelBorderStyle.Thin;
         usedRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;

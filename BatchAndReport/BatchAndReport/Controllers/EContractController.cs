@@ -25,16 +25,19 @@ namespace BatchAndReport.Controllers
         private readonly IApiInformationRepository _repositoryApi;
         private readonly ICallAPIService _serviceApi;
         private readonly IWordEContractService _serviceWord;
+        private readonly IConfiguration _configuration; // Add this line
 
         public EContractController(
             EContractDAO eContractDao,
             IApiInformationRepository repositoryApi,
             ICallAPIService serviceApi,
+            IConfiguration configuration,
             IWordEContractService serviceWord)
         {
             _eContractDao = eContractDao;
             _repositoryApi = repositoryApi;
             _serviceApi = serviceApi;
+            _configuration = configuration;
             _serviceWord = serviceWord;
         }
 
@@ -549,6 +552,42 @@ namespace BatchAndReport.Controllers
                 $"ExportContract_{contractNumber}.xlsx");
         }
 
+        [HttpGet("ExportImportContractLoanEncrypt")]
+        public async Task<IActionResult> ExportImportContractLoanEncrypt([FromQuery] string? contractNumber = null)
+        {
+            var details = await _eContractDao.FindImportContractsAsync(contractNumber);
+
+            if (details == null || !details.Any())
+                return NotFound("ไม่พบข้อมูลโครงการ");
+
+            var generator = _serviceWord.GenImportContractLoan(details);
+            var excelBytes = generator; // Assuming `GenImportContract` already returns a byte array.
+
+            // Get password from appsettings.json
+            var password = _configuration["Password:PaswordPDF"];
+
+            if (!string.IsNullOrEmpty(password))
+            {
+                using var inputStream = new MemoryStream(excelBytes);
+                using var package = new OfficeOpenXml.ExcelPackage(inputStream);
+                package.Encryption.IsEncrypted = true;
+                package.Encryption.Password = password;
+
+                using var outputStream = new MemoryStream();
+                package.SaveAs(outputStream);
+                outputStream.Position = 0;
+                return File(outputStream.ToArray(),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"ExportContractLoan_ProtectedEncypt_{contractNumber}.xlsx");
+            }
+            else
+            {
+                return File(excelBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"ExportContractLoan_{contractNumber}.xlsx");
+            }
+        }
+
         [HttpGet("ExportImportContractLoan")]
         public async Task<IActionResult> ExportImportContractLoan([FromQuery] string? contractNumber = null)
         {
@@ -560,9 +599,11 @@ namespace BatchAndReport.Controllers
             var generator = _serviceWord.GenImportContractLoan(details);
             var excelBytes = generator; // Assuming `GenImportContract` already returns a byte array.
 
+        
             return File(excelBytes,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"ExportContractLoan_{contractNumber}.xlsx");
+         
         }
     }
 }
