@@ -208,7 +208,8 @@ namespace BatchAndReport.Controllers
                 var saveTrans = await _dgaSignDao.InsertDgaEsignDocumentAsync(dgaResult);
 
                 #endregion Sava Transaction
-                return await DownloadSignedPdf(docx.DocumentID, ConsumerKey, token, apiDownloadSignedPdf.UrlDev, ContractType, ContractId);
+                var savefile = await DownloadSignedPdf(docx.DocumentID, ConsumerKey, token, apiDownloadSignedPdf.UrlDev, ContractType, ContractId);
+                return Ok();
 
                 #endregion Check download pdf
 
