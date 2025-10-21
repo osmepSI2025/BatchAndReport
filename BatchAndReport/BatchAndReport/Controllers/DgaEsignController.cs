@@ -3,6 +3,7 @@ using BatchAndReport.Models;
 using BatchAndReport.Repository;
 using BatchAndReport.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using PuppeteerSharp;
 using System.Diagnostics.Contracts;
 using System.Text;
@@ -31,6 +32,7 @@ namespace BatchAndReport.Controllers
         private readonly WordEContract_HireEmployee _HireEmployee;
         private readonly WordEContract_MIWService _MIWService;
         private readonly WordEContract_MemorandumInWritingService _MemorandumInWritingService;
+        private readonly ILogger<DgaEsignController> _logger;
 
         public DgaEsignController(
             EContractDAO eContractDao,
@@ -49,8 +51,8 @@ namespace BatchAndReport.Controllers
                 WordEContract_HireEmployee hireEmployee,
                 WordEContract_MIWService mIWService
             ,
-                WordEContract_MemorandumInWritingService memorandumInWritingService
-    
+                WordEContract_MemorandumInWritingService memorandumInWritingService,
+                ILogger<DgaEsignController> logger
             )
         {
             _eContractDao = eContractDao;
@@ -69,12 +71,14 @@ namespace BatchAndReport.Controllers
             _HireEmployee = hireEmployee;
             _MIWService = mIWService;
             _MemorandumInWritingService = memorandumInWritingService;
+            _logger = logger;
         }
 
 
         [HttpGet("GetDgaCert")]
-        public async Task<IActionResult> GetDgaCert(string ContractType = "JOA", string ContractId = "8" ,string EmailSign = "si_noreply@sme.go.th")
+        public async Task<IActionResult> GetDgaCert(string ContractType = "JOA", string ContractId = "95" ,string EmailSign = "si_noreply@sme.go.th")
         {
+            _logger.LogInformation("Start GetDgaCert - ContractType={ContractType}, ContractId={ContractId}, EmailSign={EmailSign}", ContractType, ContractId, EmailSign);
             try
             {
                 #region Get Master Data
@@ -82,6 +86,7 @@ namespace BatchAndReport.Controllers
                 var api = apiInfo.Find(x => x.ServiceCode == "Token");
                 if (api == null)
                 {
+                    _logger.LogWarning("GetDgaCert - API information not found for GetToken");
                     return NotFound(new
                     {
                         message = "API information not found for GetToken"
@@ -90,6 +95,7 @@ namespace BatchAndReport.Controllers
                 var dgaConfig = await _dgaSignDao.GetDgaEsignConfigAsync();
                 if (dgaConfig == null || dgaConfig.Count == 0)
                 {
+                    _logger.LogWarning("GetDgaCert - DGA configuration not found");
                     return NotFound(new
                     {
                         message = "DGA configuration not found"
@@ -99,6 +105,7 @@ namespace BatchAndReport.Controllers
                 var dgaTemplate = await _dgaSignDao.GetDgaEsignTemplateAsync();
                 if (dgaTemplate == null)
                 {
+                    _logger.LogWarning("GetDgaCert - DGA template not found for ContractType={ContractType}", ContractType);
                     return NotFound(new
                     {
                         message = $"DGA template not found for ContractType: {ContractType}"
@@ -109,6 +116,7 @@ namespace BatchAndReport.Controllers
 
                 if (selectedTemplate == null)
                 {
+                    _logger.LogWarning("GetDgaCert - Active DGA template not found for ContractType={ContractType}", ContractType);
                     return NotFound(new
                     {
                         message = $"Active DGA template not found for ContractType: {ContractType}"
@@ -127,12 +135,31 @@ namespace BatchAndReport.Controllers
 
                 // get pdf
                 var htmlContent = await GetPdfByContractType(ContractType, ContractId);
+                if(htmlContent == null || htmlContent.Length == 0)
+                {
+                    _logger.LogWarning("GetDgaCert - generated PDF is empty for ContractType={ContractType}, ContractId={ContractId}", ContractType, ContractId);
+                    return NotFound(new
+                    {
+                        message = "Generated PDF is empty",
+                        ContractType = ContractType,
+                        ContractId = ContractId
+                    });
+                }
 
 
                 #endregion
                 #region GetToken
+                var apiToken = apiInfo.Find(x => x.ServiceCode == "Token");
+                if (apiToken == null)
+                {
+                    _logger.LogWarning("GetDgaCert - API information not found for Token");
+                    return NotFound(new
+                    {
+                        message = "API information not found for Token"
+                    });
+                }
                 // Call GetToken and extract the JSON string from the IActionResult
-                var tokenResult = await GetToken(ConsumerKey, ConsumerSecret, EmailSign) as ObjectResult;
+                var tokenResult = await GetToken(ConsumerKey, ConsumerSecret, EmailSign, apiToken.UrlDev.ToString()) as ObjectResult;
                 string tokenJson = tokenResult?.Value?.GetType().GetProperty("apiResponse")?.GetValue(tokenResult.Value)?.ToString();
 
                 // Deserialize and extract the token
@@ -143,13 +170,12 @@ namespace BatchAndReport.Controllers
 
 
 
-
-
                 #region send Register PDF to DGA
 
                 var apiRegis = apiInfo.Find(x => x.ServiceCode == "RegisterDoc");
                 if (apiRegis == null)
                 {
+                    _logger.LogWarning("GetDgaCert - API information not found for RegisterDoc");
                     return NotFound(new
                     {
                         message = "API information not found for RegisterDoc"
@@ -163,9 +189,18 @@ namespace BatchAndReport.Controllers
                 #region Check download pdf
 
                 //8.API ลงลายมือชื่ออิเลกทรอนิกส์แบบองค์กร
+                var apiCert = apiInfo.Find(x => x.ServiceCode == "CertifiedSign");
+                if (apiCert == null)
+                {
+                    _logger.LogWarning("GetDgaCert - API information not found for CertifiedSign");
+                    return NotFound(new
+                    {
+                        message = "API information not found for CertifiedSign"
+                    });
+                }
                 string SignatureID = "";
                 var signResult = docx != null && !string.IsNullOrEmpty(docx.DocumentID)
-                    ? await GetCertifiedSign(token, docx.DocumentID, ConsumerKey)
+                    ? await GetCertifiedSign(token, docx.DocumentID, ConsumerKey, apiCert.UrlDev.ToString())
                     : null;
 
                 if (signResult is ObjectResult objectResult)
@@ -185,6 +220,7 @@ namespace BatchAndReport.Controllers
                 var apiDownloadSignedPdf = apiInfo.Find(x => x.ServiceCode == "DownloadSignedPdf");
                 if (apiDownloadSignedPdf == null)
                 {
+                    _logger.LogWarning("GetDgaCert - API information not found for DownloadSignedPdf");
                     return NotFound(new
                     {
                         message = "API information not found for RegisterDoc"
@@ -209,15 +245,17 @@ namespace BatchAndReport.Controllers
 
                 #endregion Sava Transaction
                 var savefile = await DownloadSignedPdf(docx.DocumentID, ConsumerKey, token, apiDownloadSignedPdf.UrlDev, ContractType, ContractId);
+                _logger.LogInformation("End GetDgaCert - success - DocumentID={DocumentID}", docx?.DocumentID);
                 return Ok();
 
                 #endregion Check download pdf
 
-       
+
 
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetDgaCert - error for ContractType={ContractType}, ContractId={ContractId}", ContractType, ContractId);
                 return StatusCode(500, new
                 {
                     message = "Internal Server Error",
@@ -231,17 +269,21 @@ namespace BatchAndReport.Controllers
         // 3 API ขอ Token
 
         [HttpGet("GetToken")]
-        public async Task<IActionResult> GetToken(string ConsumerKey, string ConsumerSecret, string Email)
+        public async Task<IActionResult> GetToken(string ConsumerKey, string ConsumerSecret, string Email,string UrlToken)
         {
+            _logger.LogInformation("Start GetToken - ConsumerKey={ConsumerKey}, Email={Email}", ConsumerKey, Email);
             try
             {
                 using var httpClient = new HttpClient();
                 // Set required headers
                 httpClient.DefaultRequestHeaders.Add("Consumer-Key", ConsumerKey);
                 httpClient.DefaultRequestHeaders.Add("Consumer-Secret", ConsumerSecret);
-                var url = "https://trial.dga.or.th/ws/auth/validate?ConsumerSecret=" + ConsumerSecret + "&AgentID=" + Email + "";
+
+             //   var url = "https://trial.dga.or.th/ws/auth/validate?ConsumerSecret=" + ConsumerSecret + "&AgentID=" + Email + "";
+                var url = UrlToken.Replace("[Secret]", ConsumerSecret).Replace("[IdCard]", Email);
                 var response = await httpClient.GetAsync(url);
                 var responseBody = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("End GetToken - status={StatusCode}", response.StatusCode);
                 return StatusCode((int)response.StatusCode, new
                 {
                     message = "success",
@@ -250,6 +292,7 @@ namespace BatchAndReport.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetToken - error");
                 return StatusCode(500, new
                 {
                     message = "Internal Server Error",
@@ -264,6 +307,7 @@ namespace BatchAndReport.Controllers
 
         public async Task<DGADocumentModels> RegisterPDF(string ConsumerKey, string token, string urlDga, string templateID, byte[] pdfBytes = null)
         {
+            _logger.LogInformation("Start RegisterPDF - urlDga={UrlDga}, templateID={TemplateID}, pdfBytesLength={Len}", urlDga, templateID, pdfBytes?.Length ?? 0);
             DGADocumentModels docx = new DGADocumentModels();
             try
             {
@@ -276,7 +320,7 @@ namespace BatchAndReport.Controllers
 
 
                 // Prepare request URL with parameters
-                    //string url = "https://trial.dga.or.th/api/edoc/document/v1/register?TemplateID=" + templateID + "&Timestamp=true";
+                 
                 string url = urlDga.Replace("[TemplateID]", templateID) + "&Timestamp=true";
 
                 using var form = new MultipartFormDataContent();
@@ -293,15 +337,17 @@ namespace BatchAndReport.Controllers
                 form.Add(new StringContent("https://econtract.dga.or.th/xxxxx"), "Link");
                 form.Add(new StringContent(""), "Page");
                 form.Add(new StringContent("50"), "Left");
-                form.Add(new StringContent("50"), "Bottom");
+                form.Add(new StringContent("20"), "Bottom");
 
                 // Send PUT request as required by DGA API for document registration
                 var response = await httpClient.PutAsync(url, form);
                 var responseBody = await response.Content.ReadAsStringAsync();
                 docx = JsonSerializer.Deserialize<DGADocumentModels>(responseBody);
+                _logger.LogInformation("End RegisterPDF - DocumentID={DocumentID}", docx?.DocumentID);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "RegisterPDF - error");
                 return null;
             }
 
@@ -309,63 +355,67 @@ namespace BatchAndReport.Controllers
         }
 
         //7 API ลงลายมือชื่ออิเลกทรอนิกส์แบบบุคคล ด้วยรูปภาพลายเซ็น
-        [HttpGet("GetDocumentId")]
-        public async Task<IActionResult> GetDocumentId(string token, string docId, string ConsumerKey)
-        {
-            try
-            {
-                // Prepare the payload
-                var payload = new
-                {
-                    DocumentID = docId,
-                    Reason = "ทดสอบเหตุผล JOA",
-                    Signature = new
-                    {
-                        //   Page = "",
-                        Left = "150",
-                        Bottom = "150",
-                        Width = "150",
-                        Height = "60",
-                        Image = "" // Replace with actual Base64 string of the signature image
-                    }
-                };
+        //[HttpGet("GetDocumentId")]
+        //public async Task<IActionResult> GetDocumentId(string token, string docId, string ConsumerKey,string UrlDoc)
+        //{
+        //    _logger.LogInformation("Start GetDocumentId - docId={DocId}", docId);
+        //    try
+        //    {
+        //        // Prepare the payload
+        //        var payload = new
+        //        {
+        //            DocumentID = docId,
+        //            Reason = "ทดสอบเหตุผล JOA",
+        //            Signature = new
+        //            {
+        //                //   Page = "",
+        //                Left = "150",
+        //                Bottom = "150",
+        //                Width = "150",
+        //                Height = "60",
+        //                Image = "" // Replace with actual Base64 string of the signature image
+        //            }
+        //        };
 
-                var jsonPayload = JsonSerializer.Serialize(payload);
+        //        var jsonPayload = JsonSerializer.Serialize(payload);
 
-                using var httpClient = new HttpClient();
+        //        using var httpClient = new HttpClient();
 
-                // Set required headers
-                httpClient.DefaultRequestHeaders.Add("Consumer-Key", ConsumerKey);
-                httpClient.DefaultRequestHeaders.Add("Token", token);
+        //        // Set required headers
+        //        httpClient.DefaultRequestHeaders.Add("Consumer-Key", ConsumerKey);
+        //        httpClient.DefaultRequestHeaders.Add("Token", token);
 
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-                var url = "https://trial.dga.or.th/api/edoc/signature/egov/v1/image/signed";
+        //        var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+        //        var url = "https://trial.dga.or.th/api/edoc/signature/egov/v1/image/signed";
 
-                var response = await httpClient.PostAsync(url, content);
-                var responseBody = await response.Content.ReadAsStringAsync();
+        //        var response = await httpClient.PostAsync(url, content);
+        //        var responseBody = await response.Content.ReadAsStringAsync();
 
-                return StatusCode((int)response.StatusCode, new
-                {
-                    message = "success",
-                    apiResponse = responseBody
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    message = "Internal Server Error",
-                    error = ex.Message,
-                    inner = ex.InnerException?.Message,
-                    stack = ex.StackTrace
-                });
-            }
-        }
+        //        _logger.LogInformation("End GetDocumentId - status={StatusCode}", response.StatusCode);
+        //        return StatusCode((int)response.StatusCode, new
+        //        {
+        //            message = "success",
+        //            apiResponse = responseBody
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "GetDocumentId - error for docId={DocId}", docId);
+        //        return StatusCode(500, new
+        //        {
+        //            message = "Internal Server Error",
+        //            error = ex.Message,
+        //            inner = ex.InnerException?.Message,
+        //            stack = ex.StackTrace
+        //        });
+        //    }
+        //}
 
         // 8.API ลงลายมือชื่ออิเลกทรอนิกส์แบบองค์กร
         [HttpGet("GetCertifiedSign")]
-        public async Task<IActionResult> GetCertifiedSign(string token, string docId, string ConsumerKey)
+        public async Task<IActionResult> GetCertifiedSign(string token, string docId, string ConsumerKey,string UrlCert)
         {
+            _logger.LogInformation("Start GetCertifiedSign - docId={DocId}", docId);
             try
             {
                 // Prepare the payload
@@ -378,11 +428,11 @@ namespace BatchAndReport.Controllers
                     Position = "ชื่อตําแหน่ง",
                     Signature = new
                     {
-                        //   Page = "",
-                        Left = "150",
-                        Bottom = "150",
-                        Width = "150",
-                        Height = "60",
+                           Page = "",
+                        Left = "100",
+                        Bottom = "20",
+                        Width = "100",
+                        Height = "50",
                         Image = "" // Replace with actual Base64 string of the signature image
                     },
                     Content = new[]
@@ -391,11 +441,11 @@ namespace BatchAndReport.Controllers
         {
             Type = "TEXT",
             Value = "สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม สสว.",
-            Size = 16,
-          //  Page = "",
-            Left = 100,
-            Bottom = 90,
-            Width = 150
+            Size = 12,
+            Page = "",
+            Left = 200,
+            Bottom = 20,
+            Width = 200
         }
     }
                 };
@@ -410,10 +460,11 @@ namespace BatchAndReport.Controllers
 
                 var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-                var url = "https://trial.dga.or.th/api/edoc/signature/egov/v1/organization/certified";
+                var url = UrlCert;
                 var response = await httpClient.PostAsync(url, content);
                 var responseBody = await response.Content.ReadAsStringAsync();
 
+                _logger.LogInformation("End GetCertifiedSign - status={StatusCode}", response.StatusCode);
                 return StatusCode((int)response.StatusCode, new
                 {
                     message = "success",
@@ -422,6 +473,7 @@ namespace BatchAndReport.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetCertifiedSign - error for docId={DocId}", docId);
                 return StatusCode(500, new
                 {
                     message = "Internal Server Error",
@@ -437,6 +489,7 @@ namespace BatchAndReport.Controllers
         [HttpGet("DownloadSignedPdf")]
         public async Task<IActionResult> DownloadSignedPdf([FromQuery] string documentId, string ConsumerKey, string Token,string apiurl,string contype,string conId)
         {
+            _logger.LogInformation("Start DownloadSignedPdf - DocumentId={DocumentId}, Contype={Contype}, ConId={ConId}", documentId, contype, conId);
             try
             {
                 using var httpClient = new HttpClient();
@@ -446,7 +499,7 @@ namespace BatchAndReport.Controllers
                 httpClient.DefaultRequestHeaders.Add("Token", Token);
 
                 // Prepare request URL
-                //string url = $"https://trial.dga.or.th/api/edoc/signature/egov/v1/content?DocumentID={documentId}";
+               
                 string url = $"{apiurl}".Replace("[DocumentID]", documentId);
                 
 
@@ -455,6 +508,7 @@ namespace BatchAndReport.Controllers
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("DownloadSignedPdf - failed status={StatusCode} for DocumentId={DocumentId}", response.StatusCode, documentId);
                     return StatusCode((int)response.StatusCode, new
                     {
                         message = "Failed to download PDF",
@@ -463,17 +517,22 @@ namespace BatchAndReport.Controllers
                 }
 
                 var pdfBytes = await response.Content.ReadAsByteArrayAsync();
-                // Save the PDF file to wwwroot/Document/DGA/Signed_{documentId}.pdf
+
+                // update pdfBytes to DGA_DocumentDataFile
+                var updateResult = await _dgaSignDao.UpdateDgaEsignDocumentAsync(documentId, pdfBytes);
+           
                 string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", contype, "DGA", $"{contype}_{conId}.pdf");
                 Directory.CreateDirectory(Path.GetDirectoryName(savePath)!);
                 await System.IO.File.WriteAllBytesAsync(savePath, pdfBytes);
 
+                _logger.LogInformation("End DownloadSignedPdf - saved to {SavePath}", savePath);
                 // Return PDF file
                 return File(pdfBytes, "application/pdf", $"Signed_{documentId}.pdf");
 
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "DownloadSignedPdf - error for DocumentId={DocumentId}", documentId);
                 return StatusCode(500, new
                 {
                     message = "Internal Server Error",
@@ -488,6 +547,7 @@ namespace BatchAndReport.Controllers
         [HttpGet("GetPdfByContractType")]
         public async Task<byte[]> GetPdfByContractType(string contractType, string contractId)
         {
+            _logger.LogInformation("Start GetPdfByContractType - contractType={ContractType}, contractId={ContractId}", contractType, contractId);
             try
             {
                 var htmlContent = "";
@@ -533,7 +593,10 @@ namespace BatchAndReport.Controllers
 
 
                 if (string.IsNullOrWhiteSpace(htmlContent))
+                {
+                    _logger.LogWarning("GetPdfByContractType - generated HTML is empty for ContractType={ContractType}, ContractId={ContractId}", contractType, contractId);
                     return null;
+                }
 
                 await new BrowserFetcher().DownloadAsync();
                 await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
@@ -556,14 +619,97 @@ namespace BatchAndReport.Controllers
                 };
 
                 var pdfBytes = await page.PdfDataAsync(pdfOptions);
+                _logger.LogInformation("End GetPdfByContractType - produced PDF length={Length}", pdfBytes?.Length ?? 0);
                 return pdfBytes;
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetPdfByContractType - error for ContractType={ContractType}, ContractId={ContractId}", contractType, contractId);
                 // Log the exception as needed, e.g. using ILogger
                 // _logger.LogError(ex, "Failed to generate PDF for contract {ContractId}", contractId);
                 return null;
             }
         }
+
+
+        [HttpGet("GetFilePDFCert")]
+        public async Task<IActionResult> GetFilePDFCert([FromQuery] string ContractType = "JOA", string ContractId = "8")
+        {
+            _logger.LogInformation("Start GetFilePDFCert - ContractType={ContractType}, ContractId={ContractId}", ContractType, ContractId);
+            try
+            {
+                // get DGA record(s) for contract
+                var records = await _dgaSignDao.GetDgaEsignAsync(ContractType, int.Parse(ContractId));
+
+                if (records == null || records.Count == 0)
+                {
+                    _logger.LogWarning("GetFilePDFCert - No DGA document records found for ContractType={ContractType}, ContractId={ContractId}", ContractType, ContractId);
+                    return NotFound(new { message = "No DGA document records found" });
+                }
+
+                // select the most recent record by ID (safe without LINQ)
+                var selected = (DgaEsignModels?)null;
+                var maxId = int.MinValue;
+                foreach (var r in records)
+                {
+                    if (r != null && r.ID > maxId)
+                    {
+                        maxId = r.ID;
+                        selected = r;
+                    }
+                }
+
+                if (selected == null)
+                {
+                    _logger.LogWarning("GetFilePDFCert - No DGA document record selected for ContractType={ContractType}, ContractId={ContractId}", ContractType, ContractId);
+                    return NotFound(new { message = "No DGA document record selected" });
+                }
+
+                var pdfBytes = selected.DGA_DocumentDataFile;
+                if (pdfBytes == null || pdfBytes.Length == 0)
+                {
+                    _logger.LogWarning("GetFilePDFCert - PDF binary not found for DocumentID={DocumentID}", selected.DGA_DocumentID);
+                    return NotFound(new
+                    {
+                        message = "PDF binary not found in DGA_DocumentDataFile",
+                        DocumentID = selected.DGA_DocumentID,
+                        Path = selected.DGA_DocumentPathFile
+                    });
+                }
+
+                // optional: persist to disk under wwwroot/Document/{ContractType}/DGA/{ContractType}_{ContractId}.pdf
+                try
+                {
+                    var fileName = $"{ContractType.ToUpper()}_{ContractId}.pdf";
+                    var saveDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", ContractType.ToUpper(), "DGA");
+                    Directory.CreateDirectory(saveDir);
+                    var savePath = Path.Combine(saveDir, fileName);
+                    await System.IO.File.WriteAllBytesAsync(savePath, pdfBytes);
+                    _logger.LogInformation("GetFilePDFCert - persisted PDF to {SavePath}", savePath);
+                }
+                catch
+                {
+                    // ignore disk write errors — still return the file to the caller
+                    _logger.LogWarning("GetFilePDFCert - failed to persist PDF to disk (ignored)");
+                }
+
+                // return PDF as file download
+                var downloadFileName = $"{selected.DGA_DocumentID ?? $"{ContractType}_{ContractId}"}.pdf";
+                _logger.LogInformation("End GetFilePDFCert - returning file {FileName}", downloadFileName);
+                return File(pdfBytes, "application/pdf", downloadFileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetFilePDFCert - error for ContractType={ContractType}, ContractId={ContractId}", ContractType, ContractId);
+                return StatusCode(500, new
+                {
+                    message = "Internal Server Error",
+                    error = ex.Message,
+                    inner = ex.InnerException?.Message,
+                    stack = ex.StackTrace
+                });
+            }
+        }
+
     }
 }

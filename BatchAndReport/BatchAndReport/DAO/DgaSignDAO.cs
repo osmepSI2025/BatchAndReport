@@ -177,5 +177,104 @@ namespace BatchAndReport.DAO
                 return 0;
             }
         }
+
+        public async Task<int> UpdateDgaEsignDocumentAsync(string docId, byte[] datafile)
+        {
+            try
+            {
+                await using var connection = _connectionDAO.GetConnectionK2Econctract();
+                await using var command = new SqlCommand(@"
+            UPDATE DgaEsign
+            SET DGA_DocumentDataFile = @DGA_DocumentDataFile,
+                UpdateDate = @UpdateDate
+            WHERE DGA_DocumentID = @DGA_DocumentID;
+        ", connection);
+
+                command.Parameters.AddWithValue("@DGA_DocumentDataFile", datafile ?? (object)DBNull.Value);       
+                command.Parameters.AddWithValue("@UpdateDate", DateTime.Now);
+                command.Parameters.AddWithValue("@DGA_DocumentID", docId);
+
+                await connection.OpenAsync();
+                var rowsAffected = await command.ExecuteNonQueryAsync();
+                return rowsAffected;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+        }
+        public async Task<List<DgaEsignModels>> GetDgaEsignAsync(string? wfTypeCode = null, int? contractId = null)
+        {
+            try
+            {
+                var result = new List<DgaEsignModels>();
+                await using var connection = _connectionDAO.GetConnectionK2Econctract();
+
+                var sql = new StringBuilder();
+                sql.AppendLine("SELECT");
+                sql.AppendLine("ID,");
+                sql.AppendLine("WFTypeCode,");
+                sql.AppendLine("ContractID,");
+                sql.AppendLine("DGA_TemplateID,");
+                sql.AppendLine("DGA_DocumentID,");
+                sql.AppendLine("DGA_SignatureID,");
+                sql.AppendLine("DGA_DocumentDataFile,");
+                sql.AppendLine("DGA_DocumentPathFile,");
+                sql.AppendLine("SignBy,");
+                sql.AppendLine("CreateBy,");
+                sql.AppendLine("CreateDate,");
+                sql.AppendLine("UpdateDate");
+                sql.AppendLine("FROM DgaEsign");
+
+                var whereAdded = false;
+                if (!string.IsNullOrWhiteSpace(wfTypeCode))
+                {
+                    sql.AppendLine(whereAdded ? "AND WFTypeCode = @WFTypeCode" : "WHERE WFTypeCode = @WFTypeCode");
+                    whereAdded = true;
+                }
+
+                if (contractId.HasValue)
+                {
+                    sql.AppendLine(whereAdded ? "AND ContractID = @ContractID" : "WHERE ContractID = @ContractID");
+                    whereAdded = true;
+                }
+
+                sql.AppendLine("ORDER BY ID DESC;");
+
+                await using var command = new SqlCommand(sql.ToString(), connection);
+
+                if (!string.IsNullOrWhiteSpace(wfTypeCode))
+                    command.Parameters.AddWithValue("@WFTypeCode", wfTypeCode);
+                if (contractId.HasValue)
+                    command.Parameters.AddWithValue("@ContractID", contractId.Value);
+
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new DgaEsignModels
+                    {
+                        ID = reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ID")),
+                        WFTypeCode = reader.IsDBNull(reader.GetOrdinal("WFTypeCode")) ? "" : reader.GetString(reader.GetOrdinal("WFTypeCode")),
+                        ContractID = reader.IsDBNull(reader.GetOrdinal("ContractID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ContractID")),
+                        DGA_DocumentID = reader.IsDBNull(reader.GetOrdinal("DGA_DocumentID")) ? "" : reader.GetString(reader.GetOrdinal("DGA_DocumentID")),
+                        DGA_SignatureID = reader.IsDBNull(reader.GetOrdinal("DGA_SignatureID")) ? "" : reader.GetString(reader.GetOrdinal("DGA_SignatureID")),
+                        DGA_DocumentDataFile = reader.IsDBNull(reader.GetOrdinal("DGA_DocumentDataFile")) ? Array.Empty<byte>() : (byte[])reader["DGA_DocumentDataFile"],
+                        DGA_DocumentPathFile = reader.IsDBNull(reader.GetOrdinal("DGA_DocumentPathFile")) ? "" : reader.GetString(reader.GetOrdinal("DGA_DocumentPathFile")),
+                        SignBy = reader.IsDBNull(reader.GetOrdinal("SignBy")) ? "" : reader.GetString(reader.GetOrdinal("SignBy")),
+                        CreateBy = reader.IsDBNull(reader.GetOrdinal("CreateBy")) ? "" : reader.GetString(reader.GetOrdinal("CreateBy")),
+                        CreateDate = reader.IsDBNull(reader.GetOrdinal("CreateDate")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("CreateDate")),
+                        UpdateDate = reader.IsDBNull(reader.GetOrdinal("UpdateDate")) ? null : reader.GetDateTime(reader.GetOrdinal("UpdateDate"))
+                    });
+                }
+
+                return result;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }
