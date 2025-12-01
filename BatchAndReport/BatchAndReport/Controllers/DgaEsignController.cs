@@ -33,7 +33,7 @@ namespace BatchAndReport.Controllers
         private readonly WordEContract_MIWService _MIWService;
         private readonly WordEContract_MemorandumInWritingService _MemorandumInWritingService;
         private readonly ILogger<DgaEsignController> _logger;
-
+        private readonly IWebHostEnvironment _env; // added
         public DgaEsignController(
             EContractDAO eContractDao,
             IApiInformationRepository repositoryApi,
@@ -52,7 +52,8 @@ namespace BatchAndReport.Controllers
                 WordEContract_MIWService mIWService
             ,
                 WordEContract_MemorandumInWritingService memorandumInWritingService,
-                ILogger<DgaEsignController> logger
+                ILogger<DgaEsignController> logger,
+                  IWebHostEnvironment env // added parameter
             )
         {
             _eContractDao = eContractDao;
@@ -72,6 +73,7 @@ namespace BatchAndReport.Controllers
             _MIWService = mIWService;
             _MemorandumInWritingService = memorandumInWritingService;
             _logger = logger;
+            _env = env; // assign
         }
 
 
@@ -416,6 +418,27 @@ namespace BatchAndReport.Controllers
         public async Task<IActionResult> GetCertifiedSign(string token, string docId, string ConsumerKey,string UrlCert)
         {
             _logger.LogInformation("Start GetCertifiedSign - docId={DocId}", docId);
+            // convert image to base64
+            string base64Image = "";
+            try
+            {
+                var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var imagePath = Path.Combine(webRoot, "images", "no-signature.png");
+                if (System.IO.File.Exists(imagePath))
+                {
+                    var bytes = await System.IO.File.ReadAllBytesAsync(imagePath);
+                    base64Image = Convert.ToBase64String(bytes);
+                }
+                else
+                {
+                    _logger.LogWarning("GetCertifiedSign - no-signature.png not found at {ImagePath}", imagePath);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "GetCertifiedSign - failed to convert image to base64, using empty string fallback");
+            }
+
             try
             {
                 // Prepare the payload
@@ -433,7 +456,8 @@ namespace BatchAndReport.Controllers
                         Bottom = "20",
                         Width = "100",
                         Height = "50",
-                        Image = "" // Replace with actual Base64 string of the signature image
+                        Image = base64Image // Replace with actual Base64 string of the signature image
+                        //Image = "" // Replace with actual Base64 string of the signature image
                     },
                     Content = new[]
         {
