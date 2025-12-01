@@ -216,4 +216,15 @@
     render(input.files);
 })();
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var statusMessage = '@TempData["StatusMessage"]';
+        var isSuccess = '@TempData["IsSuccess"]' === 'True';
+
+        if (statusMessage) {
+            alert(statusMessage);
+        }
+    });
+</script>
 }

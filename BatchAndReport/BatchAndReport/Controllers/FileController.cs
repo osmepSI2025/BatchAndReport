@@ -15,9 +15,12 @@ namespace BatchAndReport.Controllers
         public async Task<IActionResult> Upload(FileUploadModel model)
         {
             if (model.PostedFiles == null || !model.PostedFiles.Any())
-                return BadRequest(new { message = "No files uploaded." });
+            {
+                TempData["StatusMessage"] = "No files uploaded.";
+                TempData["IsSuccess"] = false;
+                return RedirectToPage("/MultiUploadFile");
+            }
 
-            // โฟลเดอร์ปลายทาง
             var targetFolder = string.IsNullOrWhiteSpace(model.ProcessInstanceID)
                 ? Path.Combine(_env.WebRootPath, "Document", "ImportContract")
                 : Path.Combine(_env.WebRootPath, "Document", "ImportContract", model.ProcessInstanceID.Trim());
@@ -35,12 +38,10 @@ namespace BatchAndReport.Controllers
                     continue;
                 }
 
-                // 1) ตรวจสอบนามสกุล
                 var originalName = Path.GetFileName(file.FileName ?? "");
                 var ext = Path.GetExtension(originalName);
                 var looksLikePdf = string.Equals(ext, ".pdf", StringComparison.OrdinalIgnoreCase);
 
-                // 2) ตรวจสอบ header ว่าเป็น %PDF หรือไม่
                 bool headerIsPdf = false;
                 try
                 {
@@ -52,7 +53,7 @@ namespace BatchAndReport.Controllers
                         headerIsPdf = read == 4 && sig[0] == 0x25 && sig[1] == 0x50 && sig[2] == 0x44 && sig[3] == 0x46; // %PDF
                     }
                 }
-                catch { /* ignore header read error, will fall back to ext check */ }
+                catch { }
 
                 if (!(looksLikePdf || headerIsPdf))
                 {
@@ -60,29 +61,24 @@ namespace BatchAndReport.Controllers
                     continue;
                 }
 
-                // 3) sanitize ชื่อไฟล์
                 var safeFileName = SanitizeFileName(originalName);
                 if (string.IsNullOrWhiteSpace(Path.GetFileNameWithoutExtension(safeFileName)))
                 {
-                    // ถ้าชื่อว่าง ให้ตั้งใหม่
                     safeFileName = $"file-{DateTime.UtcNow:yyyyMMddHHmmssfff}.pdf";
                 }
-                // บังคับนามสกุลเป็น .pdf ถ้าไม่มี/ไม่ใช่
+
                 if (!safeFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
                     safeFileName = Path.ChangeExtension(safeFileName, ".pdf");
 
-                // 4) กันชื่อซ้ำ: ไม่ overwrite
                 safeFileName = MakeUnique(targetFolder, safeFileName);
 
                 var filePath = Path.Combine(targetFolder, safeFileName);
 
-                // 5) บันทึกไฟล์
                 try
                 {
                     using var fs = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
                     await file.CopyToAsync(fs);
 
-                    // สร้าง URL สำหรับเรียกดู
                     var baseSegment = string.IsNullOrWhiteSpace(model.ProcessInstanceID)
                         ? "/Document/ImportContract"
                         : $"/Document/ImportContract/{Uri.EscapeDataString(model.ProcessInstanceID.Trim())}";
@@ -103,15 +99,9 @@ namespace BatchAndReport.Controllers
                 }
             }
 
-            return Ok(new
-            {
-                message = "Upload completed",
-                total = model.PostedFiles.Count,
-                savedCount = saved.Count,
-                skippedCount = skipped.Count,
-                savedFiles = saved,
-                skippedFiles = skipped
-            });
+            TempData["StatusMessage"] = $"Upload completed: {saved.Count} file(s) saved, {skipped.Count} file(s) skipped.";
+            TempData["IsSuccess"] = saved.Any();
+            return RedirectToPage("/MultiUploadFile");
         }
 
         public IActionResult Index()
