@@ -6470,7 +6470,7 @@ namespace BatchAndReport.Pages.Report
             MOVEFILE_DELAY_UNTIL_REBOOT = 0x4,
             MOVEFILE_WRITE_THROUGH = 0x8
         }
-        public async Task OnGetWordContact_JOA_PDF(string ContractId = "18", string Name = "สมใจ ทดสอบ")
+        public async Task OnGetWordContact_JOA_PDF(string ContractId = "22", string Name = "สมใจ ทดสอบ")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "JOA");
             if (!Directory.Exists(folderPath))
@@ -6635,7 +6635,7 @@ namespace BatchAndReport.Pages.Report
                 return File(outputStream.ToArray(), "application/pdf", fileName);
             }
         }
-        public async Task<IActionResult> OnGetWordContact_JOA_JPEG(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_JOA_JPEG(string ContractId = "24")
         {
             // 1. Generate PDF from JOA contract (HTML to PDF)
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
@@ -6743,7 +6743,7 @@ namespace BatchAndReport.Pages.Report
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
             return File(zipBytes, "application/zip", $"JOA_{ContractId}_JPEG.zip");
         }
-        public async Task<IActionResult> OnGetWordContact_JOA_JPEG_Preview(string ContractId = "1")
+        public async Task<IActionResult> OnGetWordContact_JOA_JPEG_Preview(string ContractId = "22")
         {
             // 1. Generate PDF from JOA contract (HTML to PDF)
             var htmlContent = await _JointOperationService.OnGetWordContact_JointOperationServiceHtmlToPDF(ContractId);
@@ -6947,6 +6947,8 @@ namespace BatchAndReport.Pages.Report
             return File(resultBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", $"JOA_{ContractId}_Preview.docx");
         }        
         #endregion 4.1.1.2.1.สัญญาร่วมดำเนินการ JOA
+
+
 
 
         #region 4.1.1.2.16 แบบฟอร์มบันทึกข้อตกลงเป็นหนังสือ MIW
@@ -7800,5 +7802,84 @@ namespace BatchAndReport.Pages.Report
         }
 
         #endregion Word to PDF using Interop
+
+        #region download PDF from folder
+        public async Task<IActionResult> OnGetWordContact_DGA_PDF_Preview(string ContractId = "22", string Name = "สมใจ ทดสอบ", string Type = "JOA")
+        {
+            // 1. Get PDF from folder
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", Type, "DGA");
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var fileName = $"{Type}_{ContractId}.pdf";
+            var filePath = Path.Combine(folderPath, fileName);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound($"PDF not found: {fileName}");
+            }
+
+            // read the existing PDF bytes from disk
+            var pdfBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+            // 4. Get password from appsettings.json
+            string? userPassword = await GetPdfPasswordAsync(Name);
+
+            // 5. Add watermark and password protection
+            using var inputStream = new MemoryStream(pdfBytes);
+            using var outputStream = new MemoryStream();
+            {
+                var document = PdfSharpCore.Pdf.IO.PdfReader.Open(inputStream, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.Modify);
+
+                foreach (var pdfPage in document.Pages)
+                {
+                    using (var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(pdfPage))
+                    {
+                        var font = new PdfSharpCore.Drawing.XFont("Tahoma", 25, PdfSharpCore.Drawing.XFontStyle.Bold);
+                        var text = $"สัญญาอิเลคทรอนิกส์พิมพ์ออกโดย {Name}\nวันที่ {DateTime.Now:dd/MM/yyyy HH:mm}";
+                        var lines = text.Split('\n');
+                        double lineHeight = font.GetHeight();
+                        double totalHeight = lineHeight * lines.Length;
+                        double y = (pdfPage.Height - totalHeight) / 2;
+
+                        foreach (var line in lines)
+                        {
+                            var size = gfx.MeasureString(line, font);
+                            double x = (pdfPage.Width - size.Width) / 2;
+                            var state = gfx.Save();
+                            gfx.TranslateTransform(pdfPage.Width / 2, pdfPage.Height / 2);
+                            gfx.RotateTransform(-30);
+                            gfx.TranslateTransform(-pdfPage.Width / 2, -pdfPage.Height / 2);
+
+                            var brush = new PdfSharpCore.Drawing.XSolidBrush(
+                                PdfSharpCore.Drawing.XColor.FromArgb(80, 255, 0, 0)); // semi-transparent red
+
+                            gfx.DrawString(line, font, brush, x, y);
+                            gfx.Restore(state);
+
+                            y += lineHeight;
+                        }
+                    }
+                }
+
+                var securitySettings = document.SecuritySettings;
+                if (!string.IsNullOrEmpty(userPassword))
+                {
+                    securitySettings.UserPassword = userPassword;
+                    securitySettings.OwnerPassword = userPassword;
+                }
+                securitySettings.PermitPrint = true;
+                securitySettings.PermitModifyDocument = false;
+                securitySettings.PermitExtractContent = false;
+                securitySettings.PermitAnnotations = false;
+
+                document.Save(outputStream);
+
+                return File(outputStream.ToArray(), "application/pdf", fileName);
+            }
+        }      
+
+        #endregion
     }
 }
