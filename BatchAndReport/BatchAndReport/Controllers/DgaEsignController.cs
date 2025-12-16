@@ -78,7 +78,7 @@ namespace BatchAndReport.Controllers
 
 
         [HttpGet("GetDgaCert")]
-        public async Task<IActionResult> GetDgaCert(string ContractType = "JOA", string ContractId = "95" ,string EmailSign = "si_noreply@sme.go.th")
+        public async Task<IActionResult> GetDgaCert(string ContractType = "JOA", string ContractId = "22" ,string EmailSign = "si_noreply@sme.go.th")
         {
             _logger.LogInformation("Start GetDgaCert - ContractType={ContractType}, ContractId={ContractId}, EmailSign={EmailSign}", ContractType, ContractId, EmailSign);
             try
@@ -453,7 +453,7 @@ namespace BatchAndReport.Controllers
                     {
                            Page = "",
                         Left = "100",
-                        Bottom = "20",
+                        Bottom = "0",
                         Width = "100",
                         Height = "50",
                         Image = base64Image // Replace with actual Base64 string of the signature image
@@ -635,7 +635,7 @@ namespace BatchAndReport.Controllers
                     MarginOptions = new PuppeteerSharp.Media.MarginOptions
                     {
                         Top = "20mm",
-                        Bottom = "20mm",
+                        Bottom = "30mm",
                         Left = "20mm",
                         Right = "20mm"
                     },
