@@ -10,12 +10,17 @@
 
   <ItemGroup>
     <Compile Remove="Report\**" />
+    <Compile Remove="wwwroot\Document\JOA\CA_JOA\**" />
     <Content Remove="Report\**" />
+    <Content Remove="wwwroot\Document\JOA\CA_JOA\**" />
     <EmbeddedResource Remove="Report\**" />
+    <EmbeddedResource Remove="wwwroot\Document\JOA\CA_JOA\**" />
     <None Remove="Report\**" />
+    <None Remove="wwwroot\Document\JOA\CA_JOA\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\DgaEsignController - Copy.cs" />
     <Compile Remove="Pages\fileUploadx.cshtml.cs" />
     <Compile Remove="Service\WordWorkFlow_ExportProcessReviewService.cs" />
   </ItemGroup>
@@ -60,13 +65,22 @@
 
   <ItemGroup>
     <Folder Include="Pages\File\" />
+    <Folder Include="wwwroot\Document\AMJOA\" />
     <Folder Include="wwwroot\Document\CPA\" />
+    <Folder Include="wwwroot\Document\DGA\Signed\" />
+    <Folder Include="wwwroot\Document\EC\" />
     <Folder Include="wwwroot\Document\GA\" />
     <Folder Include="wwwroot\Document\ImportContract\" />
-    <Folder Include="wwwroot\Document\JOA\" />
+    <Folder Include="wwwroot\Document\JDCA\" />
+    <Folder Include="wwwroot\Document\JOA\DGA\" />
+    <Folder Include="wwwroot\Document\MIW\" />
+    <Folder Include="wwwroot\Document\MOA\" />
     <Folder Include="wwwroot\Document\MOU\" />
+    <Folder Include="wwwroot\Document\NDA\" />
     <Folder Include="wwwroot\Document\PDPA\" />
     <Folder Include="wwwroot\Document\PDSA\" />
+    <Folder Include="wwwroot\Document\SLA30860\" />
+    <Folder Include="wwwroot\Document\SMC31060\" />
     <Folder Include="wwwroot\Document\SPA30560\" />
     <Folder Include="wwwroot\SMEDocument\Summary\" />
   </ItemGroup>

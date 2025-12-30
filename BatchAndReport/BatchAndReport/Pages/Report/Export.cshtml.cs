@@ -5629,7 +5629,7 @@ namespace BatchAndReport.Pages.Report
         #endregion  4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
 
         #region 4.1.1.2.xxxx.บันทึกข้อตกลงความเข้าใจ MOA
-        public async Task OnGetWordContact_MOA_PDF(string ContractId = "4")
+        public async Task OnGetWordContact_MOA_PDF(string ContractId = "7")
         {
 
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOA");

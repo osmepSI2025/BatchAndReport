@@ -377,22 +377,22 @@ public class WordEContract_MemorandumInWritingService
     <div class='t-12 text-center'><B>กับ</B></div>
     <div class='t-12 text-center'><B>{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}</B></div>
     <br/>
-     <P class='t-12 tab2'>บันทึกข้อตกลงความร่วมมือฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจ ขนาดกลางและขนาดย่อม เมื่อ {strSign_Date} ระหว่าง</P>
+     <P class='t-12 tab2'>บันทึกข้อตกลงความเข้าใจฉบับนี้ทำขึ้น ณ สำนักงานส่งเสริมวิสาหกิจ ขนาดกลางและขนาดย่อม เมื่อ {strSign_Date} ระหว่าง</P>
     <P class='t-12 tab2'><B>สำนักงานส่งเสริมวิสาหกิจขนาดกลางและขนาดย่อม</B>  โดย {result.OSMEP_NAME} ตำแหน่ง {CommonDAO.ConvertStringArabicToThaiNumerals(result.OSMEP_POSITION)} {CommonDAO.ConvertStringArabicToThaiNumerals(strAttorneyOsmep)} สำนักงานตั้งอยู่เลขที่ ๑๒๐ หมู่ ๓ ศูนย์ราชการเฉลิมพระเกียรติ ๘๐ พรรษา ๕ ธันวาคม ๒๕๕๐ (อาคารซี) ชั้น ๒, ๑๐, ๑๑ ถนนแจ้งวัฒนะ แขวงทุ่งสองห้อง เขตหลักสี่ กรุงเทพ ๑๐๒๑๐ ซึ่งต่อไป ในสัญญาฉบับนี้จะเรียกว่า“สสว.” ฝ่ายหนึ่ง กับ</P>
     <P class='t-12 tab2'><B>“{result.OrgCommonName ?? ""}”</B> โดย {result.CP_S_NAME} ตำแหน่ง {result.CP_S_POSITION} {CommonDAO.ConvertStringArabicToThaiNumerals(strAttorney)} สำนักงานตั้งอยู่เลขที่ {CommonDAO.ConvertStringArabicToThaiNumerals(result.Office_Loc)} ซึ่งต่อไปในสัญญาฉบับนี้จะเรียกว่า “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” อีกฝ่ายหนึ่ง</P>
-    <P class='t-12 tab1'><B>วัตถุประสงค์ของความร่วมมือ</B></P>
-    <P class='t-12 tab2'>ทั้งสองฝ่ายมีความประสงค์ที่จะร่วมมือกันเพื่อดำเนินการภายใต้โครงการ {result.ProjectTitle} ซึ่งในบันทึกข้อตกลงฉบับนี้ต่อไปจะเรียกว่า “โครงการ” โดยมีรายละเอียดโครงการแผนการดำเนินงาน แผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) และบรรดาเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของบันทึกข้อตกลงฉบับนี้ มีระยะเวลา ตั้งแต่วันที่ {strStart_Date} จนถึงวันที่ {strEnd_Date} โดยมีวัตถุประสงค์ ในการดำเนินโครงการ ดังนี้</P>
+    <P class='t-12 tab1'><B>วัตถุประสงค์ของความเข้าใจ</B></P>
+    <P class='t-12 tab2'>ทั้งสองฝ่ายมีความประสงค์ที่จัดทำบันทึกความเข้าใจ {result.ProjectTitle}  โดยมีรายละเอียดและบรรดาเอกสารแนบท้ายบันทึกข้อตกลงฉบับนี้ ซึ่งให้ถือเป็นส่วนหนึ่งของบันทึกข้อตกลงฉบับนี้ มีระยะเวลา ตั้งแต่วันที่ {strStart_Date} จนถึงวันที่ {strEnd_Date} โดยมีวัตถุประสงค์ ในการดำเนินโครงการ ดังนี้</P>
 {(purposeList != null && purposeList.Count > 0
     ? string.Join("", purposeList.Select((p, i) =>
         $"<div class='t-12 tab2'>{CommonDAO.ConvertStringArabicToThaiNumerals(p.Detail)}</div>"))
     : "")}  
 
-  <P class='t-12 tab2'><b>ข้อ ๑ ขอบเขตความร่วมมือของ “สสว.”</b></P>
+  <P class='t-12 tab2'><b>ข้อ ๑ ขอบเขตความเข้าใจของ “สสว.”</b></P>
     {(xScopeOfMemorandum_OSMEP != null && xScopeOfMemorandum_OSMEP.Count > 0
     ? string.Join("", xScopeOfMemorandum_OSMEP.Select((p, i) =>
         $"<div class='t-12 tab2'>{CommonDAO.ConvertStringArabicToThaiNumerals(p.Detail)}</div>"))
     : "")}  
-    <P class='t-12 tab2'><b>ข้อ ๒ ขอบเขตความร่วมมือของ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}”</b></P>
+    <P class='t-12 tab2'><b>ข้อ ๒ ขอบเขตความเข้าใจของ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}”</b></P>
         {(xScopeOfMemorandum_CP != null && xScopeOfMemorandum_CP.Count > 0
     ? string.Join("", xScopeOfMemorandum_CP.Select((p, i) =>
         $"<div class='t-12 tab2'>{CommonDAO.ConvertStringArabicToThaiNumerals(p.Detail)}</div>"))
@@ -401,9 +401,9 @@ public class WordEContract_MemorandumInWritingService
     <P class='t-12 tab2'><b>ข้อ ๓ อื่น ๆ</b></P>
     <P class='t-12 tab3'>๓.๑ หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอแก้ไข เปลี่ยนแปลง ขยายระยะเวลา ของโครงการ จะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่งได้ทราบเป็นลายลักษณ์อักษร และต้องได้ รับความยินยอมเป็นลายลักษณ์อักษรจากอีกฝ่ายหนึ่ง และต้องทำ บันทึกข้อตกลงแก้ไข เปลี่ยนแปลง ขยายระยะเวลา เพื่อลงนามยินยอมทั้งสองฝ่าย</P>
     
-<P class='t-12 tab3'>๓.๒ หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอบอกเลิกบันทึกข้อตกลงความร่วมมือ ก่อนครบกำหนด ระยะเวลาดำเนินโครงการจะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่ง ได้ทราบเป็นลายลักษณ์อักษรไม่น้อยกว่า ๓๐ วัน และต้องได้รับความยินยอมเป็นลายลักษณ์ อักษรจากอีกฝ่ายหนึ่ง และ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” จะต้องคืนเงินในส่วน ที่ยังไม่ได้ใช้จ่ายหรือส่วนที่เหลือทั้งหมดพร้อมดอกผล (ถ้ามี) ให้แก่ สสว. ภายใน ๑๕ วัน นับจากวันที่ได้รับหนังสือของฝ่ายที่ยินยอมให้บอกเลิก</P>
+<P class='t-12 tab3'>๓.๒ หากฝ่ายใดฝ่ายหนึ่งประสงค์จะขอบอกเลิกบันทึกข้อตกลงความเข้าใจ ก่อนครบกำหนด ระยะเวลาดำเนินโครงการจะต้องแจ้งล่วงหน้าให้อีกฝ่ายหนึ่ง ได้ทราบเป็นลายลักษณ์อักษรไม่น้อยกว่า ๓๐ วัน และต้องได้รับความยินยอมเป็นลายลักษณ์ อักษรจากอีกฝ่ายหนึ่ง และ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” จะต้องคืนเงินในส่วน ที่ยังไม่ได้ใช้จ่ายหรือส่วนที่เหลือทั้งหมดพร้อมดอกผล (ถ้ามี) ให้แก่ สสว. ภายใน ๑๕ วัน นับจากวันที่ได้รับหนังสือของฝ่ายที่ยินยอมให้บอกเลิก</P>
  
-<P class='t-12 tab3'>๓.๓ สสว. อาจบอกเลิกบันทึกข้อตกลงความร่วมมือได้ทันที หากตรวจสอบ หรือปรากฏข้อเท็จจริงว่า การใช้จ่ายเงินของ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” ไม่เป็นไปตามวัตถุประสงค์ ของโครงการ แผนการดำเนินงาน และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ทั้งมีสิทธิเรียกเงินคงเหลือพร้อมดอกผล (ถ้ามี) คืนทั้งหมดได้ทันที</P>
+<P class='t-12 tab3'>๓.๓ สสว. อาจบอกเลิกบันทึกข้อตกลงความเข้าใจได้ทันที หากตรวจสอบ หรือปรากฏข้อเท็จจริงว่า การใช้จ่ายเงินของ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” ไม่เป็นไปตามวัตถุประสงค์ ของโครงการ แผนการดำเนินงาน และแผนการใช้จ่ายเงิน (และอื่น ๆ เช่น คู่มือดำเนินโครงการ) ทั้งมีสิทธิเรียกเงินคงเหลือพร้อมดอกผล (ถ้ามี) คืนทั้งหมดได้ทันที</P>
     <P class='t-12 tab3'>๓.๔ ทรัพย์สินใด ๆ และ/หรือ สิทธิใด ๆ ที่ได้มาจากเงินสนับสนุนตาม บันทึกข้อตกลงฉบับนี้ เมื่อสิ้นสุดโครงการให้ตกได้แก่ สสว. ทั้งสิ้น เว้นแต่ สสว. จะกำหนดให้เป็นอย่างอื่น</P>
     <P class='t-12 tab3'>๓.๕ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” ต้องไม่ดำเนินการในลักษณะการจ้างเหมา กับหน่วยงาน องค์กร หรือบุคคลอื่น ๆ ยกเว้นกรณีการจัดหา จัดจ้าง เป็นกิจกรรมหรือเป็นเรื่อง ๆ</P>
     <P class='t-12 tab3'>๓.๖ ในกรณีที่การดำเนินการตามบันทึกข้อตกลงฉบับนี้ เกี่ยวข้องกับ ข้อมูลส่วนบุคคล และการคุ้มครองทรัพย์สินทางปัญญา “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” จะต้องปฏิบัติ ตามกฎหมาย ว่าด้วยการคุ้มครอง ข้อมูลส่วนบุคคลและ การคุ้มครองทรัพย์สินทางปัญญา อย่างเคร่งครัด และหากเกิดความเสียหายหรือมีการฟ้องร้องใดๆ “{CommonDAO.ConvertStringArabicToThaiNumerals(result.OrgName) ?? ""}” จะต้องเป็นผู้รับผิดชอบ ต่อการละเมิดบทบัญญัติแห่งกฎหมายดังกล่าว แต่เพียงฝ่ายเดียว โดยสิ้นเชิง</P>

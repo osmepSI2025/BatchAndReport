@@ -294,7 +294,8 @@ namespace BatchAndReport.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetToken - error");
+                _logger.LogError(ex, "GetToken - error - ConsumerKey={ConsumerKey}, Email={Email}, UrlToken={UrlToken}, ErrorMessage={ErrorMessage}",
+       ConsumerKey, Email, UrlToken, ex.Message);
                 return StatusCode(500, new
                 {
                     message = "Internal Server Error",
@@ -349,7 +350,9 @@ namespace BatchAndReport.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "RegisterPDF - error");
+                _logger.LogError(ex, "RegisterPDF - error - ConsumerKey={ConsumerKey}, UrlDga={UrlDga}, TemplateID={TemplateID}, PdfBytesLength={PdfBytesLength}, ErrorMessage={ErrorMessage}",
+      ConsumerKey, urlDga, templateID, pdfBytes?.Length ?? 0, ex.Message);
+
                 return null;
             }
 
@@ -556,7 +559,8 @@ namespace BatchAndReport.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "DownloadSignedPdf - error for DocumentId={DocumentId}", documentId);
+                _logger.LogError(ex, "DownloadSignedPdf - error - DocumentId={DocumentId}, ConsumerKey={ConsumerKey}, ApiUrl={ApiUrl}, ContractType={ContractType}, ContractId={ContractId}, ErrorMessage={ErrorMessage}",
+                  documentId, ConsumerKey, apiurl, contype, conId, ex.Message);
                 return StatusCode(500, new
                 {
                     message = "Internal Server Error",
