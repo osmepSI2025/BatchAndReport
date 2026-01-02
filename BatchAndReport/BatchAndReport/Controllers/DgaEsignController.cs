@@ -161,7 +161,7 @@ namespace BatchAndReport.Controllers
                     });
                 }
                 // Call GetToken and extract the JSON string from the IActionResult
-                var tokenResult = await GetToken(ConsumerKey, ConsumerSecret, EmailSign, apiToken.UrlDev.ToString()) as ObjectResult;
+                var tokenResult = await GetToken(ConsumerKey, ConsumerSecret, EmailSign, apiToken.UrlProd.ToString()) as ObjectResult;
                 string tokenJson = tokenResult?.Value?.GetType().GetProperty("apiResponse")?.GetValue(tokenResult.Value)?.ToString();
 
                 // Deserialize and extract the token
@@ -184,7 +184,7 @@ namespace BatchAndReport.Controllers
                     });
                 }
 
-                DGADocumentModels docx = await RegisterPDF(ConsumerKey, token, apiRegis.UrlDev, selectedTemplate.TemplateID, htmlContent);
+                DGADocumentModels docx = await RegisterPDF(ConsumerKey, token, apiRegis.UrlProd, selectedTemplate.TemplateID, htmlContent);
                 #endregion  send PDF to DGA
 
 
@@ -202,7 +202,7 @@ namespace BatchAndReport.Controllers
                 }
                 string SignatureID = "";
                 var signResult = docx != null && !string.IsNullOrEmpty(docx.DocumentID)
-                    ? await GetCertifiedSign(token, docx.DocumentID, ConsumerKey, apiCert.UrlDev.ToString())
+                    ? await GetCertifiedSign(token, docx.DocumentID, ConsumerKey, apiCert.UrlProd.ToString())
                     : null;
 
                 if (signResult is ObjectResult objectResult)
@@ -246,7 +246,7 @@ namespace BatchAndReport.Controllers
                 var saveTrans = await _dgaSignDao.InsertDgaEsignDocumentAsync(dgaResult);
 
                 #endregion Sava Transaction
-                var savefile = await DownloadSignedPdf(docx.DocumentID, ConsumerKey, token, apiDownloadSignedPdf.UrlDev, ContractType, ContractId);
+                var savefile = await DownloadSignedPdf(docx.DocumentID, ConsumerKey, token, apiDownloadSignedPdf.UrlProd, ContractType, ContractId);
                 _logger.LogInformation("End GetDgaCert - success - DocumentID={DocumentID}", docx?.DocumentID);
                 return Ok();
 
