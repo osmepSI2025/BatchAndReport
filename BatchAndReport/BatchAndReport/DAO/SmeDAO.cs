@@ -393,7 +393,7 @@ namespace BatchAndReport.DAO
 FROM SME_PROJECT_REQUEST SPR
 LEFT JOIN SME_PROJECT_CONTACT spc  ON SPR.REQUEST_ID  = SPC.REQUEST_ID 
  LEFT JOIN SME_Lookup LK1 ON SPc.RESPONSIBILITY_TYPE_CODE = LK1.LookupCode AND LK1.LookupType = 'REQUEST_CONTACT'
-WHERE PROJECT_CODE =  @PROJECT_CODE", connection);
+WHERE SPR.REQUEST_ID =  @PROJECT_CODE", connection);
 
                 command.Parameters.AddWithValue("@PROJECT_CODE", Mou_id ?? "0");
                 await connection.OpenAsync();

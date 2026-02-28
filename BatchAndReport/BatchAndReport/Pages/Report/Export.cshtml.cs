@@ -5222,7 +5222,7 @@ namespace BatchAndReport.Pages.Report
 
         #region 4.1.1.2.3.บันทึกข้อตกลงความร่วมมือ MOU
  
-        public async Task OnGetWordContact_MOU_PDF(string ContractId = "16")
+        public async Task OnGetWordContact_MOU_PDF(string ContractId = "2")
         {
              var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "MOU");
             if (!Directory.Exists(folderPath))
@@ -7369,7 +7369,7 @@ namespace BatchAndReport.Pages.Report
 
         #region  4.1.6 เอกสารแนบท้ายบันทึกข้อตกลงความร่วมมือและสัญญาร่วมดำเนินการ AMJOA
 
-        public async Task OnGetWordContact_AMJOA_PDF(string ContractId = "4")
+        public async Task OnGetWordContact_AMJOA_PDF(string ContractId = "2")
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Document", "AMJOA");
             if (!Directory.Exists(folderPath))

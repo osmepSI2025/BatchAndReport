@@ -1,16 +1,12 @@
 ﻿using BatchAndReport.DAO;
-using BatchAndReport.Models;
 using DinkToPdf;
 using DinkToPdf.Contracts;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using HtmlToOpenXml;
-using Microsoft.AspNetCore.Components.Web;
 using PuppeteerSharp;
 using System.Globalization;
 using System.Text;
-using System.Xml.Linq;
 public class WordSME_ReportService
 {
     private readonly WordServiceSetting _w;
@@ -109,10 +105,10 @@ public class WordSME_ReportService
             {
                 var totalProject = strategyGroup.Count();
                 var sumBudget = strategyGroup.Sum(p => p.BudgetAmount);
-              
-           
 
-                htmlBody.Append($@"<div style='font-size:18pt;'><b>กลยุทธ์ที่  {strategyGroup.Key}</b></div>");        
+
+
+                htmlBody.Append($@"<div style='font-size:18pt;'><b>กลยุทธ์ที่  {strategyGroup.Key}</b></div>");
                 htmlBody.Append($@"<div style='font-size:18pt;'>จำนวน {totalProject} โครงการ งบประมาณ {sumBudget:N2} ล้านบาท</div>");
 
                 // Table
@@ -257,7 +253,7 @@ public class WordSME_ReportService
         return pdfBytes;
     }
     public async Task<byte[]> ExportSMEProjectDetail_ToPDF(
-SMEProjectDetailModels model
+SMEProjectDetailModels model,string pProjectCode
 )
     {
         // Read CSS file content
@@ -323,7 +319,7 @@ SMEProjectDetailModels model
             htmlBody.Append(@" 
         <div class='t-12'>สถานภาพโครงการ : โครงการใหม่ </div>
     ");
-                
+
         }
         else if (model.ProjectStatus == "02")
         {
@@ -337,7 +333,7 @@ SMEProjectDetailModels model
         <div class='t-12'>สถานภาพโครงการ :โครงการเดิม </div>
     ");
         }
-        else if (model.ProjectStatus == "04") 
+        else if (model.ProjectStatus == "04")
         {
 
             htmlBody.Append(@" 
@@ -346,7 +342,7 @@ SMEProjectDetailModels model
         }
 
 
-        var OwnerModel = await _smeDao.GetOwnerAndContactAsync(model.ProjectCode);
+        var OwnerModel = await _smeDao.GetOwnerAndContactAsync(pProjectCode);
         // Responsible Table
         htmlBody.Append($@"
 <table style='width:100%; border-collapse:collapse; border:1px solid #000;'>
@@ -357,7 +353,7 @@ SMEProjectDetailModels model
             </tr>
             <tr>
                 <td style='border:1px solid #000;text-align:center;'>ชื่อ-นามสกุล</td>
-                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerName??""}</td>
+                <td style='border:1px solid #000;'>{OwnerModel.ToList()[0].OwnerName ?? ""}</td>
                 <td style='border:1px solid #000;'>{OwnerModel.ToList()[1].ContactName ?? ""}</td>
             </tr>
             <tr>
@@ -636,8 +632,8 @@ SMEProjectDetailModels model
 
         };
 
-        var pdfBytes = await page.PdfDataAsync(pdfOptions);  
-      
+        var pdfBytes = await page.PdfDataAsync(pdfOptions);
+
         return pdfBytes;
     }
 
@@ -1050,5 +1046,5 @@ SMEProjectDetailModels model
         }
     }
 
-    
+
 }

@@ -183,7 +183,7 @@ namespace BatchAndReport.Controllers
             //return File(pdfBytes,
             //    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             //    $"SME_Project_{projectCode}.pdf");
-            var pdfBytes = await _wordSME_ReportService.ExportSMEProjectDetail_ToPDF(detail);
+            var pdfBytes = await _wordSME_ReportService.ExportSMEProjectDetail_ToPDF(detail, projectCode);
 
             return File(
                 pdfBytes,
@@ -199,7 +199,7 @@ namespace BatchAndReport.Controllers
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
             // Generate PDF first
-            var pdfBytes = await _wordSME_ReportService.ExportSMEProjectDetail_ToPDF(detail);
+            var pdfBytes = await _wordSME_ReportService.ExportSMEProjectDetail_ToPDF(detail, projectCode);
 
             // Prepare folder structure
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "SMEDocument", "Detail", $"SME_{projectCode}_JPEG");
