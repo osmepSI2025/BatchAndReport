@@ -638,7 +638,7 @@ SMEProjectDetailModels model,string pProjectCode
     }
 
     public async Task<string> ExportSMEProjectDetail_HTML(
-SMEProjectDetailModels model
+SMEProjectDetailModels model,string pProjectCode
 )
     {
         // Read logo and convert to Base64 (if needed in HTML)
@@ -715,7 +715,7 @@ SMEProjectDetailModels model
         }
 
 
-        var OwnerModel = await _smeDao.GetOwnerAndContactAsync(model.ProjectCode);
+        var OwnerModel = await _smeDao.GetOwnerAndContactAsync(pProjectCode);
         // Responsible Table
         htmlBody.Append($@"
 <table style='width:100%; border-collapse:collapse; border:1px solid #000;'>

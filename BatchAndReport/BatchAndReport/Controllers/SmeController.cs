@@ -147,7 +147,7 @@ namespace BatchAndReport.Controllers
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
             // Option 1: If you want to generate Word from HTML (recommended for rich formatting)
-            var html = await _wordSME_ReportService.ExportSMEProjectDetail_HTML(detail);
+            var html = await _wordSME_ReportService.ExportSMEProjectDetail_HTML(detail, projectCode);
             var wordBytes = _wordSME_ReportService.ConvertHtmlToWord(html);
 
             // Option 2: If your _serviceWord.GenerateWord(detail) already works, keep using it
