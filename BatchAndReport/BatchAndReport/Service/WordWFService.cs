@@ -792,139 +792,534 @@ public class WordWFService : IWordWFService
         return stream.ToArray();
     }
 
+    //    public async Task<byte[]> GenWorkProcessPointHtmlToPdf(WFSubProcessDetailModels detail)
+    //    {
+    //        if (detail == null)
+    //            throw new ArgumentNullException(nameof(detail), "WFSubProcessDetailModels cannot be null.");
+
+    //        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf");
+    //        string fontBase64 = "";
+    //        if (File.Exists(fontPath))
+    //        {
+    //            var bytes = File.ReadAllBytes(fontPath);
+    //            fontBase64 = Convert.ToBase64String(bytes);
+    //        }
+    //        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+    //        string logoBase64 = "";
+    //        if (System.IO.File.Exists(logoPath))
+    //        {
+    //            var bytes = System.IO.File.ReadAllBytes(logoPath);
+    //            logoBase64 = Convert.ToBase64String(bytes);
+    //        }
+    //        var lastRevDate = detail.Revisions?.LastOrDefault()?.DateTime;
+    //        var revDateText = lastRevDate.HasValue ? lastRevDate.Value.ToString("dd MMM yy", new CultureInfo("th-TH")) : "-";
+    //        var latestEditCount = detail.Revisions?.Count ?? 0;
+    //        var processName = detail.Header?.ProcessName ?? "-";
+    //        var processCode = detail.Header?.ProcessCode ?? "-";
+    //        var statusCode = detail.Header?.StatusCode ?? "-";
+    //        var createdBy = detail.Header?.CreatedBy ?? "-";
+    //        var unitName = detail.OwnerBusinessUnitName ?? "-";
+
+    //        var htmlBuilder = new StringBuilder();
+    //        htmlBuilder.Append(@"<!DOCTYPE html><html><head><meta charset='utf-8'><style>");
+    //        htmlBuilder.Append($"@font-face {{ font-family: 'THSarabunNew';   src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype'); }}");
+    //        htmlBuilder.Append(@"body { font-family: 'THSarabunNew', Arial, sans-serif; font-size: 16px; margin: 20px; line-height: 1.5; }");
+    //        htmlBuilder.Append(@".header-table, .full-width-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }");
+    //        htmlBuilder.Append(@".header-table td, .full-width-table th, .full-width-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }");
+    //        htmlBuilder.Append(@".full-width-table th { text-align: center; font-weight: bold; }");
+    //        htmlBuilder.Append(@".text-center { text-align: center; vertical-align: middle; } .text-left { text-align: left; } .text-right { text-align: right; }");
+    //        htmlBuilder.Append(@".font-bold { font-weight: bold; } .font-size-20 { font-size: 20px; }");
+    //        htmlBuilder.Append(@".numbered-list { list-style-type: decimal; padding-left: 20px; } .empty-line { height: 10px; }");
+    //        htmlBuilder.Append(@".diagram-image-container { page-break-before: always; text-align: center; margin-top: 20px; }");
+    //        htmlBuilder.Append(@"</style></head><body>");
+
+    //        htmlBuilder.Append("<table class='header-table'>");
+    //        htmlBuilder.Append($"<tr><td class='text-left font-bold'><img src='data:image/jpeg;base64,{logoBase64}'  height='80' /></td>");
+    //        htmlBuilder.Append($"<td class='text-left font-bold' style='width: 30%;'>ครั้งที่แก้ไข: {latestEditCount}<br>วันที่แก้ไข: {revDateText}</td></tr>");
+    //        htmlBuilder.Append($"<tr><td colspan='2' class='text-left' style='background-color: #DAF7FE;'>{processCode} {processName}</td></tr>");
+    //        htmlBuilder.Append($"<tr><td colspan='2' class='text-left'>หน่วยงาน: {unitName}</td></tr>");
+    //        htmlBuilder.Append("<tr><td colspan='2' class='text-left'><p class='text-left font-bold'>ตัวชี้วัดของกระบวนการ :</p><ul class='numbered-list'>");
+    //        if (detail.Evaluations?.Any() == true)
+    //            foreach (var eval in detail.Evaluations)
+    //                htmlBuilder.Append($"<li>{eval.EvaluationDesc}</li>");
+    //        else
+    //            htmlBuilder.Append("<li>-</li>");
+    //        htmlBuilder.Append("</ul></td></tr></table><div class='empty-line'></div>");
+
+
+    //        #region  การอนุมัติเอกสาร
+
+    //        if (detail.ApprovalsDetail != null && detail.ApprovalsDetail.Count > 0)
+    //{
+    //    htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='4' style='background-color: #ddd;'>การอนุมัติเอกสาร</th></tr>");
+    //    htmlBuilder.Append("<tr><th>บทบาท</th><th>ชื่อ</th><th>ตำแหน่ง</th><th>ลายเซนต์</th></tr></thead><tbody>");
+    //    foreach (var item in detail.ApprovalsDetail)
+    //    {
+    //        htmlBuilder.Append("<tr>");
+    //        htmlBuilder.Append($"<td class='text-center'>{item.ActorDetail ?? "-"}</td>");
+    //        htmlBuilder.Append($"<td class='text-center'>{item.EmployeeName ?? "-"}</td>");
+    //        htmlBuilder.Append($"<td class='text-center'>{item.EmployeePosition ?? "-"}</td>");
+
+    //        // Signature image
+    //        if (!string.IsNullOrEmpty(item.E_Signature))
+    //        {
+    //            var signPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", item.E_Signature);
+    //            if (System.IO.File.Exists(signPath))
+    //            {
+    //                var bytes = System.IO.File.ReadAllBytes(signPath);
+    //                var base64 = Convert.ToBase64String(bytes);
+    //                htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
+    //            }
+    //            else
+    //            {
+    //                var noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
+    //                var bytes = System.IO.File.ReadAllBytes(noSignPath);
+    //                var base64 = Convert.ToBase64String(bytes);
+    //                htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='No Signature' style='max-width: 100px; height: auto;' /></td>");
+    //            }
+    //        }
+    //        else
+    //        {
+    //            var noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
+    //            var bytes = System.IO.File.ReadAllBytes(noSignPath);
+    //            var base64 = Convert.ToBase64String(bytes);
+    //            htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='No Signature' style='max-width: 100px; height: auto;' /></td>");
+    //        }
+
+    //        htmlBuilder.Append("</tr>");
+    //    }
+    //    htmlBuilder.Append("</tbody></table>");
+    //}
+
+    //        #endregion
+
+
+
+    //        htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='3' style='background-color: #ddd;'>ประวัติการแก้ไขเอกสาร</th></tr><tr><th>ครั้งที่</th><th>วันที่</th><th>รายละเอียด</th></tr></thead><tbody>");
+    //        if (detail.Revisions?.Any() == true)
+    //        {
+    //            int i = 1;
+    //            foreach (var rev in detail.Revisions)
+    //                htmlBuilder.Append($"<tr><td class='text-center'>{i++}</td><td class='text-center' style='width: 10%;'>{rev.DateTime?.ToString("d MMM yy", new CultureInfo("th-TH"))}</td><td>{rev.EditDetail}</td></tr>");
+    //        }
+    //        else
+    //            htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
+    //        htmlBuilder.Append("</tbody></table>");
+
+    //        if (detail.ListImage.Count > 0)
+    //        {
+    //            foreach (var img in detail.ListImage)
+    //            {
+    //                AppendDiagramImage(htmlBuilder, img.DiagramAttachFile);
+    //            }
+    //        }
+    //        else
+    //        {
+    //            AppendDiagramImage(htmlBuilder, detail.DiagramAttachFile);
+    //        }
+
+
+    //        htmlBuilder.Append("<div style='page-break-before: always;'></div>");
+
+    //        htmlBuilder.Append("<table class='full-width-table'><thead><tr><th>จุดควบคุม<br>(Control Point)</th><th>กิจกรรมควบคุม<br>(Control Activity)</th><th>รายละเอียด</th></tr></thead><tbody>");
+    //        if (detail.ControlPoints?.Any() == true)
+    //        {
+    //            foreach (var cp in detail.ControlPoints)
+    //                htmlBuilder.Append($"<tr><td class='text-center'>{cp.ProcessControlCode}</td><td class='text-center'>{cp.ProcessControlActivity}</td><td>{cp.ProcessControlDetail}</td></tr>");
+    //        }
+    //        else
+    //            htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
+    //        htmlBuilder.Append("</tbody></table>");
+
+    //        htmlBuilder.Append("<div style='page-break-before: always;'></div>");
+
+    //        if (detail.Listrelate_Laws != null && detail.Listrelate_Laws.Count > 0)
+    //        {
+    //            htmlBuilder.Append("<div class='tab1'><h3>กฎหมายที่เกี่ยวข้อง/ ที่บังคับใช้</h3>");
+    //            htmlBuilder.Append("<table class='full-width-table'><tbody>");
+    //            int i = 1;
+    //            foreach (var cp in detail.Listrelate_Laws)
+    //            {
+    //                htmlBuilder.Append($"<tr><td class='text-center'>{i}</td><td class='tab1'>{cp.RELATED_LAWS_DESC}</td></tr>");
+    //                i++;
+    //            }
+    //            htmlBuilder.Append("</tbody></table></div>");
+    //        }
+    //        else 
+    //        {
+    //            htmlBuilder.Append("<div class='tab1'><h3>กฎหมายที่เกี่ยวข้อง/ ที่บังคับใช้</h3>");
+    //            htmlBuilder.Append("<table class='full-width-table'><tbody>");
+
+    //                htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
+
+    //            htmlBuilder.Append("</tbody></table></div>");
+    //        }
+
+    //            // ปิด html
+    //            htmlBuilder.Append("</body></html>");
+    //        var html = htmlBuilder.ToString();
+
+    //        var doc = new HtmlToPdfDocument()
+    //        {
+    //            GlobalSettings = {
+    //            PaperSize = PaperKind.A4,
+    //            Orientation = DinkToPdf.Orientation.Portrait,
+    //            Margins = new MarginSettings { Top = 20, Bottom = 20, Left = 20, Right = 20 }
+    //        },
+    //            Objects = {
+    //            new ObjectSettings {
+    //                HtmlContent = html,
+    //                FooterSettings = new FooterSettings {
+    //                    FontName = "THSarabunNew",
+    //                    FontSize = 8,
+    //                    Line = false,
+    //                    Center = "[page] / [toPage]"
+    //                }
+    //            }
+    //        }
+    //        };
+
+    //        if (_pdfConverter == null)
+    //            throw new Exception("PDF service (IConverter) is not available.");
+
+    //        var pdfBytes = _pdfConverter.Convert(doc);
+    //        return pdfBytes;
+    //    }
     public async Task<byte[]> GenWorkProcessPointHtmlToPdf(WFSubProcessDetailModels detail)
+    {
+        if (detail == null)
+            throw new ArgumentNullException(nameof(detail), "WFSubProcessDetailModels cannot be null.");
+
+        // --- ส่วนการเตรียม Data (Font/Logo/Revision) คงเดิม ---
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf");
+        string fontBase64 = "";
+        if (File.Exists(fontPath)) fontBase64 = Convert.ToBase64String(File.ReadAllBytes(fontPath));
+
+        var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
+        string logoBase64 = "";
+        if (File.Exists(logoPath)) logoBase64 = Convert.ToBase64String(File.ReadAllBytes(logoPath));
+
+        var lastRevDate = detail.Revisions?.LastOrDefault()?.DateTime;
+        var revDateText = lastRevDate.HasValue ? lastRevDate.Value.ToString("dd MMM yy", new CultureInfo("th-TH")) : "-";
+        var latestEditCount = detail.Revisions?.Count ?? 0;
+        var processName = detail.Header?.ProcessName ?? "-";
+        var processCode = detail.Header?.ProcessCode ?? "-";
+        var unitName = detail.OwnerBusinessUnitName ?? "-";
+
+        var htmlBuilder = new StringBuilder();
+        htmlBuilder.Append(@"<!DOCTYPE html><html><head><meta charset='utf-8'><style>");
+        htmlBuilder.Append($"@font-face {{ font-family: 'THSarabunNew'; src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype'); }}");
+
+        // ปรับปรุง Style เพื่อรองรับการตัดหน้าและภาษาไทย
+        htmlBuilder.Append(@"
+        body { font-family: 'THSarabunNew', Arial, sans-serif; font-size: 16px; margin: 20px; line-height: 1.3; }
+        h3 { clear: both; display: block; width: 100%; margin-top: 15px; margin-bottom: 10px; font-size: 20px; }
+        .page-break { clear: both; page-break-before: always; height: 1px; }
+        
+        table { width: 100%; border-collapse: collapse; page-break-inside: auto; margin-bottom: 15px; }
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+        
+        .header-table td, .full-width-table th, .full-width-table td {
+            border: 1px solid #000; padding: 6px; vertical-align: top;
+            word-wrap: break-word; word-break: break-word;
+            overflow-wrap: break-word; white-space: normal;
+        }
+        .full-width-table th { text-align: center; font-weight: bold; background-color: #f2f2f2; }
+        .text-center { text-align: center; vertical-align: middle; }
+        .text-left { text-align: left; }
+        .font-bold { font-weight: bold; }
+        .numbered-list { padding-left: 25px; margin: 5px 0; }
+    ");
+        htmlBuilder.Append(@"</style></head><body>");
+
+        // 1. Header Table
+        htmlBuilder.Append("<table class='header-table'>");
+        htmlBuilder.Append($"<tr><td class='text-left'><img src='data:image/jpeg;base64,{logoBase64}' height='60' /></td>");
+        htmlBuilder.Append($"<td class='text-left font-bold' style='width: 30%;'>ครั้งที่แก้ไข: {latestEditCount}<br>วันที่แก้ไข: {revDateText}</td></tr>");
+        htmlBuilder.Append($"<tr><td colspan='2' class='text-left' style='background-color: #DAF7FE;'>{processCode} {processName}</td></tr>");
+        htmlBuilder.Append($"<tr><td colspan='2' class='text-left'>หน่วยงาน: {unitName}</td></tr>");
+        htmlBuilder.Append("<tr><td colspan='2'><p class='font-bold'>ตัวชี้วัดของกระบวนการ :</p><ul class='numbered-list'>");
+        if (detail.Evaluations?.Any() == true)
+            foreach (var eval in detail.Evaluations) htmlBuilder.Append($"<li>{eval.EvaluationDesc}</li>");
+        else
+            htmlBuilder.Append("<li>-</li>");
+        htmlBuilder.Append("</ul></td></tr></table>");
+
+        // 2. การอนุมัติเอกสาร
+        if (detail.ApprovalsDetail?.Any() == true)
+        {
+            htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='4' style='background-color: #ddd;'>การอนุมัติเอกสาร</th></tr>");
+            htmlBuilder.Append("<tr><th>บทบาท</th><th>ชื่อ</th><th>ตำแหน่ง</th><th>ลายเซ็น</th></tr></thead><tbody>");
+            foreach (var item in detail.ApprovalsDetail)
+            {
+                htmlBuilder.Append("<tr>");
+                htmlBuilder.Append($"<td class='text-center'>{item.ActorDetail ?? "-"}</td>");
+                htmlBuilder.Append($"<td class='text-center'>{item.EmployeeName ?? "-"}</td>");
+                htmlBuilder.Append($"<td class='text-center'>{item.EmployeePosition ?? "-"}</td>");
+
+                // Signature Logic (ย่อสั้นๆ เพื่อความสะอาดของโค้ด)
+                string sigImg = "no_sing.jpg";
+                if (!string.IsNullOrEmpty(item.E_Signature)) sigImg = item.E_Signature;
+                var signPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", sigImg);
+                if (!File.Exists(signPath)) signPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
+
+                var sigBase64 = Convert.ToBase64String(File.ReadAllBytes(signPath));
+                htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{sigBase64}' style='max-width: 80px; max-height: 40px;' /></td></tr>");
+            }
+            htmlBuilder.Append("</tbody></table>");
+        }
+
+        // 3. ประวัติการแก้ไข
+        htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='3' style='background-color: #ddd;'>ประวัติการแก้ไขเอกสาร</th></tr><tr><th>ครั้งที่</th><th>วันที่</th><th>รายละเอียด</th></tr></thead><tbody>");
+        if (detail.Revisions?.Any() == true)
+        {
+            int i = 1;
+            foreach (var rev in detail.Revisions)
+                htmlBuilder.Append($"<tr><td class='text-center'>{i++}</td><td class='text-center' style='width: 15%;'>{rev.DateTime?.ToString("d MMM yy", new CultureInfo("th-TH"))}</td><td>{rev.EditDetail}</td></tr>");
+        }
+        else
+            htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
+        htmlBuilder.Append("</tbody></table>");
+
+        // 4. Diagram Images
+        if (detail.ListImage?.Any() == true)
+            foreach (var img in detail.ListImage) AppendDiagramImage(htmlBuilder, img.DiagramAttachFile);
+        else
+            AppendDiagramImage(htmlBuilder, detail.DiagramAttachFile);
+
+        // 5. Control Points (ส่วนที่มีปัญหา)
+        htmlBuilder.Append("<div class='page-break'></div>"); // FIXED: ใช้ class ที่เราประกาศไว้
+        htmlBuilder.Append("<h3>จุดควบคุมและกิจกรรมควบคุม</h3>"); // เพิ่มหัวข้อให้ชัดเจน
+        htmlBuilder.Append("<table class='full-width-table'>");
+        htmlBuilder.Append("<thead><tr><th>จุดควบคุม<br>(Control Point)</th><th>กิจกรรมควบคุม<br>(Control Activity)</th><th>รายละเอียด</th></tr></thead>");
+        htmlBuilder.Append("<tbody>");
+
+        if (detail.ControlPoints?.Any() == true)
+        {
+            foreach (var cp in detail.ControlPoints)
+            {
+                htmlBuilder.Append("<tr>");
+                htmlBuilder.Append($"<td class='text-center' style='width:15%;'>{cp.ProcessControlCode}</td>");
+                htmlBuilder.Append($"<td class='text-left' style='width:35%;'>{cp.ProcessControlActivity}</td>");
+                htmlBuilder.Append($"<td class='text-left'>{cp.ProcessControlDetail}</td>");
+                htmlBuilder.Append("</tr>");
+            }
+        }
+        else
+        {
+            htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
+        }
+        htmlBuilder.Append("</tbody></table>"); // FIXED: มั่นใจว่าปิดตาราง Control Point ก่อนขึ้นส่วนใหม่
+
+        // 6. กฎหมายที่เกี่ยวข้อง
+        htmlBuilder.Append("<div class='page-break'></div>"); // FIXED: ขึ้นหน้าใหม่แยกจากตาราง Control Point
+        htmlBuilder.Append("<h3>กฎหมายที่เกี่ยวข้อง/ ที่บังคับใช้</h3>");
+        htmlBuilder.Append("<table class='full-width-table'><tbody>");
+
+        if (detail.Listrelate_Laws?.Any() == true)
+        {
+            int i = 1;
+            foreach (var law in detail.Listrelate_Laws)
+            {
+                htmlBuilder.Append("<tr>");
+                htmlBuilder.Append($"<td class='text-center' style='width: 50px;'>{i++}</td>");
+                htmlBuilder.Append($"<td class='text-left'>{law.RELATED_LAWS_DESC}</td>");
+                htmlBuilder.Append("</tr>");
+            }
+        }
+        else
+        {
+            htmlBuilder.Append("<tr><td class='text-center'>ไม่มีข้อมูล</td></tr>");
+        }
+        htmlBuilder.Append("</tbody></table>");
+
+        // ปิด HTML
+        htmlBuilder.Append("</body></html>");
+
+        // --- ส่วนการ Convert PDF คงเดิม ---
+        var doc = new HtmlToPdfDocument()
+        {
+            GlobalSettings = {
+            PaperSize = PaperKind.A4,
+            Orientation = Orientation.Portrait,
+            Margins = new MarginSettings { Top = 15, Bottom = 15, Left = 15, Right = 15 }
+        },
+            Objects = {
+            new ObjectSettings {
+                HtmlContent = htmlBuilder.ToString(),
+                FooterSettings = { FontName = "THSarabunNew", FontSize = 9, Center = "[page] / [toPage]" }
+            }
+        }
+        };
+
+        return _pdfConverter.Convert(doc);
+    }
+
+    public async Task<string> GenWorkProcessPointHtml(WFSubProcessDetailModels detail)
     {
         if (detail == null)
             throw new ArgumentNullException(nameof(detail), "WFSubProcessDetailModels cannot be null.");
 
         var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf");
         string fontBase64 = "";
-        if (File.Exists(fontPath))
-        {
-            var bytes = File.ReadAllBytes(fontPath);
-            fontBase64 = Convert.ToBase64String(bytes);
-        }
+        if (File.Exists(fontPath)) fontBase64 = Convert.ToBase64String(File.ReadAllBytes(fontPath));
+
         var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_SME.jpg");
         string logoBase64 = "";
-        if (System.IO.File.Exists(logoPath))
-        {
-            var bytes = System.IO.File.ReadAllBytes(logoPath);
-            logoBase64 = Convert.ToBase64String(bytes);
-        }
+        if (File.Exists(logoPath)) logoBase64 = Convert.ToBase64String(File.ReadAllBytes(logoPath));
+
         var lastRevDate = detail.Revisions?.LastOrDefault()?.DateTime;
         var revDateText = lastRevDate.HasValue ? lastRevDate.Value.ToString("dd MMM yy", new CultureInfo("th-TH")) : "-";
         var latestEditCount = detail.Revisions?.Count ?? 0;
         var processName = detail.Header?.ProcessName ?? "-";
         var processCode = detail.Header?.ProcessCode ?? "-";
-        var statusCode = detail.Header?.StatusCode ?? "-";
-        var createdBy = detail.Header?.CreatedBy ?? "-";
         var unitName = detail.OwnerBusinessUnitName ?? "-";
 
         var htmlBuilder = new StringBuilder();
         htmlBuilder.Append(@"<!DOCTYPE html><html><head><meta charset='utf-8'><style>");
-        htmlBuilder.Append($"@font-face {{ font-family: 'THSarabunNew';   src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype'); }}");
-        htmlBuilder.Append(@"body { font-family: 'THSarabunNew', Arial, sans-serif; font-size: 16px; margin: 20px; line-height: 1.5; }");
-        htmlBuilder.Append(@".header-table, .full-width-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }");
-        htmlBuilder.Append(@".header-table td, .full-width-table th, .full-width-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }");
-        htmlBuilder.Append(@".full-width-table th { text-align: center; font-weight: bold; }");
-        htmlBuilder.Append(@".text-center { text-align: center; vertical-align: middle; } .text-left { text-align: left; } .text-right { text-align: right; }");
-        htmlBuilder.Append(@".font-bold { font-weight: bold; } .font-size-20 { font-size: 20px; }");
-        htmlBuilder.Append(@".numbered-list { list-style-type: decimal; padding-left: 20px; } .empty-line { height: 10px; }");
-        htmlBuilder.Append(@".diagram-image-container { page-break-before: always; text-align: center; margin-top: 20px; }");
+        htmlBuilder.Append($"@font-face {{ font-family: 'THSarabunNew'; src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype'); }}");
+
+        htmlBuilder.Append(@"
+        body { font-family: 'THSarabunNew', Arial, sans-serif; font-size: 16px; margin: 20px; line-height: 1.3; }
+        h3 { clear: both; display: block; width: 100%; margin-top: 15px; margin-bottom: 10px; font-size: 20px; }
+        .page-break { clear: both; page-break-before: always; height: 1px; }
+
+        table { width: 100%; border-collapse: collapse; page-break-inside: auto; margin-bottom: 15px; }
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+
+        .header-table td, .full-width-table th, .full-width-table td {
+            border: 1px solid #000; padding: 6px; vertical-align: top;
+            word-wrap: break-word; word-break: break-word;
+            overflow-wrap: break-word; white-space: normal;
+        }
+        .full-width-table th { text-align: center; font-weight: bold; background-color: #f2f2f2; }
+        .text-center { text-align: center; vertical-align: middle; }
+        .text-left { text-align: left; }
+        .font-bold { font-weight: bold; }
+        .numbered-list { padding-left: 25px; margin: 5px 0; }
+    ");
         htmlBuilder.Append(@"</style></head><body>");
 
         htmlBuilder.Append("<table class='header-table'>");
-        htmlBuilder.Append($"<tr><td class='text-left font-bold'><img src='data:image/jpeg;base64,{logoBase64}'  height='80' /></td>");
-        htmlBuilder.Append($"<td class='text-left font-bold' style='width: 30%;'>ครั้งที่แก้ไข: {latestEditCount}<br>วันที่แก้ไข: {revDateText}<br>หน้า: 1/5</td></tr>");
+        htmlBuilder.Append($"<tr><td class='text-left'><img src='data:image/jpeg;base64,{logoBase64}' height='60' /></td>");
+        htmlBuilder.Append($"<td class='text-left font-bold' style='width: 30%;'>ครั้งที่แก้ไข: {latestEditCount}<br>วันที่แก้ไข: {revDateText}</td></tr>");
         htmlBuilder.Append($"<tr><td colspan='2' class='text-left' style='background-color: #DAF7FE;'>{processCode} {processName}</td></tr>");
         htmlBuilder.Append($"<tr><td colspan='2' class='text-left'>หน่วยงาน: {unitName}</td></tr>");
-        htmlBuilder.Append("<tr><td colspan='2' class='text-left'><p class='text-left font-bold'>ตัวชี้วัดของกระบวนการ :</p><ul class='numbered-list'>");
+        htmlBuilder.Append("<tr><td colspan='2'><p class='font-bold'>ตัวชี้วัดของกระบวนการ :</p><ul class='numbered-list'>");
         if (detail.Evaluations?.Any() == true)
-            foreach (var eval in detail.Evaluations)
-                htmlBuilder.Append($"<li>{eval.EvaluationDesc}</li>");
+            foreach (var eval in detail.Evaluations) htmlBuilder.Append($"<li>{eval.EvaluationDesc}</li>");
         else
             htmlBuilder.Append("<li>-</li>");
-        htmlBuilder.Append("</ul></td></tr></table><div class='empty-line'></div>");
+        htmlBuilder.Append("</ul></td></tr></table>");
 
-
-        #region  การอนุมัติเอกสาร
-
-        if (detail.ApprovalsDetail != null && detail.ApprovalsDetail.Count > 0)
-{
-    htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='4' style='background-color: #ddd;'>การอนุมัติเอกสาร</th></tr>");
-    htmlBuilder.Append("<tr><th>บทบาท</th><th>ชื่อ</th><th>ตำแหน่ง</th><th>ลายเซนต์</th></tr></thead><tbody>");
-    foreach (var item in detail.ApprovalsDetail)
-    {
-        htmlBuilder.Append("<tr>");
-        htmlBuilder.Append($"<td class='text-center'>{item.ActorDetail ?? "-"}</td>");
-        htmlBuilder.Append($"<td class='text-center'>{item.EmployeeName ?? "-"}</td>");
-        htmlBuilder.Append($"<td class='text-center'>{item.EmployeePosition ?? "-"}</td>");
-
-        // Signature image
-        if (!string.IsNullOrEmpty(item.E_Signature))
+        if (detail.ApprovalsDetail?.Any() == true)
         {
-            var signPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", item.E_Signature);
-            if (System.IO.File.Exists(signPath))
+            htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='4' style='background-color: #ddd;'>การอนุมัติเอกสาร</th></tr>");
+            htmlBuilder.Append("<tr><th>บทบาท</th><th>ชื่อ</th><th>ตำแหน่ง</th><th>ลายเซ็น</th></tr></thead><tbody>");
+            foreach (var item in detail.ApprovalsDetail)
             {
-                var bytes = System.IO.File.ReadAllBytes(signPath);
-                var base64 = Convert.ToBase64String(bytes);
-                htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='Signature' style='max-width: 100px; height: auto;' /></td>");
+                htmlBuilder.Append("<tr>");
+                htmlBuilder.Append($"<td class='text-center'>{item.ActorDetail ?? "-"}</td>");
+                htmlBuilder.Append($"<td class='text-center'>{item.EmployeeName ?? "-"}</td>");
+                htmlBuilder.Append($"<td class='text-center'>{item.EmployeePosition ?? "-"}</td>");
+
+                string sigImg = "no_sing.jpg";
+                if (!string.IsNullOrEmpty(item.E_Signature)) sigImg = item.E_Signature;
+                var signPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", sigImg);
+                if (!File.Exists(signPath)) signPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
+
+                var sigBase64 = Convert.ToBase64String(File.ReadAllBytes(signPath));
+                htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{sigBase64}' style='max-width: 80px; max-height: 40px;' /></td></tr>");
             }
-            else
-            {
-                var noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
-                var bytes = System.IO.File.ReadAllBytes(noSignPath);
-                var base64 = Convert.ToBase64String(bytes);
-                htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='No Signature' style='max-width: 100px; height: auto;' /></td>");
-            }
+            htmlBuilder.Append("</tbody></table>");
         }
-        else
-        {
-            var noSignPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Sign", "no_sing.jpg");
-            var bytes = System.IO.File.ReadAllBytes(noSignPath);
-            var base64 = Convert.ToBase64String(bytes);
-            htmlBuilder.Append($"<td class='text-center'><img src='data:image/png;base64,{base64}' alt='No Signature' style='max-width: 100px; height: auto;' /></td>");
-        }
-
-        htmlBuilder.Append("</tr>");
-    }
-    htmlBuilder.Append("</tbody></table>");
-}
-
-        #endregion
-
-
 
         htmlBuilder.Append("<table class='full-width-table'><thead><tr><th colspan='3' style='background-color: #ddd;'>ประวัติการแก้ไขเอกสาร</th></tr><tr><th>ครั้งที่</th><th>วันที่</th><th>รายละเอียด</th></tr></thead><tbody>");
         if (detail.Revisions?.Any() == true)
         {
             int i = 1;
             foreach (var rev in detail.Revisions)
-                htmlBuilder.Append($"<tr><td class='text-center'>{i++}</td><td class='text-center'>{rev.DateTime?.ToString("d MMM yy", new CultureInfo("th-TH"))}</td><td>{rev.EditDetail}</td></tr>");
+                htmlBuilder.Append($"<tr><td class='text-center'>{i++}</td><td class='text-center' style='width: 15%;'>{rev.DateTime?.ToString("d MMM yy", new CultureInfo("th-TH"))}</td><td>{rev.EditDetail}</td></tr>");
         }
         else
             htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
         htmlBuilder.Append("</tbody></table>");
 
-        if (!string.IsNullOrEmpty(detail.DiagramAttachFile))
+        if (detail.ListImage?.Any() == true)
+            foreach (var img in detail.ListImage) AppendDiagramImage(htmlBuilder, img.DiagramAttachFile);
+        else
+            AppendDiagramImage(htmlBuilder, detail.DiagramAttachFile);
+
+        htmlBuilder.Append("<div class='page-break'></div>");
+        htmlBuilder.Append("<h3>จุดควบคุมและกิจกรรมควบคุม</h3>");
+        htmlBuilder.Append("<table class='full-width-table'>");
+        htmlBuilder.Append("<thead><tr><th>จุดควบคุม<br>(Control Point)</th><th>กิจกรรมควบคุม<br>(Control Activity)</th><th>รายละเอียด</th></tr></thead>");
+        htmlBuilder.Append("<tbody>");
+
+        if (detail.ControlPoints?.Any() == true)
         {
-            string strxml = detail.DiagramAttachFile.Trim();
+            foreach (var cp in detail.ControlPoints)
+            {
+                htmlBuilder.Append("<tr>");
+                htmlBuilder.Append($"<td class='text-center' style='width:15%;'>{cp.ProcessControlCode}</td>");
+                htmlBuilder.Append($"<td class='text-left' style='width:35%;'>{cp.ProcessControlActivity}</td>");
+                htmlBuilder.Append($"<td class='text-left'>{cp.ProcessControlDetail}</td>");
+                htmlBuilder.Append("</tr>");
+            }
+        }
+        else
+        {
+            htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
+        }
+        htmlBuilder.Append("</tbody></table>");
+
+        htmlBuilder.Append("<div class='page-break'></div>");
+        htmlBuilder.Append("<h3>กฎหมายที่เกี่ยวข้อง/ ที่บังคับใช้</h3>");
+        htmlBuilder.Append("<table class='full-width-table'><tbody>");
+
+        if (detail.Listrelate_Laws?.Any() == true)
+        {
+            int i = 1;
+            foreach (var law in detail.Listrelate_Laws)
+            {
+                htmlBuilder.Append("<tr>");
+                htmlBuilder.Append($"<td class='text-center' style='width: 50px;'>{i++}</td>");
+                htmlBuilder.Append($"<td class='text-left'>{law.RELATED_LAWS_DESC}</td>");
+                htmlBuilder.Append("</tr>");
+            }
+        }
+        else
+        {
+            htmlBuilder.Append("<tr><td class='text-center'>ไม่มีข้อมูล</td></tr>");
+        }
+        htmlBuilder.Append("</tbody></table>");
+
+        htmlBuilder.Append("</body></html>");
+        return htmlBuilder.ToString();
+    }
+
+    private void AppendDiagramImage(StringBuilder htmlBuilder, string? diagramAttachFile)
+    {
+        if (!string.IsNullOrEmpty(diagramAttachFile))
+        {
+            string strxml = diagramAttachFile.Trim();
             var xdoc = XDocument.Parse(strxml);
             string base64 = xdoc.Descendants("content").FirstOrDefault()?.Value?.Trim();
-            // 🔄 ล้าง prefix เช่น "data:image/png;base64,"
+            // 🔄 Remove prefix like "data:image/png;base64,"
             if (base64.Contains("base64,"))
                 base64 = base64.Substring(base64.IndexOf("base64,") + 7);
 
-            // 🔍 ตรวจ MIME Type จาก base64  
-            string mimeType = "image/png";      
+            // 🔍 Detect MIME Type from base64
+            string mimeType = "image/png";
             if (base64.StartsWith("/9j")) mimeType = "image/jpeg";
             else if (base64.StartsWith("R0lGOD")) mimeType = "image/gif";
 
             try
             {
-                // ทดสอบ decode base64
+                // Test decoding base64
                 _ = Convert.FromBase64String(base64);
-
                 htmlBuilder.Append("<div class='diagram-image-container'><h3>ผังกระบวนการ</h3>");
                 htmlBuilder.Append($"<img src='data:{mimeType};base64,{base64}' alt='Diagram' style='max-width: 100%; height: auto;' /></div>");
             }
@@ -933,72 +1328,7 @@ public class WordWFService : IWordWFService
                 htmlBuilder.Append("<p style='color:red;'>⚠ รูปภาพไม่สามารถแสดงได้ (base64 ผิดรูปแบบ)</p>");
             }
         }
-
-
-        htmlBuilder.Append("<table class='full-width-table'><thead><tr><th>จุดควบคุม<br>(Control Point)</th><th>กิจกรรมควบคุม<br>(Control Activity)</th><th>รายละเอียด</th></tr></thead><tbody>");
-        if (detail.ControlPoints?.Any() == true)
-        {
-            foreach (var cp in detail.ControlPoints)
-                htmlBuilder.Append($"<tr><td class='text-center'>{cp.ProcessControlCode}</td><td class='text-center'>{cp.ProcessControlActivity}</td><td>{cp.ProcessControlDetail}</td></tr>");
-        }
-        else
-            htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
-        htmlBuilder.Append("</tbody></table>");
-
-
-        if (detail.Listrelate_Laws != null && detail.Listrelate_Laws.Count > 0)
-        {
-            htmlBuilder.Append("<div class='tab1'><h3>กฎหมายที่เกี่ยวข้อง/ ที่บังคับใช้</h3>");
-            htmlBuilder.Append("<table class='full-width-table'><tbody>");
-            int i = 1;
-            foreach (var cp in detail.Listrelate_Laws)
-            {
-                htmlBuilder.Append($"<tr><td class='text-center'>{i}</td><td class='tab1'>{cp.RELATED_LAWS_DESC}</td></tr>");
-                i++;
-            }
-            htmlBuilder.Append("</tbody></table></div>");
-        }
-        else 
-        {
-            htmlBuilder.Append("<div class='tab1'><h3>กฎหมายที่เกี่ยวข้อง/ ที่บังคับใช้</h3>");
-            htmlBuilder.Append("<table class='full-width-table'><tbody>");
-         
-                htmlBuilder.Append("<tr><td colspan='3' class='text-center'>ไม่มีข้อมูล</td></tr>");
-          
-            htmlBuilder.Append("</tbody></table></div>");
-        }
-
-            // ปิด html
-            htmlBuilder.Append("</body></html>");
-        var html = htmlBuilder.ToString();
-
-        var doc = new HtmlToPdfDocument()
-        {
-            GlobalSettings = {
-            PaperSize = PaperKind.A4,
-            Orientation = DinkToPdf.Orientation.Portrait,
-            Margins = new MarginSettings { Top = 20, Bottom = 20, Left = 20, Right = 20 }
-        },
-            Objects = {
-            new ObjectSettings {
-                HtmlContent = html,
-                FooterSettings = new FooterSettings {
-                    FontName = "THSarabunNew",
-                    FontSize = 8,
-                    Line = false,
-                    Center = "[page] / [toPage]"
-                }
-            }
-        }
-        };
-
-        if (_pdfConverter == null)
-            throw new Exception("PDF service (IConverter) is not available.");
-
-        var pdfBytes = _pdfConverter.Convert(doc);
-        return pdfBytes;
     }
-
 
 
     // Helper method to extract base64 from XML (unchanged from your original)

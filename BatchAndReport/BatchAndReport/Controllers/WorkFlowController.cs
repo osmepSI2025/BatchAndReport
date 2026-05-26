@@ -390,8 +390,25 @@ namespace BatchAndReport.Controllers
                 return NotFound("ไม่พบข้อมูลโครงการ");
 
 
-            var wordBytes = await _serviceWFWord.GenWorkProcessPointHtmlToPdf(detail);
-            return File(wordBytes, "application/pdf", "WorkProcessPoint.pdf");
+            var htmlContent = await _serviceWFWord.GenWorkProcessPointHtml(detail);
+            await new BrowserFetcher().DownloadAsync();
+            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+            await using var page = await browser.NewPageAsync();
+            await page.SetContentAsync(htmlContent, new NavigationOptions
+            {
+                WaitUntil = new[] { WaitUntilNavigation.Networkidle0 }
+            });
+            var pdfOptions = new PdfOptions
+            {
+                Format = PuppeteerSharp.Media.PaperFormat.A4,
+                PrintBackground = true,
+                MarginOptions = new PuppeteerSharp.Media.MarginOptions
+                {
+                    Top = "15mm", Bottom = "15mm", Left = "15mm", Right = "15mm"
+                }
+            };
+            var pdfBytes = await page.PdfDataAsync(pdfOptions);
+            return File(pdfBytes, "application/pdf", "WorkProcessPoint.pdf");
         }
 
         [HttpGet("ExportWorkflowProcess")]

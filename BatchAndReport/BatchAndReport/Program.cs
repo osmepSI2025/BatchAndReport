@@ -136,6 +136,10 @@ builder.Services.AddSingleton<IConverter, SynchronizedConverter>(provider =>
     new SynchronizedConverter(new PdfTools()));
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ScheduledJobService>());
 
+// Download Chromium for PuppeteerSharp (runs once, skips if already present)
+var browserFetcher = new PuppeteerSharp.BrowserFetcher();
+await browserFetcher.DownloadAsync();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -15,6 +15,7 @@ namespace BatchAndReport.Services
         Task<byte[]> GenInternalControlSystemWord(List<WFInternalControlProcessModels> model, WFSubProcessDetailModels detail2);
         Task<byte[]> GenWorkProcessPoint(WFSubProcessDetailModels model);
         Task<byte[]> GenWorkProcessPointHtmlToPdf(WFSubProcessDetailModels model);
+        Task<string> GenWorkProcessPointHtml(WFSubProcessDetailModels model);
         //  byte[] GenWorkProcessPointPreview();
         byte[] GenWFProcessDetail(WFProcessDetailModels model);
     }

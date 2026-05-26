@@ -336,6 +336,52 @@ namespace BatchAndReport.DAO
             return result;
         }
 
+        public async Task<List<DiagramAttachFileModels>> GetDiagramFileAsync(int id)
+        {
+            var result = new List<DiagramAttachFileModels>();
+            try
+            {
+                await using var connection = _connectionDAO.GetConnectionWorkflow();
+                await using var command = new SqlCommand(@"
+         SELECT 
+        DIAGRAM_ID, 
+        DIAGRAM_ATTACH_FILE, 
+        IS_DELETED,
+        CREATED_DATETIME,
+        UPDATED_DATETIME,
+        CREATED_BY,
+        UPDATED_BY,
+        SUB_PROCESS_MASTER_ID
+    FROM DIAGRAM_FILE
+    WHERE SUB_PROCESS_MASTER_ID = @SubProcessId", connection);
+
+                command.Parameters.AddWithValue("@SubProcessId", id);
+                await connection.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var dto = new DiagramAttachFileModels
+                    {
+                        CreatedBy = reader["CREATED_BY"]?.ToString(),
+                        CreatedDatetime = reader["CREATED_DATETIME"] as DateTime?,
+                        DiagramAttachFile = reader["DIAGRAM_ATTACH_FILE"]?.ToString(),
+                        DiagramId = reader["DIAGRAM_ID"] is int diagramId ? diagramId : 0, // Renamed variable to avoid conflict
+                        IsDeleted = reader["IS_DELETED"] is bool b ? b : (reader["IS_DELETED"] != DBNull.Value && Convert.ToBoolean(reader["IS_DELETED"])),
+                        SubProcessMasterId = reader["SUB_PROCESS_MASTER_ID"] is int spId ? spId : 0,
+                        UpdatedBy = reader["UPDATED_BY"]?.ToString(),
+                        UpdatedDatetime = reader["UPDATED_DATETIME"] as DateTime?
+                    };
+                    result.Add(dto); // Add the dto to the result list
+                }
+            }
+            catch (Exception)
+            {
+                // Optionally log the exception
+                return new List<DiagramAttachFileModels>();
+            }
+            return result;
+        }
 
         public async Task<WFSubProcessDetailModels?> GetSubProcessDetailAsync(int subProcessId)
         {
@@ -372,9 +418,10 @@ namespace BatchAndReport.DAO
             .Where(x => x.SubProcessMasterId == subProcessId)
             .ToListAsync();
 
-            var approverIds = model.Approvals
+            var approverIds = model.Approvals.OrderBy(a => a.ApprovalTypeCode)
                 .Select(x => x.EmployeeId)
                 .Where(id => !string.IsNullOrEmpty(id))
+                
                 .Distinct()
                 .ToList();
 
@@ -395,7 +442,7 @@ namespace BatchAndReport.DAO
                 .Where(l => l.LookupType == "APPROVAL_TYPE_CODE")
                 .ToDictionaryAsync(l => l.LookupCode, l => l.LookupValue);
 
-            model.ApprovalsDetail = model.Approvals
+            model.ApprovalsDetail = model.Approvals.OrderBy(a => a.ApprovalTypeCode)
                 .Select(x => new SubProcessReviewApprovalModels
                 {
                     SubProcessReviewApprovalId = x.SubProcessReviewApprovalId,
@@ -444,12 +491,38 @@ namespace BatchAndReport.DAO
                 .ToListAsync();
             model.DiagramAttachFile = header.DiagramAttachFile;
 
+
+
             var revisionRelateLaws = await GetRalateLaws(subProcessId);
             if (revisionRelateLaws.ToList().Count>0&& revisionRelateLaws!=null) 
             {
                 model.Listrelate_Laws = revisionRelateLaws;
             }
-        
+
+            //var diagramFiles = await _k2context_workflow.
+            //    .Where(x => x.SubProcessMasterId == subProcessId)
+            //    .ToListAsync();
+
+            var diagramFiles = GetDiagramFileAsync(subProcessId);
+            if (diagramFiles != null && diagramFiles.Result.Count > 0)
+            {
+                // With this conversion:
+                model.ListImage = diagramFiles.Result
+                    .Select(x => new DiagramFileEntity
+                    {
+                        DiagramId = x.DiagramId,
+                        DiagramAttachFile = x.DiagramAttachFile,
+                        IsDeleted = x.IsDeleted,
+                        CreatedDatetime = x.CreatedDatetime,
+                        UpdatedDatetime = x.UpdatedDatetime,
+                        CreatedBy = x.CreatedBy,
+                        UpdatedBy = x.UpdatedBy,
+                        SubProcessMasterId = x.SubProcessMasterId
+                    })
+                    .ToList();
+            }
+
+
             return model;
         }
 

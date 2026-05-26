@@ -107,7 +107,7 @@ public class WordWorkFlow_annualProcessReviewService
         <input type='checkbox' style='transform:scale(1.3);margin-right:8px;' " + (isCommentChecked ? "checked" : "") + @" /> มีความเห็นเพิ่มเติม
     </div>"
                 + (!string.IsNullOrWhiteSpace(detail.commentDetial)
-                    ? "<div class='tab2 t-12'>" + System.Net.WebUtility.HtmlEncode(detail.commentDetial) + "</div>"
+                    ? "<div class='tab2 t-12'>" + System.Net.WebUtility.HtmlEncode(detail.commentDetial).Replace("\r\n", "<br/>").Replace("\n", "<br/>") + "</div>"
                     : "")
                 + @"
 </div>
@@ -424,14 +424,27 @@ public class WordWorkFlow_annualProcessReviewService
             logoBase64 = Convert.ToBase64String(bytes);
         }
 
-        // Absolute font path for PDF rendering
-        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf").Replace("\\", "/");
+        // Embed font as Base64 for Chromium/PuppeteerSharp rendering
+        var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew.ttf");
+        string fontBase64 = "";
+        if (System.IO.File.Exists(fontPath))
+        {
+            var fontBytes = await System.IO.File.ReadAllBytesAsync(fontPath);
+            fontBase64 = Convert.ToBase64String(fontBytes);
+        }
+        var fontBoldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font", "THSarabunNew Bold.ttf");
+        string fontBoldBase64 = "";
+        if (System.IO.File.Exists(fontBoldPath))
+        {
+            var fontBytes = await System.IO.File.ReadAllBytesAsync(fontBoldPath);
+            fontBoldBase64 = Convert.ToBase64String(fontBytes);
+        }
 
         var htmlBody = new StringBuilder();
 
         // Header
         htmlBody.Append($@"
-        <div class='t-14 text-center'>
+        <div class='t-16 text-center'>
            <!-- <b>การทบทวนกลุ่มกระบวนการหลักและกลุ่มกระบวนการสนับสนุน {detail.BusinessUnitOwner} ประจำปี {detail.FiscalYear}</b> -->
                   <!--  <b>แผนภาพระบบงาน(Work System) ประจำปี {detail.FiscalYear}</b> -->
                  <b>{detail.UserProcessReviewName}</b>
@@ -444,21 +457,21 @@ public class WordWorkFlow_annualProcessReviewService
         {
             htmlBody.Append("<table class='w-100' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px; table-layout:fixed;'>");
             htmlBody.Append("<colgroup>");
-            htmlBody.Append("<col style='width:20%;'/>"); // First column
+            htmlBody.Append("<col style='width:15%;'/>"); // First column
             int coreCount = detail.CoreProcesses?.Count ?? 0;
             for (int i = 0; i < coreCount; i++)
-                htmlBody.Append($"<col style='width:{80.0 / coreCount}%;'/>"); // Distribute remaining width equally
+                htmlBody.Append($"<col style='width:{85.0 / coreCount}%;'/>"); // Distribute remaining width equally
             htmlBody.Append("</colgroup>");
             // Row 1: กลุ่มกระบวนการหลัก + รหัส
             htmlBody.Append("<tr>");
-            htmlBody.Append("<td rowspan='2' class='t-16' style='width:25%;font-weight:bold;background:#fff;'>กลุ่มกระบวน<br/>การหลัก<br/>(Core Process)</td>");
+            htmlBody.Append("<td rowspan='2' class='t-14' style='width:15%;font-weight:bold;background:#fff;'>กลุ่มกระบวน<br/>การหลัก<br/>(Core Process)</td>");
             foreach (var core in detail.CoreProcesses)
-                htmlBody.Append($"<td class='t-16' style='background:#00C896;text-align:center;vertical-align:top;'>{System.Net.WebUtility.HtmlEncode(core.ProcessGroupCode)}</td>");
+                htmlBody.Append($"<td class='t-14' style='background:#00C896;text-align:center;vertical-align:top;'>{System.Net.WebUtility.HtmlEncode(core.ProcessGroupCode)}</td>");
             htmlBody.Append("</tr>");
             // Row 2: ชื่อกระบวนการ
             htmlBody.Append("<tr>");
             foreach (var core in detail.CoreProcesses)
-                htmlBody.Append($"<td class='t-16' style='background:#00C896;text-align:center;vertical-align:top;white-space:normal;word-break:break-word;'>{System.Net.WebUtility.HtmlEncode(core.ProcessGroupName)}</td>");
+                htmlBody.Append($"<td class='t-14' style='background:#00C896;text-align:center;vertical-align:top;white-space:normal;overflow-wrap:break-word;'>{HtmlEncodeThaiSafe(core.ProcessGroupName)}</td>");
             htmlBody.Append("</tr>");
             htmlBody.Append("</table>");
         }
@@ -468,9 +481,9 @@ public class WordWorkFlow_annualProcessReviewService
         {
             htmlBody.Append("<table class='w-100' border='1' cellpadding='6' style='border-collapse:collapse;margin-bottom:12px; table-layout:fixed;'>");
             htmlBody.Append("<colgroup>");
-            htmlBody.Append("<col style='width:20%;'/>"); // First column
+            htmlBody.Append("<col style='width:15%;'/>"); // First column
             htmlBody.Append("<col style='width:10%;'/>"); // Code column
-            htmlBody.Append("<col style='width:70%;'/>"); // Name column
+            htmlBody.Append("<col style='width:75%;'/>"); // Name column
             htmlBody.Append("</colgroup>");
             for (int i = 0; i < detail.SupportProcesses.Count; i++)
             {
@@ -478,10 +491,10 @@ public class WordWorkFlow_annualProcessReviewService
                 htmlBody.Append("<tr>");
                 if (i == 0)
                 {
-                    htmlBody.Append($"<td class='t-16' rowspan='{detail.SupportProcesses.Count}' style='width:25%;font-weight:bold;'>กลุ่มกระบวนการ<br/>สนับสนุน<br/>(Supporting Process)</td>");
+                    htmlBody.Append($"<td class='t-14' rowspan='{detail.SupportProcesses.Count}' style='width:15%;font-weight:bold;'>กลุ่มกระบวนการ<br/>สนับสนุน<br/>(Supporting Process)</td>");
                 }
                 htmlBody.Append($"<td class='t-16' style='background:#4CB1F0;text-align:center;width:10%;'>{System.Net.WebUtility.HtmlEncode(support.ProcessGroupCode)}</td>");
-                htmlBody.Append($"<td class='t-16' style='background:#4CB1F0;text-align:left;width:70%;'>{System.Net.WebUtility.HtmlEncode(support.ProcessGroupName)}</td>");
+                htmlBody.Append($"<td class='t-16' style='background:#4CB1F0;text-align:left;width:80%;'>{System.Net.WebUtility.HtmlEncode(support.ProcessGroupName)}</td>");
                 htmlBody.Append("</tr>");
             }
             htmlBody.Append("</table>");
@@ -489,97 +502,68 @@ public class WordWorkFlow_annualProcessReviewService
 
 
 
-
         // Compose full HTML
         var html = $@"
-    <html>
+    <html lang='th'>
     <head>
         <meta charset='utf-8'>
-         <style>
-        @font-face {{
-            font-family: 'THSarabunNew';
-            src: url('file:///{fontPath}') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }}
-        body {{
-            font-size: 16px;
-            font-family: 'THSarabunNew', Arial, sans-serif;
-            margin: 0;
-            padding: 24px;
-        }}
-        body, p, div, th, td {{
-            word-break: keep-all;
-            overflow-wrap: break-word;
-            -webkit-line-break: after-white-space;
-            hyphens: none;
-        }}
-        .t-14 {{ font-size: 1.3em; }}
-        .t-16 {{ font-size: 1.5em; }}
-        .t-18 {{ font-size: 1.7em; }}
-        .t-20 {{ font-size: 1.9em; }}
-        .t-22 {{ font-size: 2.1em; }}
-        .section-title {{
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-top: 24px;
-            margin-bottom: 8px;
-            color: #0056b3;
-        }}
-        .text-center {{
+        <style>
+            @font-face {{
+                font-family: 'THSarabun';
+                src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype');
+                font-weight: normal;
+                font-style: normal;
+            }}
+            @font-face {{
+                font-family: 'THSarabun';
+                src: url('data:font/truetype;charset=utf-8;base64,{fontBase64}') format('truetype');
+                font-weight: normal;
+                font-style: italic;
+            }}
+            @font-face {{
+                font-family: 'THSarabun';
+                src: url('data:font/truetype;charset=utf-8;base64,{fontBoldBase64}') format('truetype');
+                font-weight: bold;
+                font-style: normal;
+            }}
+            @font-face {{
+                font-family: 'THSarabun';
+                src: url('data:font/truetype;charset=utf-8;base64,{fontBoldBase64}') format('truetype');
+                font-weight: bold;
+                font-style: italic;
+            }}
+            body {{
+                font-size: 16px;
+                font-family: 'THSarabun', Arial, sans-serif;
+                margin: 0;
+                padding: 24px;
+            }}
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }}
+            th, td {{
+                padding: 10px 8px;
+                border: 1px solid #dee2e6;
+                word-wrap: break-word;
+                white-space: normal;
+                overflow-wrap: break-word;
+                vertical-align: top;
+            }}
+ .text-center {{
             text-align: center;
             width: 100%;
             margin-bottom: 24px;
         }}
-        .table-container {{
-            margin: 24px 0;
-        }}
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            overflow: hidden;
-        }}
-        th, td {{
-            padding: 10px 8px;
-            border: 1px solid #dee2e6;
-            word-break: break-word;
-            vertical-align: top;
-        }}
-        .signature-table td {{
-            padding: 16px;
-            font-size: 1em;
-            text-align: center;
-            border: none;
-        }}
-        .signature-table {{
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    background: none !important;
-}}
-        .note {{
-            font-style: italic;
-            margin-bottom: 12px;
-            color: #888;
-        }}
-        .tab1 {{ text-indent: 48px; }}
-        .tab2 {{ text-indent: 96px; }}
-        .comment-section {{
-            border-radius: 6px;
-            padding: 12px 18px;
-            margin: 12px 0;
-        }}
-        .workflow-list {{
-            margin-left: 32px;
-        }}
-        ol {{
-            margin-left: 32px;
-        }}
-        .section-divider {{
-            border-bottom: 2px solid #e3e3e3;
-            margin: 24px 0 16px 0;
-        }}
-    </style>
+   .t-12 {{ font-size: 1em; }}
+    .t-13 {{ font-size: 1.2em; }}
+    .t-14 {{ font-size: 1.3em; }}
+    .t-16 {{ font-size: 1.5em; }}
+    .t-18 {{ font-size: 1.7em; }}
+    .t-20 {{ font-size: 1.9em; }}
+    .t-22 {{ font-size: 2.1em; }}
+        </style>
     </head>
     <body>
         {htmlBody}
@@ -587,36 +571,28 @@ public class WordWorkFlow_annualProcessReviewService
     </html>
     ";
 
-        var doc = new HtmlToPdfDocument()
+        await using var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(new PuppeteerSharp.LaunchOptions
         {
-            GlobalSettings = {
-            PaperSize = PaperKind.A4,
-            Orientation = Orientation.Portrait,
-            Margins = new MarginSettings
+            Headless = true,
+            Args = new[] { "--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage" }
+        });
+        await using var page = await browser.NewPageAsync();
+        await page.SetContentAsync(html, new PuppeteerSharp.NavigationOptions
+        {
+            WaitUntil = new[] { PuppeteerSharp.WaitUntilNavigation.Networkidle0 }
+        });
+        var pdfBytes = await page.PdfDataAsync(new PuppeteerSharp.PdfOptions
+        {
+            Format = PuppeteerSharp.Media.PaperFormat.A4,
+            PrintBackground = true,
+            MarginOptions = new PuppeteerSharp.Media.MarginOptions
             {
-                Top = 20,
-                Bottom = 20,
-                Left = 20,
-                Right = 20
+                Top = "20mm", Bottom = "20mm",
+                Left = "15mm", Right = "15mm"
             }
-        },
-            Objects = {
-            new ObjectSettings() {
-                HtmlContent = html,
-                FooterSettings = new FooterSettings
-                {
-                    FontName = "THSarabunNew",
-                    FontSize = 6,
-                    Line = false,
-                    Center = "[page] / [toPage]"
-                }
-            }
-        }
-        };
-
-        var pdfBytes = _pdfConverter.Convert(doc);
+        });
         return pdfBytes;
-    }
+}
 
     public async Task<string> GenExportWorkProcesses_Html(WFProcessDetailModels detail)
     {
@@ -835,4 +811,17 @@ public class WordWorkFlow_annualProcessReviewService
 
         return html;
     }
+    private static string HtmlEncodeThaiSafe(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        var encoded = System.Net.WebUtility.HtmlEncode(text);
+        // Insert <wbr> before Thai leading vowels so wkhtmltopdf breaks at valid syllable boundaries
+        return encoded
+            .Replace("เ", "<wbr>เ")
+            .Replace("แ", "<wbr>แ")
+            .Replace("โ", "<wbr>โ")
+            .Replace("ใ", "<wbr>ใ")
+            .Replace("ไ", "<wbr>ไ");
+    }
 }
+
