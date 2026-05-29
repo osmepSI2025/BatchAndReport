@@ -70,13 +70,11 @@ namespace BatchAndReport.Controllers
                 if (!safeFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
                     safeFileName = Path.ChangeExtension(safeFileName, ".pdf");
 
-                safeFileName = MakeUnique(targetFolder, safeFileName);
-
                 var filePath = Path.Combine(targetFolder, safeFileName);
 
                 try
                 {
-                    using var fs = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                    using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
                     await file.CopyToAsync(fs);
 
                     var baseSegment = string.IsNullOrWhiteSpace(model.ProcessInstanceID)
@@ -131,17 +129,17 @@ namespace BatchAndReport.Controllers
             return cleaned;
         }
 
-        private static string MakeUnique(string folder, string fileName)
-        {
-            var name = Path.GetFileNameWithoutExtension(fileName);
-            var ext = Path.GetExtension(fileName);
-            var candidate = fileName;
-            var i = 1;
-            while (System.IO.File.Exists(Path.Combine(folder, candidate)))
-            {
-                candidate = $"{name} ({i++}){ext}";
-            }
-            return candidate;
-        }
+        //private static string MakeUnique(string folder, string fileName)
+        //{
+        //    var name = Path.GetFileNameWithoutExtension(fileName);
+        //    var ext = Path.GetExtension(fileName);
+        //    var candidate = fileName;
+        //    var i = 1;
+        //    while (System.IO.File.Exists(Path.Combine(folder, candidate)))
+        //    {
+        //        candidate = $"{name} ({i++}){ext}";
+        //    }
+        //    return candidate;
+        //}
     }
 }
